@@ -11,12 +11,6 @@
 - **YAML option to lock cave artifacts behind an item** — like `lock_taming` for artifacts. Related
   memory: `cave-locking-deferred.md` (idea C: physical entry block).
 
-## Open design question (not a bug)
-
-- **Alpha kills don't count toward the base species' kill check** — Alpha Carno fires its own
-  `ALPHA-KILL` check but `KILL tag=Elite Carno` intentionally isn't in the species kill table, so it
-  never also satisfies `Killed: Carno`. Decide whether it should (applies to all 7 alpha species).
-
 ## Fixed 2026-07-12 (creature roster corrections, user-confirmed)
 
 - **Ghillie Shirt — closed, not a bug** (confirmed by user). Was a naming mismatch: in-game engram
