@@ -1,0 +1,7 @@
+{
+  "_comment": "ArkAP plugin runtime config. Copy to ArkAP.config.json next to ArkAP.dll (the installer never overwrites an existing ArkAP.config.json).",
+  "mode": "ap",
+  "_mode_help": "ap = follow the Archipelago server (real multiworld). offline = self-randomize a local seed.json for solo hook testing.",
+  "multiplayer": false,
+  "_multiplayer_help": "false = one shared AP slot for the whole server (solo - the default). true = PER-PLAYER slots: each survivor's engrams/tames/checks are their own AP slot. Each player needs their own yaml + their own connector instance pointed at ipc\\<CharacterName> (exact survivor name). See docs/GETTING_STARTED.md - Multiplayer."
+}

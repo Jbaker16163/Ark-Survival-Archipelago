@@ -1,0 +1,3453 @@
+{
+ "tracker_default": {
+  "type": "tabbed",
+  "tabs": [
+   {
+    "title": "Tames Unlocked",
+    "content": {
+     "type": "array",
+     "orientation": "vertical",
+     "content": [
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "unlocked_achatina"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_acrocanthosaurus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_allosaurus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_angler"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_ankylosaurus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_archaeopteryx"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_argentavis"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_arthropleura"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_baryonyx"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_basilosaurus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_castoroides"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_dung_beetle"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "unlocked_gigantopithecus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_bronto"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_carno"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_chalicotherium"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_compsognathus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_daeodon"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_dilophosaur"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_dimetrodon"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_dimorphodon"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_diplodocus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_diplocaulus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_direbear"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "unlocked_direwolf"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_dodo"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_doedicurus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_ichthyosaurus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_dunkle"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_electrophorus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_equus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_gallimimus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_giganotosaurus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_hesperornis"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_hyaenodon"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_ichthyornis"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "unlocked_iguanodon"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_kairuku"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_procoptodon"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_kaprosuchus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_kentrosaurus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_liopleurodon"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_lystrosaurus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_mammoth"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_manta"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_megalodon"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_megalania"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_megalosaurus"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "unlocked_megatherium"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_microraptor"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_mesopithecus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_mosasaur"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_moschops"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_otter"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_oviraptor"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_pachycephalosaurus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_pachyrhinosaurus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_parasaur"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_paraceratherium"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_pegomastax"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "unlocked_pelagornis"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_phiomia"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_plesiosaur"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_pteranodon"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_purlovia"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_quetzal"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_raptor"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_rex"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_woolly_rhino"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_sabertooth"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_sarcosuchus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_pulmonoscorpius"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "unlocked_ovis"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_araneo"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_spino"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_megaloceros"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_stegosaurus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_styracosaurus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_tapejara"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_terror_bird"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_therizinosaurus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_thylacoleo"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_titanosaur"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_titanoboa"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "unlocked_beelzebufo"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_triceratops"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_troodon"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_carbonemys"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_tusoteuthis"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_yutyrannus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_onyc"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_giant_bee"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_rhyniognatha"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_carcharodontosaurus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_unicorn"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "title": "Tames To Do",
+    "content": {
+     "type": "array",
+     "orientation": "vertical",
+     "content": [
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "tame_achatina"
+        },
+        {
+         "type": "item",
+         "item": "tame_acrocanthosaurus"
+        },
+        {
+         "type": "item",
+         "item": "tame_allosaurus"
+        },
+        {
+         "type": "item",
+         "item": "tame_angler"
+        },
+        {
+         "type": "item",
+         "item": "tame_ankylosaurus"
+        },
+        {
+         "type": "item",
+         "item": "tame_archaeopteryx"
+        },
+        {
+         "type": "item",
+         "item": "tame_argentavis"
+        },
+        {
+         "type": "item",
+         "item": "tame_arthropleura"
+        },
+        {
+         "type": "item",
+         "item": "tame_baryonyx"
+        },
+        {
+         "type": "item",
+         "item": "tame_basilosaurus"
+        },
+        {
+         "type": "item",
+         "item": "tame_castoroides"
+        },
+        {
+         "type": "item",
+         "item": "tame_dung_beetle"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "tame_gigantopithecus"
+        },
+        {
+         "type": "item",
+         "item": "tame_bronto"
+        },
+        {
+         "type": "item",
+         "item": "tame_carno"
+        },
+        {
+         "type": "item",
+         "item": "tame_chalicotherium"
+        },
+        {
+         "type": "item",
+         "item": "tame_compsognathus"
+        },
+        {
+         "type": "item",
+         "item": "tame_daeodon"
+        },
+        {
+         "type": "item",
+         "item": "tame_dilophosaur"
+        },
+        {
+         "type": "item",
+         "item": "tame_dimetrodon"
+        },
+        {
+         "type": "item",
+         "item": "tame_dimorphodon"
+        },
+        {
+         "type": "item",
+         "item": "tame_diplodocus"
+        },
+        {
+         "type": "item",
+         "item": "tame_diplocaulus"
+        },
+        {
+         "type": "item",
+         "item": "tame_direbear"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "tame_direwolf"
+        },
+        {
+         "type": "item",
+         "item": "tame_dodo"
+        },
+        {
+         "type": "item",
+         "item": "tame_doedicurus"
+        },
+        {
+         "type": "item",
+         "item": "tame_ichthyosaurus"
+        },
+        {
+         "type": "item",
+         "item": "tame_dunkle"
+        },
+        {
+         "type": "item",
+         "item": "tame_electrophorus"
+        },
+        {
+         "type": "item",
+         "item": "tame_equus"
+        },
+        {
+         "type": "item",
+         "item": "tame_gallimimus"
+        },
+        {
+         "type": "item",
+         "item": "tame_giganotosaurus"
+        },
+        {
+         "type": "item",
+         "item": "tame_hesperornis"
+        },
+        {
+         "type": "item",
+         "item": "tame_hyaenodon"
+        },
+        {
+         "type": "item",
+         "item": "tame_ichthyornis"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "tame_iguanodon"
+        },
+        {
+         "type": "item",
+         "item": "tame_kairuku"
+        },
+        {
+         "type": "item",
+         "item": "tame_procoptodon"
+        },
+        {
+         "type": "item",
+         "item": "tame_kaprosuchus"
+        },
+        {
+         "type": "item",
+         "item": "tame_kentrosaurus"
+        },
+        {
+         "type": "item",
+         "item": "tame_liopleurodon"
+        },
+        {
+         "type": "item",
+         "item": "tame_lystrosaurus"
+        },
+        {
+         "type": "item",
+         "item": "tame_mammoth"
+        },
+        {
+         "type": "item",
+         "item": "tame_manta"
+        },
+        {
+         "type": "item",
+         "item": "tame_megalodon"
+        },
+        {
+         "type": "item",
+         "item": "tame_megalania"
+        },
+        {
+         "type": "item",
+         "item": "tame_megalosaurus"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "tame_megatherium"
+        },
+        {
+         "type": "item",
+         "item": "tame_microraptor"
+        },
+        {
+         "type": "item",
+         "item": "tame_mesopithecus"
+        },
+        {
+         "type": "item",
+         "item": "tame_mosasaur"
+        },
+        {
+         "type": "item",
+         "item": "tame_moschops"
+        },
+        {
+         "type": "item",
+         "item": "tame_otter"
+        },
+        {
+         "type": "item",
+         "item": "tame_oviraptor"
+        },
+        {
+         "type": "item",
+         "item": "tame_pachycephalosaurus"
+        },
+        {
+         "type": "item",
+         "item": "tame_pachyrhinosaurus"
+        },
+        {
+         "type": "item",
+         "item": "tame_parasaur"
+        },
+        {
+         "type": "item",
+         "item": "tame_paraceratherium"
+        },
+        {
+         "type": "item",
+         "item": "tame_pegomastax"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "tame_pelagornis"
+        },
+        {
+         "type": "item",
+         "item": "tame_phiomia"
+        },
+        {
+         "type": "item",
+         "item": "tame_plesiosaur"
+        },
+        {
+         "type": "item",
+         "item": "tame_pteranodon"
+        },
+        {
+         "type": "item",
+         "item": "tame_purlovia"
+        },
+        {
+         "type": "item",
+         "item": "tame_quetzal"
+        },
+        {
+         "type": "item",
+         "item": "tame_raptor"
+        },
+        {
+         "type": "item",
+         "item": "tame_rex"
+        },
+        {
+         "type": "item",
+         "item": "tame_woolly_rhino"
+        },
+        {
+         "type": "item",
+         "item": "tame_sabertooth"
+        },
+        {
+         "type": "item",
+         "item": "tame_sarcosuchus"
+        },
+        {
+         "type": "item",
+         "item": "tame_pulmonoscorpius"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "tame_ovis"
+        },
+        {
+         "type": "item",
+         "item": "tame_araneo"
+        },
+        {
+         "type": "item",
+         "item": "tame_spino"
+        },
+        {
+         "type": "item",
+         "item": "tame_megaloceros"
+        },
+        {
+         "type": "item",
+         "item": "tame_stegosaurus"
+        },
+        {
+         "type": "item",
+         "item": "tame_styracosaurus"
+        },
+        {
+         "type": "item",
+         "item": "tame_tapejara"
+        },
+        {
+         "type": "item",
+         "item": "tame_terror_bird"
+        },
+        {
+         "type": "item",
+         "item": "tame_therizinosaurus"
+        },
+        {
+         "type": "item",
+         "item": "tame_thylacoleo"
+        },
+        {
+         "type": "item",
+         "item": "tame_titanosaur"
+        },
+        {
+         "type": "item",
+         "item": "tame_titanoboa"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "tame_beelzebufo"
+        },
+        {
+         "type": "item",
+         "item": "tame_triceratops"
+        },
+        {
+         "type": "item",
+         "item": "tame_troodon"
+        },
+        {
+         "type": "item",
+         "item": "tame_carbonemys"
+        },
+        {
+         "type": "item",
+         "item": "tame_tusoteuthis"
+        },
+        {
+         "type": "item",
+         "item": "tame_yutyrannus"
+        },
+        {
+         "type": "item",
+         "item": "tame_onyc"
+        },
+        {
+         "type": "item",
+         "item": "tame_giant_bee"
+        },
+        {
+         "type": "item",
+         "item": "tame_rhyniognatha"
+        },
+        {
+         "type": "item",
+         "item": "tame_carcharodontosaurus"
+        },
+        {
+         "type": "item",
+         "item": "tame_unicorn"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "title": "Kills",
+    "content": {
+     "type": "array",
+     "orientation": "vertical",
+     "content": [
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "kill_achatina"
+        },
+        {
+         "type": "item",
+         "item": "kill_acrocanthosaurus"
+        },
+        {
+         "type": "item",
+         "item": "kill_allosaurus"
+        },
+        {
+         "type": "item",
+         "item": "kill_angler"
+        },
+        {
+         "type": "item",
+         "item": "kill_ankylosaurus"
+        },
+        {
+         "type": "item",
+         "item": "kill_archaeopteryx"
+        },
+        {
+         "type": "item",
+         "item": "kill_argentavis"
+        },
+        {
+         "type": "item",
+         "item": "kill_arthropleura"
+        },
+        {
+         "type": "item",
+         "item": "kill_baryonyx"
+        },
+        {
+         "type": "item",
+         "item": "kill_basilosaurus"
+        },
+        {
+         "type": "item",
+         "item": "kill_castoroides"
+        },
+        {
+         "type": "item",
+         "item": "kill_dung_beetle"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "kill_gigantopithecus"
+        },
+        {
+         "type": "item",
+         "item": "kill_bronto"
+        },
+        {
+         "type": "item",
+         "item": "kill_carno"
+        },
+        {
+         "type": "item",
+         "item": "kill_chalicotherium"
+        },
+        {
+         "type": "item",
+         "item": "kill_compsognathus"
+        },
+        {
+         "type": "item",
+         "item": "kill_daeodon"
+        },
+        {
+         "type": "item",
+         "item": "kill_dilophosaur"
+        },
+        {
+         "type": "item",
+         "item": "kill_dimetrodon"
+        },
+        {
+         "type": "item",
+         "item": "kill_dimorphodon"
+        },
+        {
+         "type": "item",
+         "item": "kill_diplodocus"
+        },
+        {
+         "type": "item",
+         "item": "kill_diplocaulus"
+        },
+        {
+         "type": "item",
+         "item": "kill_direbear"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "kill_direwolf"
+        },
+        {
+         "type": "item",
+         "item": "kill_dodo"
+        },
+        {
+         "type": "item",
+         "item": "kill_doedicurus"
+        },
+        {
+         "type": "item",
+         "item": "kill_ichthyosaurus"
+        },
+        {
+         "type": "item",
+         "item": "kill_dunkle"
+        },
+        {
+         "type": "item",
+         "item": "kill_electrophorus"
+        },
+        {
+         "type": "item",
+         "item": "kill_equus"
+        },
+        {
+         "type": "item",
+         "item": "kill_gallimimus"
+        },
+        {
+         "type": "item",
+         "item": "kill_giganotosaurus"
+        },
+        {
+         "type": "item",
+         "item": "kill_hesperornis"
+        },
+        {
+         "type": "item",
+         "item": "kill_hyaenodon"
+        },
+        {
+         "type": "item",
+         "item": "kill_ichthyornis"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "kill_iguanodon"
+        },
+        {
+         "type": "item",
+         "item": "kill_kairuku"
+        },
+        {
+         "type": "item",
+         "item": "kill_procoptodon"
+        },
+        {
+         "type": "item",
+         "item": "kill_kaprosuchus"
+        },
+        {
+         "type": "item",
+         "item": "kill_kentrosaurus"
+        },
+        {
+         "type": "item",
+         "item": "kill_leedsichthys"
+        },
+        {
+         "type": "item",
+         "item": "kill_liopleurodon"
+        },
+        {
+         "type": "item",
+         "item": "kill_lystrosaurus"
+        },
+        {
+         "type": "item",
+         "item": "kill_mammoth"
+        },
+        {
+         "type": "item",
+         "item": "kill_manta"
+        },
+        {
+         "type": "item",
+         "item": "kill_megalodon"
+        },
+        {
+         "type": "item",
+         "item": "kill_megalania"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "kill_megalosaurus"
+        },
+        {
+         "type": "item",
+         "item": "kill_megatherium"
+        },
+        {
+         "type": "item",
+         "item": "kill_microraptor"
+        },
+        {
+         "type": "item",
+         "item": "kill_mesopithecus"
+        },
+        {
+         "type": "item",
+         "item": "kill_mosasaur"
+        },
+        {
+         "type": "item",
+         "item": "kill_moschops"
+        },
+        {
+         "type": "item",
+         "item": "kill_otter"
+        },
+        {
+         "type": "item",
+         "item": "kill_oviraptor"
+        },
+        {
+         "type": "item",
+         "item": "kill_pachycephalosaurus"
+        },
+        {
+         "type": "item",
+         "item": "kill_pachyrhinosaurus"
+        },
+        {
+         "type": "item",
+         "item": "kill_parasaur"
+        },
+        {
+         "type": "item",
+         "item": "kill_paraceratherium"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "kill_pegomastax"
+        },
+        {
+         "type": "item",
+         "item": "kill_pelagornis"
+        },
+        {
+         "type": "item",
+         "item": "kill_phiomia"
+        },
+        {
+         "type": "item",
+         "item": "kill_plesiosaur"
+        },
+        {
+         "type": "item",
+         "item": "kill_pteranodon"
+        },
+        {
+         "type": "item",
+         "item": "kill_purlovia"
+        },
+        {
+         "type": "item",
+         "item": "kill_quetzal"
+        },
+        {
+         "type": "item",
+         "item": "kill_raptor"
+        },
+        {
+         "type": "item",
+         "item": "kill_rex"
+        },
+        {
+         "type": "item",
+         "item": "kill_woolly_rhino"
+        },
+        {
+         "type": "item",
+         "item": "kill_sabertooth"
+        },
+        {
+         "type": "item",
+         "item": "kill_sarcosuchus"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "kill_pulmonoscorpius"
+        },
+        {
+         "type": "item",
+         "item": "kill_ovis"
+        },
+        {
+         "type": "item",
+         "item": "kill_araneo"
+        },
+        {
+         "type": "item",
+         "item": "kill_spino"
+        },
+        {
+         "type": "item",
+         "item": "kill_megaloceros"
+        },
+        {
+         "type": "item",
+         "item": "kill_stegosaurus"
+        },
+        {
+         "type": "item",
+         "item": "kill_styracosaurus"
+        },
+        {
+         "type": "item",
+         "item": "kill_tapejara"
+        },
+        {
+         "type": "item",
+         "item": "kill_terror_bird"
+        },
+        {
+         "type": "item",
+         "item": "kill_therizinosaurus"
+        },
+        {
+         "type": "item",
+         "item": "kill_thylacoleo"
+        },
+        {
+         "type": "item",
+         "item": "kill_titanosaur"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "kill_titanoboa"
+        },
+        {
+         "type": "item",
+         "item": "kill_beelzebufo"
+        },
+        {
+         "type": "item",
+         "item": "kill_triceratops"
+        },
+        {
+         "type": "item",
+         "item": "kill_troodon"
+        },
+        {
+         "type": "item",
+         "item": "kill_carbonemys"
+        },
+        {
+         "type": "item",
+         "item": "kill_tusoteuthis"
+        },
+        {
+         "type": "item",
+         "item": "kill_yutyrannus"
+        },
+        {
+         "type": "item",
+         "item": "kill_coelacanth"
+        },
+        {
+         "type": "item",
+         "item": "kill_trilobite"
+        },
+        {
+         "type": "item",
+         "item": "kill_piranha"
+        },
+        {
+         "type": "item",
+         "item": "kill_meganeura"
+        },
+        {
+         "type": "item",
+         "item": "kill_ammonite"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "kill_eurypterid"
+        },
+        {
+         "type": "item",
+         "item": "kill_jellyfish"
+        },
+        {
+         "type": "item",
+         "item": "kill_leech"
+        },
+        {
+         "type": "item",
+         "item": "kill_sabertooth_salmon"
+        },
+        {
+         "type": "item",
+         "item": "kill_titanomyrma"
+        },
+        {
+         "type": "item",
+         "item": "kill_onyc"
+        },
+        {
+         "type": "item",
+         "item": "kill_giant_bee"
+        },
+        {
+         "type": "item",
+         "item": "kill_rhyniognatha"
+        },
+        {
+         "type": "item",
+         "item": "kill_carcharodontosaurus"
+        },
+        {
+         "type": "item",
+         "item": "kill_unicorn"
+        },
+        {
+         "type": "item",
+         "item": "kill_yeti"
+        },
+        {
+         "type": "item",
+         "item": "kill_alpha_raptor"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "kill_alpha_carno"
+        },
+        {
+         "type": "item",
+         "item": "kill_alpha_rex"
+        },
+        {
+         "type": "item",
+         "item": "kill_alpha_megalodon"
+        },
+        {
+         "type": "item",
+         "item": "kill_alpha_leedsichthys"
+        },
+        {
+         "type": "item",
+         "item": "kill_alpha_mosasaur"
+        },
+        {
+         "type": "item",
+         "item": "kill_alpha_tusoteuthis"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "title": "Levels",
+    "content": {
+     "type": "array",
+     "orientation": "vertical",
+     "content": [
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "level_reach_level_2"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_3"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_4"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_5"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_6"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_7"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_8"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_9"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_10"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_11"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_12"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_13"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "level_reach_level_14"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_15"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_16"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_17"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_18"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_19"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_20"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_21"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_22"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_23"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_24"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_25"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "level_reach_level_26"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_27"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_28"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_29"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_30"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_31"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_32"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_33"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_34"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_35"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_36"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_37"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "level_reach_level_38"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_39"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_40"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_41"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_42"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_43"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_44"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_45"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_46"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_47"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_48"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_49"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "level_reach_level_50"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_51"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_52"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_53"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_54"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_55"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_56"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_57"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_58"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_59"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_60"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_61"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "level_reach_level_62"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_63"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_64"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_65"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_66"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_67"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_68"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_69"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_70"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_71"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_72"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_73"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "level_reach_level_74"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_75"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_76"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_77"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_78"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_79"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_80"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_81"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_82"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_83"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_84"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_85"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "level_reach_level_86"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_87"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_88"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_89"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_90"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_91"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_92"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_93"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_94"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_95"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_96"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_97"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "level_reach_level_98"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_99"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_100"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_101"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_102"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_103"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_104"
+        },
+        {
+         "type": "item",
+         "item": "level_reach_level_105"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "title": "Milestones",
+    "content": {
+     "type": "array",
+     "orientation": "vertical",
+     "content": [
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "ms_tame_your_first_dino"
+        },
+        {
+         "type": "item",
+         "item": "ms_tame_5_creatures"
+        },
+        {
+         "type": "item",
+         "item": "ms_tame_10_creatures"
+        },
+        {
+         "type": "item",
+         "item": "ms_tame_20_creatures"
+        },
+        {
+         "type": "item",
+         "item": "ms_tame_50_creatures"
+        },
+        {
+         "type": "item",
+         "item": "ms_tame_100_creatures"
+        },
+        {
+         "type": "item",
+         "item": "ms_kill_5_creatures"
+        },
+        {
+         "type": "item",
+         "item": "ms_kill_10_creatures"
+        },
+        {
+         "type": "item",
+         "item": "ms_kill_20_creatures"
+        },
+        {
+         "type": "item",
+         "item": "ms_kill_50_creatures"
+        },
+        {
+         "type": "item",
+         "item": "ms_kill_100_creatures"
+        },
+        {
+         "type": "item",
+         "item": "ms_tame_5_species"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "ms_tame_10_species"
+        },
+        {
+         "type": "item",
+         "item": "ms_tame_20_species"
+        },
+        {
+         "type": "item",
+         "item": "ms_tame_50_species"
+        },
+        {
+         "type": "item",
+         "item": "ms_kill_5_species"
+        },
+        {
+         "type": "item",
+         "item": "ms_kill_10_species"
+        },
+        {
+         "type": "item",
+         "item": "ms_kill_20_species"
+        },
+        {
+         "type": "item",
+         "item": "ms_kill_50_species"
+        },
+        {
+         "type": "item",
+         "item": "ms_kill_100_species"
+        },
+        {
+         "type": "item",
+         "item": "ms_collect_25_explorer_notes"
+        },
+        {
+         "type": "item",
+         "item": "ms_collect_50_explorer_notes"
+        },
+        {
+         "type": "item",
+         "item": "ms_collect_75_explorer_notes"
+        },
+        {
+         "type": "item",
+         "item": "ms_collect_100_explorer_notes"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "ms_collect_125_explorer_notes"
+        },
+        {
+         "type": "item",
+         "item": "ms_collect_150_explorer_notes"
+        },
+        {
+         "type": "item",
+         "item": "ms_collect_175_explorer_notes"
+        },
+        {
+         "type": "item",
+         "item": "ms_collect_200_explorer_notes"
+        },
+        {
+         "type": "item",
+         "item": "ms_collect_225_explorer_notes"
+        },
+        {
+         "type": "item",
+         "item": "ms_collect_250_explorer_notes"
+        },
+        {
+         "type": "item",
+         "item": "ms_breed_your_first_dino"
+        },
+        {
+         "type": "item",
+         "item": "ms_breed_5_dinos"
+        },
+        {
+         "type": "item",
+         "item": "ms_breed_10_dinos"
+        },
+        {
+         "type": "item",
+         "item": "ms_breed_20_dinos"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "title": "Collecting",
+    "content": {
+     "type": "array",
+     "orientation": "vertical",
+     "content": [
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "inv_artifact_clever"
+        },
+        {
+         "type": "item",
+         "item": "inv_artifact_hunter"
+        },
+        {
+         "type": "item",
+         "item": "inv_artifact_massive"
+        },
+        {
+         "type": "item",
+         "item": "inv_artifact_cunning"
+        },
+        {
+         "type": "item",
+         "item": "inv_artifact_immune"
+        },
+        {
+         "type": "item",
+         "item": "inv_artifact_skylord"
+        },
+        {
+         "type": "item",
+         "item": "inv_artifact_strong"
+        },
+        {
+         "type": "item",
+         "item": "inv_artifact_brute"
+        },
+        {
+         "type": "item",
+         "item": "inv_artifact_devourer"
+        },
+        {
+         "type": "item",
+         "item": "inv_artifact_pack"
+        },
+        {
+         "type": "item",
+         "item": "inv_argentavis_talon_x5"
+        },
+        {
+         "type": "item",
+         "item": "inv_argentavis_talon_x10"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "inv_sarcosuchus_skin_x5"
+        },
+        {
+         "type": "item",
+         "item": "inv_sarcosuchus_skin_x10"
+        },
+        {
+         "type": "item",
+         "item": "inv_sauropod_vertebra_x5"
+        },
+        {
+         "type": "item",
+         "item": "inv_sauropod_vertebra_x10"
+        },
+        {
+         "type": "item",
+         "item": "inv_titanoboa_venom_x5"
+        },
+        {
+         "type": "item",
+         "item": "inv_titanoboa_venom_x10"
+        },
+        {
+         "type": "item",
+         "item": "inv_megalania_toxin_x5"
+        },
+        {
+         "type": "item",
+         "item": "inv_megalania_toxin_x10"
+        },
+        {
+         "type": "item",
+         "item": "inv_megalodon_tooth_x5"
+        },
+        {
+         "type": "item",
+         "item": "inv_megalodon_tooth_x10"
+        },
+        {
+         "type": "item",
+         "item": "inv_spinosaurus_sail_x5"
+        },
+        {
+         "type": "item",
+         "item": "inv_spinosaurus_sail_x10"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "inv_therizino_claws_x5"
+        },
+        {
+         "type": "item",
+         "item": "inv_therizino_claws_x10"
+        },
+        {
+         "type": "item",
+         "item": "inv_thylacoleo_hook_claw_x5"
+        },
+        {
+         "type": "item",
+         "item": "inv_thylacoleo_hook_claw_x10"
+        },
+        {
+         "type": "item",
+         "item": "inv_allosaurus_brain_x5"
+        },
+        {
+         "type": "item",
+         "item": "inv_allosaurus_brain_x10"
+        },
+        {
+         "type": "item",
+         "item": "inv_basilosaurus_blubber_x5"
+        },
+        {
+         "type": "item",
+         "item": "inv_basilosaurus_blubber_x10"
+        },
+        {
+         "type": "item",
+         "item": "inv_giganotosaurus_heart_x1"
+        },
+        {
+         "type": "item",
+         "item": "inv_giganotosaurus_heart_x2"
+        },
+        {
+         "type": "item",
+         "item": "inv_tusoteuthis_tentacle_x5"
+        },
+        {
+         "type": "item",
+         "item": "inv_tusoteuthis_tentacle_x10"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "inv_tyrannosaurus_arm_x5"
+        },
+        {
+         "type": "item",
+         "item": "inv_tyrannosaurus_arm_x10"
+        },
+        {
+         "type": "item",
+         "item": "inv_yutyrannus_lungs_x5"
+        },
+        {
+         "type": "item",
+         "item": "inv_yutyrannus_lungs_x10"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_1000_hide"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_5_woolly_rhino_horn"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_250_silica_pearls"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_250_oil"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_100_obsidian"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_100_crystal"
+        },
+        {
+         "type": "item",
+         "item": "inv_citronal_x10"
+        },
+        {
+         "type": "item",
+         "item": "inv_longrass_x10"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "inv_rockarrot_x10"
+        },
+        {
+         "type": "item",
+         "item": "inv_savoroot_x10"
+        },
+        {
+         "type": "item",
+         "item": "inv_cooked_meat_x20"
+        },
+        {
+         "type": "item",
+         "item": "inv_cooked_meat_jerky_x5"
+        },
+        {
+         "type": "item",
+         "item": "inv_cooked_prime_meat_x20"
+        },
+        {
+         "type": "item",
+         "item": "inv_prime_meat_jerky_x5"
+        },
+        {
+         "type": "item",
+         "item": "inv_cooked_fish_meat_x20"
+        },
+        {
+         "type": "item",
+         "item": "inv_cooked_prime_fish_meat_x20"
+        },
+        {
+         "type": "item",
+         "item": "inv_giant_bee_honey_x3"
+        },
+        {
+         "type": "item",
+         "item": "inv_rare_flower_x50"
+        },
+        {
+         "type": "item",
+         "item": "inv_rare_mushroom_x50"
+        },
+        {
+         "type": "item",
+         "item": "inv_plant_species_x_seed_x20"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "title": "Supply Drops",
+    "content": {
+     "type": "array",
+     "orientation": "vertical",
+     "content": [
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "crate_beacon_white"
+        },
+        {
+         "type": "item",
+         "item": "crate_beacon_green"
+        },
+        {
+         "type": "item",
+         "item": "crate_beacon_blue"
+        },
+        {
+         "type": "item",
+         "item": "crate_beacon_purple"
+        },
+        {
+         "type": "item",
+         "item": "crate_beacon_yellow"
+        },
+        {
+         "type": "item",
+         "item": "crate_beacon_red"
+        },
+        {
+         "type": "item",
+         "item": "crate_cave_crate_cave_t1"
+        },
+        {
+         "type": "item",
+         "item": "crate_cave_crate_cave_t2"
+        },
+        {
+         "type": "item",
+         "item": "crate_cave_crate_cave_t3"
+        },
+        {
+         "type": "item",
+         "item": "crate_cave_crate_cave_t4"
+        },
+        {
+         "type": "item",
+         "item": "crate_cave_crate_ice_cave_t1"
+        },
+        {
+         "type": "item",
+         "item": "crate_cave_crate_ice_cave_t2"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "crate_cave_crate_ice_cave_t3"
+        },
+        {
+         "type": "item",
+         "item": "crate_cave_crate_swamp_cave_t1"
+        },
+        {
+         "type": "item",
+         "item": "crate_cave_crate_swamp_cave_t2"
+        },
+        {
+         "type": "item",
+         "item": "crate_cave_crate_swamp_cave_t3"
+        },
+        {
+         "type": "item",
+         "item": "crate_cave_crate_underwater_cave_t1"
+        },
+        {
+         "type": "item",
+         "item": "crate_cave_crate_underwater_cave_t2"
+        },
+        {
+         "type": "item",
+         "item": "crate_cave_crate_underwater_cave_t3"
+        },
+        {
+         "type": "item",
+         "item": "crate_deep_sea_crate"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "title": "Dossiers",
+    "content": {
+     "type": "tabbed",
+     "tabs": [
+      {
+       "title": "1-240",
+       "content": {
+        "type": "array",
+        "orientation": "vertical",
+        "content": [
+         {
+          "type": "array",
+          "orientation": "horizontal",
+          "content": [
+           {
+            "type": "item",
+            "item": "dossier_dossier_dilophosaur"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_titanomyrma"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_1"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_1"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_2"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_1"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_allosaurus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_anglerfish"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_ankylosaurus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_archaeopteryx"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_argentavis"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_arthropleura"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_castoroides"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_dung_beetle"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_beelzebufo"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_gigantopithecus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_brontosaurus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_carnotaurus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_chalicotherium"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_coelacanth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_compy"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_dimetrodon"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_dimorphodon"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_diplodocus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_diplocaulus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_dire_bear"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_direwolf"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_dodo"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_doedicurus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_meganeura"
+           }
+          ]
+         },
+         {
+          "type": "array",
+          "orientation": "horizontal",
+          "content": [
+           {
+            "type": "item",
+            "item": "dossier_dossier_dunkleosteus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_eurypterid"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_gallimimus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_giganotosaurus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_ichthyosaurus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_kairuku"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_kaprosuchus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_leech"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_lystrosaurus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_mammoth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_manta"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_megaloceros"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_megalodon"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_megalosaurus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_mesopithecus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_mosasaurus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_onyc"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_oviraptor"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_pachy"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_paraceratherium"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_parasaur"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_pelagornis"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_phiomia"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_piranha"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_plesiosaur"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_procoptodon"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_pteranodon"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_quetzal"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_raptor"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_woolly_rhino"
+           }
+          ]
+         },
+         {
+          "type": "array",
+          "orientation": "horizontal",
+          "content": [
+           {
+            "type": "item",
+            "item": "dossier_dossier_sabertooth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_sabertooth_salmon"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_sarco"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_pulmonoscorpius"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_araneo"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_spino"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_stegosaurus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_tapejara"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_terror_bird"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_titanosaur"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_titanoboa"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_rex"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_triceratops"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_trilobite"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_carbonemys"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_1"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_2"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_3"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_4"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_2"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_3"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_4"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_3"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_4"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_2"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_3"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_4"
+           },
+           {
+            "type": "item",
+            "item": "dossier_hologram_broodmother"
+           },
+           {
+            "type": "item",
+            "item": "dossier_hologram_megapithecus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_hologram_dragon"
+           }
+          ]
+         },
+         {
+          "type": "array",
+          "orientation": "horizontal",
+          "content": [
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_5"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_5"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_5"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_5"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_6"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_7"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_6"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_7"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_6"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_7"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_6"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_7"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_achatina"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_moschops"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_pachyrhinosaurus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_8"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_8"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_8"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_8"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_9"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_9"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_9"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_9"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_cnidaria"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_troodon"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_tusoteuthis"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_pegomastax"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_therizinosaur"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_10"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_10"
+           }
+          ]
+         },
+         {
+          "type": "array",
+          "orientation": "horizontal",
+          "content": [
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_10"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_10"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_ovis"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_baryonyx"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_basilosaurus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_purlovia"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_11"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_12"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_13"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_14"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_15"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_16"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_17"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_18"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_11"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_12"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_13"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_14"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_15"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_16"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_17"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_18"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_11"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_12"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_13"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_14"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_15"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_16"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_17"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_18"
+           }
+          ]
+         },
+         {
+          "type": "array",
+          "orientation": "horizontal",
+          "content": [
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_11"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_12"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_13"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_14"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_15"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_16"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_17"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_18"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_ammonite"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_electrophorus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_microraptor"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_thylacoleo"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_equus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_leedsichthys"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_ichthyornis"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_iguanodon"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_19"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_20"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_21"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_22"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_23"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_24"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_25"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_26"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_19"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_20"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_21"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_22"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_23"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_24"
+           }
+          ]
+         },
+         {
+          "type": "array",
+          "orientation": "horizontal",
+          "content": [
+           {
+            "type": "item",
+            "item": "dossier_helena_note_25"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_26"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_19"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_20"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_21"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_22"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_23"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_24"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_25"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_26"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_19"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_20"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_21"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_22"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_23"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_24"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_25"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_26"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_giant_bee"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_daeodon"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_kentrosaurus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_liopleurodon"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_27"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_28"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_29"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_27"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_28"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_29"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_30"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_27"
+           }
+          ]
+         },
+         {
+          "type": "array",
+          "orientation": "horizontal",
+          "content": [
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_28"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_29"
+           },
+           {
+            "type": "item",
+            "item": "dossier_nerva_note_30"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_27"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_28"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_hyaenodon"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_megalania"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_yutyrannus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_megatherium"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_hesperornis"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_note_29"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_30"
+           },
+           {
+            "type": "item",
+            "item": "dossier_hologram_overseer"
+           },
+           {
+            "type": "item",
+            "item": "dossier_mei_yin_note_31"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_otter"
+           },
+           {
+            "type": "item",
+            "item": "dossier_note_1_idx_508"
+           },
+           {
+            "type": "item",
+            "item": "dossier_note_2_idx_511"
+           },
+           {
+            "type": "item",
+            "item": "dossier_note_3_idx_514"
+           },
+           {
+            "type": "item",
+            "item": "dossier_note_4_idx_517"
+           },
+           {
+            "type": "item",
+            "item": "dossier_note_5_idx_520"
+           },
+           {
+            "type": "item",
+            "item": "dossier_hln_a_discovery_1"
+           },
+           {
+            "type": "item",
+            "item": "dossier_hln_a_discovery_2"
+           },
+           {
+            "type": "item",
+            "item": "dossier_hln_a_discovery_3"
+           },
+           {
+            "type": "item",
+            "item": "dossier_genesis_chronicles_1"
+           },
+           {
+            "type": "item",
+            "item": "dossier_genesis_chronicles_2"
+           },
+           {
+            "type": "item",
+            "item": "dossier_genesis_chronicles_3"
+           },
+           {
+            "type": "item",
+            "item": "dossier_genesis_chronicles_4"
+           },
+           {
+            "type": "item",
+            "item": "dossier_genesis_chronicles_5"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_carcharodontosaurus"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_rhyniognatha"
+           }
+          ]
+         }
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ }
+}

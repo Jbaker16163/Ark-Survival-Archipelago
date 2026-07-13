@@ -1,0 +1,14 @@
+{
+    "name": "ARK: Survival Evolved (Archipelago)",
+    "game_name": "ARK Survival Evolved",
+    "package_uid": "ark_survival_evolved_ap",
+    "package_version": "1.0.0",
+    "platform_target": "",
+    "variants": {
+        "standard": {
+            "display_name": "Standard",
+            "flags": ["ap"],
+            "loaded_layout": "tracker_default"
+        }
+    }
+}

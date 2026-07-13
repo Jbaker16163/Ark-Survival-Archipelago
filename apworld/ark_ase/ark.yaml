@@ -1,0 +1,61 @@
+# Example Archipelago player config for ARK: Survival Evolved.
+# Put this in your Archipelago "Players/" folder before generating.
+name: Ghios
+game: ARK Survival Evolved
+ARK Survival Evolved:
+  # Which map(s) your server runs. List more than one for a CLUSTER (maps linked by
+  # obelisk/transmitter travel). Only the_island has real data - others are reserved for
+  # future support and add nothing yet.
+  #   the_island | scorched_earth | aberration | extinction | genesis_part_1 | genesis_part_2 |
+  #   lost_colony | the_center | ragnarok | valguero | crystal_isles | lost_island | fjordur | astraeos
+  maps:
+    - the_island
+  # Win: defeat these bosses (any difficulty). Cumulative:
+  #   broodmother | broodmother_megapithecus | broodmother_megapithecus_dragon | all_bosses
+  goal: all_bosses
+  death_link: true
+  lock_taming: true
+  lock_supply_crates: true
+  # Bundle each dino's saddle with its tame unlock (saddle leaves the item pool).
+  bundle_saddles: false
+  # Free-grant basic starter engrams at start + remove them from the pool.
+  free_starter_engrams: false
+  # Start with these items already received + removed from the pool. Quote names:
+  #   start_inventory_from_pool:
+  #     "Engram: Slingshot": 1
+  start_inventory_from_pool: {}
+  # % of filler slots that are traps (wild dino spawns) vs Bonus Resources/kibble/etc.
+  trap_percentage: 25
+  # Lockout guard: keeps another game's "early" item off late/hard ARK checks (see
+  # progression_tiers below, which supersedes this if both are on).
+  early_dino_checks: true
+  # Tech-tree mode: split checks into 4 tiers gated by Smithy+Mortar And Pestle -> Forge ->
+  # Fabricator. Also acts as the lockout guard (early items land only in Tier 0). false = pure RNG.
+  progression_tiers: true
+  # Where the tier gate engrams go (only matters if progression_tiers is on):
+  #   tiered = your own checks, staggered T0/T1/T2 (default)
+  #   local_early = forced early in your world | global_early = forced early anywhere
+  station_placement: global_early
+  # Force extra specific items early too (same routing as station_placement). Quote names:
+  #   extra_early_items:
+  #     - "Engram: Bow"
+  extra_early_items: []
+  # Tier 0 creature overrides (progression_tiers only). Add forces into T0, remove bumps to T1:
+  #   tier0_add: [Carno, Sabertooth]
+  #   tier0_remove: [Coelacanth]
+  tier0_add: []
+  tier0_remove: []
+  # Explorer-note checks to include (max 240, The Island's collectible notes). Keep at max.
+  dossier_checks: 240
+  # Percent of the 14 food "hold N in inventory" checks included (0/25/50/75/100).
+  food_sanity: 100
+  # Percent of per-species "Tamed: X" checks required (25/50/75/100). Lower = fewer required
+  # tames; every Tame unlock item stays in the pool either way.
+  tame_sanity: 100
+  # One item unlocks ALL structures of a material (Wood/Stone/Metal/Greenhouse bundles).
+  # Tools like the Metal Pick stay individual. Shrinks the item pool by ~100.
+  bundle_structures: false
+  # Shuffle wild dino spawns (seed-deterministic, via Game.ini NPCReplacements - the connector
+  # writes the lines, one server restart applies). off | grouped (land/water/air stay in their
+  # habitat - safe) | chaos (full shuffle). Bosses/alphas/events never touched.
+  randomize_dino_spawns: off

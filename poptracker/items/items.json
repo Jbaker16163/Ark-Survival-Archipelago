@@ -1,0 +1,5336 @@
+[
+ {
+  "name": "Achatina",
+  "type": "toggle",
+  "codes": "unlocked_achatina",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Achatina",
+  "type": "toggle",
+  "codes": "tame_achatina",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Achatina",
+  "type": "toggle",
+  "codes": "kill_achatina",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Acrocanthosaurus",
+  "type": "toggle",
+  "codes": "unlocked_acrocanthosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Acrocanthosaurus",
+  "type": "toggle",
+  "codes": "tame_acrocanthosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Acrocanthosaurus",
+  "type": "toggle",
+  "codes": "kill_acrocanthosaurus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Allosaurus",
+  "type": "toggle",
+  "codes": "unlocked_allosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Allosaurus",
+  "type": "toggle",
+  "codes": "tame_allosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Allosaurus",
+  "type": "toggle",
+  "codes": "kill_allosaurus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Angler",
+  "type": "toggle",
+  "codes": "unlocked_angler",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Angler",
+  "type": "toggle",
+  "codes": "tame_angler",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Angler",
+  "type": "toggle",
+  "codes": "kill_angler",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Ankylosaurus",
+  "type": "toggle",
+  "codes": "unlocked_ankylosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Ankylosaurus",
+  "type": "toggle",
+  "codes": "tame_ankylosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Ankylosaurus",
+  "type": "toggle",
+  "codes": "kill_ankylosaurus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Archaeopteryx",
+  "type": "toggle",
+  "codes": "unlocked_archaeopteryx",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Archaeopteryx",
+  "type": "toggle",
+  "codes": "tame_archaeopteryx",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Archaeopteryx",
+  "type": "toggle",
+  "codes": "kill_archaeopteryx",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Argentavis",
+  "type": "toggle",
+  "codes": "unlocked_argentavis",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Argentavis",
+  "type": "toggle",
+  "codes": "tame_argentavis",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Argentavis",
+  "type": "toggle",
+  "codes": "kill_argentavis",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Arthropleura",
+  "type": "toggle",
+  "codes": "unlocked_arthropleura",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Arthropleura",
+  "type": "toggle",
+  "codes": "tame_arthropleura",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Arthropleura",
+  "type": "toggle",
+  "codes": "kill_arthropleura",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Baryonyx",
+  "type": "toggle",
+  "codes": "unlocked_baryonyx",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Baryonyx",
+  "type": "toggle",
+  "codes": "tame_baryonyx",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Baryonyx",
+  "type": "toggle",
+  "codes": "kill_baryonyx",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Basilosaurus",
+  "type": "toggle",
+  "codes": "unlocked_basilosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Basilosaurus",
+  "type": "toggle",
+  "codes": "tame_basilosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Basilosaurus",
+  "type": "toggle",
+  "codes": "kill_basilosaurus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Castoroides",
+  "type": "toggle",
+  "codes": "unlocked_castoroides",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Castoroides",
+  "type": "toggle",
+  "codes": "tame_castoroides",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Castoroides",
+  "type": "toggle",
+  "codes": "kill_castoroides",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Dung Beetle",
+  "type": "toggle",
+  "codes": "unlocked_dung_beetle",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Dung Beetle",
+  "type": "toggle",
+  "codes": "tame_dung_beetle",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Dung Beetle",
+  "type": "toggle",
+  "codes": "kill_dung_beetle",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Gigantopithecus",
+  "type": "toggle",
+  "codes": "unlocked_gigantopithecus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Gigantopithecus",
+  "type": "toggle",
+  "codes": "tame_gigantopithecus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Gigantopithecus",
+  "type": "toggle",
+  "codes": "kill_gigantopithecus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Bronto",
+  "type": "toggle",
+  "codes": "unlocked_bronto",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Bronto",
+  "type": "toggle",
+  "codes": "tame_bronto",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Bronto",
+  "type": "toggle",
+  "codes": "kill_bronto",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Carno",
+  "type": "toggle",
+  "codes": "unlocked_carno",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Carno",
+  "type": "toggle",
+  "codes": "tame_carno",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Carno",
+  "type": "toggle",
+  "codes": "kill_carno",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Chalicotherium",
+  "type": "toggle",
+  "codes": "unlocked_chalicotherium",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Chalicotherium",
+  "type": "toggle",
+  "codes": "tame_chalicotherium",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Chalicotherium",
+  "type": "toggle",
+  "codes": "kill_chalicotherium",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Compsognathus",
+  "type": "toggle",
+  "codes": "unlocked_compsognathus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Compsognathus",
+  "type": "toggle",
+  "codes": "tame_compsognathus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Compsognathus",
+  "type": "toggle",
+  "codes": "kill_compsognathus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Daeodon",
+  "type": "toggle",
+  "codes": "unlocked_daeodon",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Daeodon",
+  "type": "toggle",
+  "codes": "tame_daeodon",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Daeodon",
+  "type": "toggle",
+  "codes": "kill_daeodon",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Dilophosaur",
+  "type": "toggle",
+  "codes": "unlocked_dilophosaur",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Dilophosaur",
+  "type": "toggle",
+  "codes": "tame_dilophosaur",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Dilophosaur",
+  "type": "toggle",
+  "codes": "kill_dilophosaur",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Dimetrodon",
+  "type": "toggle",
+  "codes": "unlocked_dimetrodon",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Dimetrodon",
+  "type": "toggle",
+  "codes": "tame_dimetrodon",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Dimetrodon",
+  "type": "toggle",
+  "codes": "kill_dimetrodon",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Dimorphodon",
+  "type": "toggle",
+  "codes": "unlocked_dimorphodon",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Dimorphodon",
+  "type": "toggle",
+  "codes": "tame_dimorphodon",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Dimorphodon",
+  "type": "toggle",
+  "codes": "kill_dimorphodon",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Diplodocus",
+  "type": "toggle",
+  "codes": "unlocked_diplodocus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Diplodocus",
+  "type": "toggle",
+  "codes": "tame_diplodocus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Diplodocus",
+  "type": "toggle",
+  "codes": "kill_diplodocus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Diplocaulus",
+  "type": "toggle",
+  "codes": "unlocked_diplocaulus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Diplocaulus",
+  "type": "toggle",
+  "codes": "tame_diplocaulus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Diplocaulus",
+  "type": "toggle",
+  "codes": "kill_diplocaulus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Direbear",
+  "type": "toggle",
+  "codes": "unlocked_direbear",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Direbear",
+  "type": "toggle",
+  "codes": "tame_direbear",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Direbear",
+  "type": "toggle",
+  "codes": "kill_direbear",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Direwolf",
+  "type": "toggle",
+  "codes": "unlocked_direwolf",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Direwolf",
+  "type": "toggle",
+  "codes": "tame_direwolf",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Direwolf",
+  "type": "toggle",
+  "codes": "kill_direwolf",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Dodo",
+  "type": "toggle",
+  "codes": "unlocked_dodo",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Dodo",
+  "type": "toggle",
+  "codes": "tame_dodo",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Dodo",
+  "type": "toggle",
+  "codes": "kill_dodo",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Doedicurus",
+  "type": "toggle",
+  "codes": "unlocked_doedicurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Doedicurus",
+  "type": "toggle",
+  "codes": "tame_doedicurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Doedicurus",
+  "type": "toggle",
+  "codes": "kill_doedicurus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Ichthyosaurus",
+  "type": "toggle",
+  "codes": "unlocked_ichthyosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Ichthyosaurus",
+  "type": "toggle",
+  "codes": "tame_ichthyosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Ichthyosaurus",
+  "type": "toggle",
+  "codes": "kill_ichthyosaurus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Dunkle",
+  "type": "toggle",
+  "codes": "unlocked_dunkle",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Dunkle",
+  "type": "toggle",
+  "codes": "tame_dunkle",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Dunkle",
+  "type": "toggle",
+  "codes": "kill_dunkle",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Electrophorus",
+  "type": "toggle",
+  "codes": "unlocked_electrophorus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Electrophorus",
+  "type": "toggle",
+  "codes": "tame_electrophorus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Electrophorus",
+  "type": "toggle",
+  "codes": "kill_electrophorus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Equus",
+  "type": "toggle",
+  "codes": "unlocked_equus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Equus",
+  "type": "toggle",
+  "codes": "tame_equus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Equus",
+  "type": "toggle",
+  "codes": "kill_equus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Gallimimus",
+  "type": "toggle",
+  "codes": "unlocked_gallimimus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Gallimimus",
+  "type": "toggle",
+  "codes": "tame_gallimimus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Gallimimus",
+  "type": "toggle",
+  "codes": "kill_gallimimus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Giganotosaurus",
+  "type": "toggle",
+  "codes": "unlocked_giganotosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Giganotosaurus",
+  "type": "toggle",
+  "codes": "tame_giganotosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Giganotosaurus",
+  "type": "toggle",
+  "codes": "kill_giganotosaurus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Hesperornis",
+  "type": "toggle",
+  "codes": "unlocked_hesperornis",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Hesperornis",
+  "type": "toggle",
+  "codes": "tame_hesperornis",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Hesperornis",
+  "type": "toggle",
+  "codes": "kill_hesperornis",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Hyaenodon",
+  "type": "toggle",
+  "codes": "unlocked_hyaenodon",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Hyaenodon",
+  "type": "toggle",
+  "codes": "tame_hyaenodon",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Hyaenodon",
+  "type": "toggle",
+  "codes": "kill_hyaenodon",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Ichthyornis",
+  "type": "toggle",
+  "codes": "unlocked_ichthyornis",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Ichthyornis",
+  "type": "toggle",
+  "codes": "tame_ichthyornis",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Ichthyornis",
+  "type": "toggle",
+  "codes": "kill_ichthyornis",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Iguanodon",
+  "type": "toggle",
+  "codes": "unlocked_iguanodon",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Iguanodon",
+  "type": "toggle",
+  "codes": "tame_iguanodon",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Iguanodon",
+  "type": "toggle",
+  "codes": "kill_iguanodon",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Kairuku",
+  "type": "toggle",
+  "codes": "unlocked_kairuku",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Kairuku",
+  "type": "toggle",
+  "codes": "tame_kairuku",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Kairuku",
+  "type": "toggle",
+  "codes": "kill_kairuku",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Procoptodon",
+  "type": "toggle",
+  "codes": "unlocked_procoptodon",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Procoptodon",
+  "type": "toggle",
+  "codes": "tame_procoptodon",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Procoptodon",
+  "type": "toggle",
+  "codes": "kill_procoptodon",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Kaprosuchus",
+  "type": "toggle",
+  "codes": "unlocked_kaprosuchus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Kaprosuchus",
+  "type": "toggle",
+  "codes": "tame_kaprosuchus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Kaprosuchus",
+  "type": "toggle",
+  "codes": "kill_kaprosuchus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Kentrosaurus",
+  "type": "toggle",
+  "codes": "unlocked_kentrosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Kentrosaurus",
+  "type": "toggle",
+  "codes": "tame_kentrosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Kentrosaurus",
+  "type": "toggle",
+  "codes": "kill_kentrosaurus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Leedsichthys",
+  "type": "toggle",
+  "codes": "kill_leedsichthys",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Liopleurodon",
+  "type": "toggle",
+  "codes": "unlocked_liopleurodon",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Liopleurodon",
+  "type": "toggle",
+  "codes": "tame_liopleurodon",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Liopleurodon",
+  "type": "toggle",
+  "codes": "kill_liopleurodon",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Lystrosaurus",
+  "type": "toggle",
+  "codes": "unlocked_lystrosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Lystrosaurus",
+  "type": "toggle",
+  "codes": "tame_lystrosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Lystrosaurus",
+  "type": "toggle",
+  "codes": "kill_lystrosaurus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Mammoth",
+  "type": "toggle",
+  "codes": "unlocked_mammoth",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Mammoth",
+  "type": "toggle",
+  "codes": "tame_mammoth",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Mammoth",
+  "type": "toggle",
+  "codes": "kill_mammoth",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Manta",
+  "type": "toggle",
+  "codes": "unlocked_manta",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Manta",
+  "type": "toggle",
+  "codes": "tame_manta",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Manta",
+  "type": "toggle",
+  "codes": "kill_manta",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Megalodon",
+  "type": "toggle",
+  "codes": "unlocked_megalodon",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Megalodon",
+  "type": "toggle",
+  "codes": "tame_megalodon",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Megalodon",
+  "type": "toggle",
+  "codes": "kill_megalodon",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Megalania",
+  "type": "toggle",
+  "codes": "unlocked_megalania",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Megalania",
+  "type": "toggle",
+  "codes": "tame_megalania",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Megalania",
+  "type": "toggle",
+  "codes": "kill_megalania",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Megalosaurus",
+  "type": "toggle",
+  "codes": "unlocked_megalosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Megalosaurus",
+  "type": "toggle",
+  "codes": "tame_megalosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Megalosaurus",
+  "type": "toggle",
+  "codes": "kill_megalosaurus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Megatherium",
+  "type": "toggle",
+  "codes": "unlocked_megatherium",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Megatherium",
+  "type": "toggle",
+  "codes": "tame_megatherium",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Megatherium",
+  "type": "toggle",
+  "codes": "kill_megatherium",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Microraptor",
+  "type": "toggle",
+  "codes": "unlocked_microraptor",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Microraptor",
+  "type": "toggle",
+  "codes": "tame_microraptor",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Microraptor",
+  "type": "toggle",
+  "codes": "kill_microraptor",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Mesopithecus",
+  "type": "toggle",
+  "codes": "unlocked_mesopithecus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Mesopithecus",
+  "type": "toggle",
+  "codes": "tame_mesopithecus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Mesopithecus",
+  "type": "toggle",
+  "codes": "kill_mesopithecus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Mosasaur",
+  "type": "toggle",
+  "codes": "unlocked_mosasaur",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Mosasaur",
+  "type": "toggle",
+  "codes": "tame_mosasaur",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Mosasaur",
+  "type": "toggle",
+  "codes": "kill_mosasaur",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Moschops",
+  "type": "toggle",
+  "codes": "unlocked_moschops",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Moschops",
+  "type": "toggle",
+  "codes": "tame_moschops",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Moschops",
+  "type": "toggle",
+  "codes": "kill_moschops",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Otter",
+  "type": "toggle",
+  "codes": "unlocked_otter",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Otter",
+  "type": "toggle",
+  "codes": "tame_otter",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Otter",
+  "type": "toggle",
+  "codes": "kill_otter",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Oviraptor",
+  "type": "toggle",
+  "codes": "unlocked_oviraptor",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Oviraptor",
+  "type": "toggle",
+  "codes": "tame_oviraptor",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Oviraptor",
+  "type": "toggle",
+  "codes": "kill_oviraptor",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Pachycephalosaurus",
+  "type": "toggle",
+  "codes": "unlocked_pachycephalosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Pachycephalosaurus",
+  "type": "toggle",
+  "codes": "tame_pachycephalosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Pachycephalosaurus",
+  "type": "toggle",
+  "codes": "kill_pachycephalosaurus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Pachyrhinosaurus",
+  "type": "toggle",
+  "codes": "unlocked_pachyrhinosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Pachyrhinosaurus",
+  "type": "toggle",
+  "codes": "tame_pachyrhinosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Pachyrhinosaurus",
+  "type": "toggle",
+  "codes": "kill_pachyrhinosaurus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Parasaur",
+  "type": "toggle",
+  "codes": "unlocked_parasaur",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Parasaur",
+  "type": "toggle",
+  "codes": "tame_parasaur",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Parasaur",
+  "type": "toggle",
+  "codes": "kill_parasaur",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Paraceratherium",
+  "type": "toggle",
+  "codes": "unlocked_paraceratherium",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Paraceratherium",
+  "type": "toggle",
+  "codes": "tame_paraceratherium",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Paraceratherium",
+  "type": "toggle",
+  "codes": "kill_paraceratherium",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Pegomastax",
+  "type": "toggle",
+  "codes": "unlocked_pegomastax",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Pegomastax",
+  "type": "toggle",
+  "codes": "tame_pegomastax",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Pegomastax",
+  "type": "toggle",
+  "codes": "kill_pegomastax",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Pelagornis",
+  "type": "toggle",
+  "codes": "unlocked_pelagornis",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Pelagornis",
+  "type": "toggle",
+  "codes": "tame_pelagornis",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Pelagornis",
+  "type": "toggle",
+  "codes": "kill_pelagornis",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Phiomia",
+  "type": "toggle",
+  "codes": "unlocked_phiomia",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Phiomia",
+  "type": "toggle",
+  "codes": "tame_phiomia",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Phiomia",
+  "type": "toggle",
+  "codes": "kill_phiomia",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Plesiosaur",
+  "type": "toggle",
+  "codes": "unlocked_plesiosaur",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Plesiosaur",
+  "type": "toggle",
+  "codes": "tame_plesiosaur",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Plesiosaur",
+  "type": "toggle",
+  "codes": "kill_plesiosaur",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Pteranodon",
+  "type": "toggle",
+  "codes": "unlocked_pteranodon",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Pteranodon",
+  "type": "toggle",
+  "codes": "tame_pteranodon",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Pteranodon",
+  "type": "toggle",
+  "codes": "kill_pteranodon",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Purlovia",
+  "type": "toggle",
+  "codes": "unlocked_purlovia",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Purlovia",
+  "type": "toggle",
+  "codes": "tame_purlovia",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Purlovia",
+  "type": "toggle",
+  "codes": "kill_purlovia",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Quetzal",
+  "type": "toggle",
+  "codes": "unlocked_quetzal",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Quetzal",
+  "type": "toggle",
+  "codes": "tame_quetzal",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Quetzal",
+  "type": "toggle",
+  "codes": "kill_quetzal",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Raptor",
+  "type": "toggle",
+  "codes": "unlocked_raptor",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Raptor",
+  "type": "toggle",
+  "codes": "tame_raptor",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Raptor",
+  "type": "toggle",
+  "codes": "kill_raptor",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Rex",
+  "type": "toggle",
+  "codes": "unlocked_rex",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Rex",
+  "type": "toggle",
+  "codes": "tame_rex",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Rex",
+  "type": "toggle",
+  "codes": "kill_rex",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Woolly Rhino",
+  "type": "toggle",
+  "codes": "unlocked_woolly_rhino",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Woolly Rhino",
+  "type": "toggle",
+  "codes": "tame_woolly_rhino",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Woolly Rhino",
+  "type": "toggle",
+  "codes": "kill_woolly_rhino",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Sabertooth",
+  "type": "toggle",
+  "codes": "unlocked_sabertooth",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Sabertooth",
+  "type": "toggle",
+  "codes": "tame_sabertooth",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Sabertooth",
+  "type": "toggle",
+  "codes": "kill_sabertooth",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Sarcosuchus",
+  "type": "toggle",
+  "codes": "unlocked_sarcosuchus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Sarcosuchus",
+  "type": "toggle",
+  "codes": "tame_sarcosuchus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Sarcosuchus",
+  "type": "toggle",
+  "codes": "kill_sarcosuchus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Pulmonoscorpius",
+  "type": "toggle",
+  "codes": "unlocked_pulmonoscorpius",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Pulmonoscorpius",
+  "type": "toggle",
+  "codes": "tame_pulmonoscorpius",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Pulmonoscorpius",
+  "type": "toggle",
+  "codes": "kill_pulmonoscorpius",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Ovis",
+  "type": "toggle",
+  "codes": "unlocked_ovis",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Ovis",
+  "type": "toggle",
+  "codes": "tame_ovis",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Ovis",
+  "type": "toggle",
+  "codes": "kill_ovis",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Araneo",
+  "type": "toggle",
+  "codes": "unlocked_araneo",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Araneo",
+  "type": "toggle",
+  "codes": "tame_araneo",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Araneo",
+  "type": "toggle",
+  "codes": "kill_araneo",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Spino",
+  "type": "toggle",
+  "codes": "unlocked_spino",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Spino",
+  "type": "toggle",
+  "codes": "tame_spino",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Spino",
+  "type": "toggle",
+  "codes": "kill_spino",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Megaloceros",
+  "type": "toggle",
+  "codes": "unlocked_megaloceros",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Megaloceros",
+  "type": "toggle",
+  "codes": "tame_megaloceros",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Megaloceros",
+  "type": "toggle",
+  "codes": "kill_megaloceros",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Stegosaurus",
+  "type": "toggle",
+  "codes": "unlocked_stegosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Stegosaurus",
+  "type": "toggle",
+  "codes": "tame_stegosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Stegosaurus",
+  "type": "toggle",
+  "codes": "kill_stegosaurus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Styracosaurus",
+  "type": "toggle",
+  "codes": "unlocked_styracosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Styracosaurus",
+  "type": "toggle",
+  "codes": "tame_styracosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Styracosaurus",
+  "type": "toggle",
+  "codes": "kill_styracosaurus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Tapejara",
+  "type": "toggle",
+  "codes": "unlocked_tapejara",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Tapejara",
+  "type": "toggle",
+  "codes": "tame_tapejara",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Tapejara",
+  "type": "toggle",
+  "codes": "kill_tapejara",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Terror Bird",
+  "type": "toggle",
+  "codes": "unlocked_terror_bird",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Terror Bird",
+  "type": "toggle",
+  "codes": "tame_terror_bird",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Terror Bird",
+  "type": "toggle",
+  "codes": "kill_terror_bird",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Therizinosaurus",
+  "type": "toggle",
+  "codes": "unlocked_therizinosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Therizinosaurus",
+  "type": "toggle",
+  "codes": "tame_therizinosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Therizinosaurus",
+  "type": "toggle",
+  "codes": "kill_therizinosaurus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Thylacoleo",
+  "type": "toggle",
+  "codes": "unlocked_thylacoleo",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Thylacoleo",
+  "type": "toggle",
+  "codes": "tame_thylacoleo",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Thylacoleo",
+  "type": "toggle",
+  "codes": "kill_thylacoleo",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Titanosaur",
+  "type": "toggle",
+  "codes": "unlocked_titanosaur",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Titanosaur",
+  "type": "toggle",
+  "codes": "tame_titanosaur",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Titanosaur",
+  "type": "toggle",
+  "codes": "kill_titanosaur",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Titanoboa",
+  "type": "toggle",
+  "codes": "unlocked_titanoboa",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Titanoboa",
+  "type": "toggle",
+  "codes": "tame_titanoboa",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Titanoboa",
+  "type": "toggle",
+  "codes": "kill_titanoboa",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Beelzebufo",
+  "type": "toggle",
+  "codes": "unlocked_beelzebufo",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Beelzebufo",
+  "type": "toggle",
+  "codes": "tame_beelzebufo",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Beelzebufo",
+  "type": "toggle",
+  "codes": "kill_beelzebufo",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Triceratops",
+  "type": "toggle",
+  "codes": "unlocked_triceratops",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Triceratops",
+  "type": "toggle",
+  "codes": "tame_triceratops",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Triceratops",
+  "type": "toggle",
+  "codes": "kill_triceratops",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Troodon",
+  "type": "toggle",
+  "codes": "unlocked_troodon",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Troodon",
+  "type": "toggle",
+  "codes": "tame_troodon",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Troodon",
+  "type": "toggle",
+  "codes": "kill_troodon",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Carbonemys",
+  "type": "toggle",
+  "codes": "unlocked_carbonemys",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Carbonemys",
+  "type": "toggle",
+  "codes": "tame_carbonemys",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Carbonemys",
+  "type": "toggle",
+  "codes": "kill_carbonemys",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Tusoteuthis",
+  "type": "toggle",
+  "codes": "unlocked_tusoteuthis",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Tusoteuthis",
+  "type": "toggle",
+  "codes": "tame_tusoteuthis",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Tusoteuthis",
+  "type": "toggle",
+  "codes": "kill_tusoteuthis",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Yutyrannus",
+  "type": "toggle",
+  "codes": "unlocked_yutyrannus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Yutyrannus",
+  "type": "toggle",
+  "codes": "tame_yutyrannus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Yutyrannus",
+  "type": "toggle",
+  "codes": "kill_yutyrannus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Coelacanth",
+  "type": "toggle",
+  "codes": "kill_coelacanth",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Trilobite",
+  "type": "toggle",
+  "codes": "kill_trilobite",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Piranha",
+  "type": "toggle",
+  "codes": "kill_piranha",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Meganeura",
+  "type": "toggle",
+  "codes": "kill_meganeura",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Ammonite",
+  "type": "toggle",
+  "codes": "kill_ammonite",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Eurypterid",
+  "type": "toggle",
+  "codes": "kill_eurypterid",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Jellyfish",
+  "type": "toggle",
+  "codes": "kill_jellyfish",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Leech",
+  "type": "toggle",
+  "codes": "kill_leech",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Sabertooth Salmon",
+  "type": "toggle",
+  "codes": "kill_sabertooth_salmon",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Titanomyrma",
+  "type": "toggle",
+  "codes": "kill_titanomyrma",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Onyc",
+  "type": "toggle",
+  "codes": "unlocked_onyc",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Onyc",
+  "type": "toggle",
+  "codes": "tame_onyc",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Onyc",
+  "type": "toggle",
+  "codes": "kill_onyc",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Giant Bee",
+  "type": "toggle",
+  "codes": "unlocked_giant_bee",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Giant Bee",
+  "type": "toggle",
+  "codes": "tame_giant_bee",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Giant Bee",
+  "type": "toggle",
+  "codes": "kill_giant_bee",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Rhyniognatha",
+  "type": "toggle",
+  "codes": "unlocked_rhyniognatha",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Rhyniognatha",
+  "type": "toggle",
+  "codes": "tame_rhyniognatha",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Rhyniognatha",
+  "type": "toggle",
+  "codes": "kill_rhyniognatha",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Carcharodontosaurus",
+  "type": "toggle",
+  "codes": "unlocked_carcharodontosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Carcharodontosaurus",
+  "type": "toggle",
+  "codes": "tame_carcharodontosaurus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Carcharodontosaurus",
+  "type": "toggle",
+  "codes": "kill_carcharodontosaurus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Unicorn",
+  "type": "toggle",
+  "codes": "unlocked_unicorn",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Unicorn",
+  "type": "toggle",
+  "codes": "tame_unicorn",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Unicorn",
+  "type": "toggle",
+  "codes": "kill_unicorn",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Yeti",
+  "type": "toggle",
+  "codes": "kill_yeti",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Alpha Raptor",
+  "type": "toggle",
+  "codes": "kill_alpha_raptor",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Alpha Carno",
+  "type": "toggle",
+  "codes": "kill_alpha_carno",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Alpha Rex",
+  "type": "toggle",
+  "codes": "kill_alpha_rex",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Alpha Megalodon",
+  "type": "toggle",
+  "codes": "kill_alpha_megalodon",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Alpha Leedsichthys",
+  "type": "toggle",
+  "codes": "kill_alpha_leedsichthys",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Alpha Mosasaur",
+  "type": "toggle",
+  "codes": "kill_alpha_mosasaur",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Alpha Tusoteuthis",
+  "type": "toggle",
+  "codes": "kill_alpha_tusoteuthis",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Level 2",
+  "type": "toggle",
+  "codes": "level_reach_level_2",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 3",
+  "type": "toggle",
+  "codes": "level_reach_level_3",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 4",
+  "type": "toggle",
+  "codes": "level_reach_level_4",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 5",
+  "type": "toggle",
+  "codes": "level_reach_level_5",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 6",
+  "type": "toggle",
+  "codes": "level_reach_level_6",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 7",
+  "type": "toggle",
+  "codes": "level_reach_level_7",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 8",
+  "type": "toggle",
+  "codes": "level_reach_level_8",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 9",
+  "type": "toggle",
+  "codes": "level_reach_level_9",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 10",
+  "type": "toggle",
+  "codes": "level_reach_level_10",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 11",
+  "type": "toggle",
+  "codes": "level_reach_level_11",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 12",
+  "type": "toggle",
+  "codes": "level_reach_level_12",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 13",
+  "type": "toggle",
+  "codes": "level_reach_level_13",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 14",
+  "type": "toggle",
+  "codes": "level_reach_level_14",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 15",
+  "type": "toggle",
+  "codes": "level_reach_level_15",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 16",
+  "type": "toggle",
+  "codes": "level_reach_level_16",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 17",
+  "type": "toggle",
+  "codes": "level_reach_level_17",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 18",
+  "type": "toggle",
+  "codes": "level_reach_level_18",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 19",
+  "type": "toggle",
+  "codes": "level_reach_level_19",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 20",
+  "type": "toggle",
+  "codes": "level_reach_level_20",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 21",
+  "type": "toggle",
+  "codes": "level_reach_level_21",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 22",
+  "type": "toggle",
+  "codes": "level_reach_level_22",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 23",
+  "type": "toggle",
+  "codes": "level_reach_level_23",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 24",
+  "type": "toggle",
+  "codes": "level_reach_level_24",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 25",
+  "type": "toggle",
+  "codes": "level_reach_level_25",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 26",
+  "type": "toggle",
+  "codes": "level_reach_level_26",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 27",
+  "type": "toggle",
+  "codes": "level_reach_level_27",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 28",
+  "type": "toggle",
+  "codes": "level_reach_level_28",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 29",
+  "type": "toggle",
+  "codes": "level_reach_level_29",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 30",
+  "type": "toggle",
+  "codes": "level_reach_level_30",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 31",
+  "type": "toggle",
+  "codes": "level_reach_level_31",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 32",
+  "type": "toggle",
+  "codes": "level_reach_level_32",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 33",
+  "type": "toggle",
+  "codes": "level_reach_level_33",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 34",
+  "type": "toggle",
+  "codes": "level_reach_level_34",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 35",
+  "type": "toggle",
+  "codes": "level_reach_level_35",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 36",
+  "type": "toggle",
+  "codes": "level_reach_level_36",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 37",
+  "type": "toggle",
+  "codes": "level_reach_level_37",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 38",
+  "type": "toggle",
+  "codes": "level_reach_level_38",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 39",
+  "type": "toggle",
+  "codes": "level_reach_level_39",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 40",
+  "type": "toggle",
+  "codes": "level_reach_level_40",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 41",
+  "type": "toggle",
+  "codes": "level_reach_level_41",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 42",
+  "type": "toggle",
+  "codes": "level_reach_level_42",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 43",
+  "type": "toggle",
+  "codes": "level_reach_level_43",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 44",
+  "type": "toggle",
+  "codes": "level_reach_level_44",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 45",
+  "type": "toggle",
+  "codes": "level_reach_level_45",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 46",
+  "type": "toggle",
+  "codes": "level_reach_level_46",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 47",
+  "type": "toggle",
+  "codes": "level_reach_level_47",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 48",
+  "type": "toggle",
+  "codes": "level_reach_level_48",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 49",
+  "type": "toggle",
+  "codes": "level_reach_level_49",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 50",
+  "type": "toggle",
+  "codes": "level_reach_level_50",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 51",
+  "type": "toggle",
+  "codes": "level_reach_level_51",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 52",
+  "type": "toggle",
+  "codes": "level_reach_level_52",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 53",
+  "type": "toggle",
+  "codes": "level_reach_level_53",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 54",
+  "type": "toggle",
+  "codes": "level_reach_level_54",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 55",
+  "type": "toggle",
+  "codes": "level_reach_level_55",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 56",
+  "type": "toggle",
+  "codes": "level_reach_level_56",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 57",
+  "type": "toggle",
+  "codes": "level_reach_level_57",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 58",
+  "type": "toggle",
+  "codes": "level_reach_level_58",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 59",
+  "type": "toggle",
+  "codes": "level_reach_level_59",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 60",
+  "type": "toggle",
+  "codes": "level_reach_level_60",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 61",
+  "type": "toggle",
+  "codes": "level_reach_level_61",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 62",
+  "type": "toggle",
+  "codes": "level_reach_level_62",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 63",
+  "type": "toggle",
+  "codes": "level_reach_level_63",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 64",
+  "type": "toggle",
+  "codes": "level_reach_level_64",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 65",
+  "type": "toggle",
+  "codes": "level_reach_level_65",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 66",
+  "type": "toggle",
+  "codes": "level_reach_level_66",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 67",
+  "type": "toggle",
+  "codes": "level_reach_level_67",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 68",
+  "type": "toggle",
+  "codes": "level_reach_level_68",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 69",
+  "type": "toggle",
+  "codes": "level_reach_level_69",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 70",
+  "type": "toggle",
+  "codes": "level_reach_level_70",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 71",
+  "type": "toggle",
+  "codes": "level_reach_level_71",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 72",
+  "type": "toggle",
+  "codes": "level_reach_level_72",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 73",
+  "type": "toggle",
+  "codes": "level_reach_level_73",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 74",
+  "type": "toggle",
+  "codes": "level_reach_level_74",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 75",
+  "type": "toggle",
+  "codes": "level_reach_level_75",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 76",
+  "type": "toggle",
+  "codes": "level_reach_level_76",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 77",
+  "type": "toggle",
+  "codes": "level_reach_level_77",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 78",
+  "type": "toggle",
+  "codes": "level_reach_level_78",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 79",
+  "type": "toggle",
+  "codes": "level_reach_level_79",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 80",
+  "type": "toggle",
+  "codes": "level_reach_level_80",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 81",
+  "type": "toggle",
+  "codes": "level_reach_level_81",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 82",
+  "type": "toggle",
+  "codes": "level_reach_level_82",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 83",
+  "type": "toggle",
+  "codes": "level_reach_level_83",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 84",
+  "type": "toggle",
+  "codes": "level_reach_level_84",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 85",
+  "type": "toggle",
+  "codes": "level_reach_level_85",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 86",
+  "type": "toggle",
+  "codes": "level_reach_level_86",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 87",
+  "type": "toggle",
+  "codes": "level_reach_level_87",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 88",
+  "type": "toggle",
+  "codes": "level_reach_level_88",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 89",
+  "type": "toggle",
+  "codes": "level_reach_level_89",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 90",
+  "type": "toggle",
+  "codes": "level_reach_level_90",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 91",
+  "type": "toggle",
+  "codes": "level_reach_level_91",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 92",
+  "type": "toggle",
+  "codes": "level_reach_level_92",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 93",
+  "type": "toggle",
+  "codes": "level_reach_level_93",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 94",
+  "type": "toggle",
+  "codes": "level_reach_level_94",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 95",
+  "type": "toggle",
+  "codes": "level_reach_level_95",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 96",
+  "type": "toggle",
+  "codes": "level_reach_level_96",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 97",
+  "type": "toggle",
+  "codes": "level_reach_level_97",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 98",
+  "type": "toggle",
+  "codes": "level_reach_level_98",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 99",
+  "type": "toggle",
+  "codes": "level_reach_level_99",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 100",
+  "type": "toggle",
+  "codes": "level_reach_level_100",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 101",
+  "type": "toggle",
+  "codes": "level_reach_level_101",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 102",
+  "type": "toggle",
+  "codes": "level_reach_level_102",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 103",
+  "type": "toggle",
+  "codes": "level_reach_level_103",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 104",
+  "type": "toggle",
+  "codes": "level_reach_level_104",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Level 105",
+  "type": "toggle",
+  "codes": "level_reach_level_105",
+  "img": "images/level.png",
+  "disabled_img": "images/level_off.png"
+ },
+ {
+  "name": "Tame your first dino",
+  "type": "toggle",
+  "codes": "ms_tame_your_first_dino",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Tame 5 Creatures",
+  "type": "toggle",
+  "codes": "ms_tame_5_creatures",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Tame 10 Creatures",
+  "type": "toggle",
+  "codes": "ms_tame_10_creatures",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Tame 20 Creatures",
+  "type": "toggle",
+  "codes": "ms_tame_20_creatures",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Tame 50 Creatures",
+  "type": "toggle",
+  "codes": "ms_tame_50_creatures",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Tame 100 Creatures",
+  "type": "toggle",
+  "codes": "ms_tame_100_creatures",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Kill 5 Creatures",
+  "type": "toggle",
+  "codes": "ms_kill_5_creatures",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Kill 10 Creatures",
+  "type": "toggle",
+  "codes": "ms_kill_10_creatures",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Kill 20 Creatures",
+  "type": "toggle",
+  "codes": "ms_kill_20_creatures",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Kill 50 Creatures",
+  "type": "toggle",
+  "codes": "ms_kill_50_creatures",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Kill 100 Creatures",
+  "type": "toggle",
+  "codes": "ms_kill_100_creatures",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Tame 5 Species",
+  "type": "toggle",
+  "codes": "ms_tame_5_species",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Tame 10 Species",
+  "type": "toggle",
+  "codes": "ms_tame_10_species",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Tame 20 Species",
+  "type": "toggle",
+  "codes": "ms_tame_20_species",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Tame 50 Species",
+  "type": "toggle",
+  "codes": "ms_tame_50_species",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Kill 5 Species",
+  "type": "toggle",
+  "codes": "ms_kill_5_species",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Kill 10 Species",
+  "type": "toggle",
+  "codes": "ms_kill_10_species",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Kill 20 Species",
+  "type": "toggle",
+  "codes": "ms_kill_20_species",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Kill 50 Species",
+  "type": "toggle",
+  "codes": "ms_kill_50_species",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Kill 100 Species",
+  "type": "toggle",
+  "codes": "ms_kill_100_species",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Collect 25 Explorer Notes",
+  "type": "toggle",
+  "codes": "ms_collect_25_explorer_notes",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Collect 50 Explorer Notes",
+  "type": "toggle",
+  "codes": "ms_collect_50_explorer_notes",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Collect 75 Explorer Notes",
+  "type": "toggle",
+  "codes": "ms_collect_75_explorer_notes",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Collect 100 Explorer Notes",
+  "type": "toggle",
+  "codes": "ms_collect_100_explorer_notes",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Collect 125 Explorer Notes",
+  "type": "toggle",
+  "codes": "ms_collect_125_explorer_notes",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Collect 150 Explorer Notes",
+  "type": "toggle",
+  "codes": "ms_collect_150_explorer_notes",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Collect 175 Explorer Notes",
+  "type": "toggle",
+  "codes": "ms_collect_175_explorer_notes",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Collect 200 Explorer Notes",
+  "type": "toggle",
+  "codes": "ms_collect_200_explorer_notes",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Collect 225 Explorer Notes",
+  "type": "toggle",
+  "codes": "ms_collect_225_explorer_notes",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Collect 250 Explorer Notes",
+  "type": "toggle",
+  "codes": "ms_collect_250_explorer_notes",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Breed your first dino",
+  "type": "toggle",
+  "codes": "ms_breed_your_first_dino",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Breed 5 Dinos",
+  "type": "toggle",
+  "codes": "ms_breed_5_dinos",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Breed 10 Dinos",
+  "type": "toggle",
+  "codes": "ms_breed_10_dinos",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Breed 20 Dinos",
+  "type": "toggle",
+  "codes": "ms_breed_20_dinos",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Artifact: Clever",
+  "type": "toggle",
+  "codes": "inv_artifact_clever",
+  "img": "images/artifact.png",
+  "disabled_img": "images/artifact_off.png"
+ },
+ {
+  "name": "Artifact: Hunter",
+  "type": "toggle",
+  "codes": "inv_artifact_hunter",
+  "img": "images/artifact.png",
+  "disabled_img": "images/artifact_off.png"
+ },
+ {
+  "name": "Artifact: Massive",
+  "type": "toggle",
+  "codes": "inv_artifact_massive",
+  "img": "images/artifact.png",
+  "disabled_img": "images/artifact_off.png"
+ },
+ {
+  "name": "Artifact: Cunning",
+  "type": "toggle",
+  "codes": "inv_artifact_cunning",
+  "img": "images/artifact.png",
+  "disabled_img": "images/artifact_off.png"
+ },
+ {
+  "name": "Artifact: Immune",
+  "type": "toggle",
+  "codes": "inv_artifact_immune",
+  "img": "images/artifact.png",
+  "disabled_img": "images/artifact_off.png"
+ },
+ {
+  "name": "Artifact: Skylord",
+  "type": "toggle",
+  "codes": "inv_artifact_skylord",
+  "img": "images/artifact.png",
+  "disabled_img": "images/artifact_off.png"
+ },
+ {
+  "name": "Artifact: Strong",
+  "type": "toggle",
+  "codes": "inv_artifact_strong",
+  "img": "images/artifact.png",
+  "disabled_img": "images/artifact_off.png"
+ },
+ {
+  "name": "Artifact: Brute",
+  "type": "toggle",
+  "codes": "inv_artifact_brute",
+  "img": "images/artifact.png",
+  "disabled_img": "images/artifact_off.png"
+ },
+ {
+  "name": "Artifact: Devourer",
+  "type": "toggle",
+  "codes": "inv_artifact_devourer",
+  "img": "images/artifact.png",
+  "disabled_img": "images/artifact_off.png"
+ },
+ {
+  "name": "Artifact: Pack",
+  "type": "toggle",
+  "codes": "inv_artifact_pack",
+  "img": "images/artifact.png",
+  "disabled_img": "images/artifact_off.png"
+ },
+ {
+  "name": "Argentavis Talon x5",
+  "type": "toggle",
+  "codes": "inv_argentavis_talon_x5",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Argentavis Talon x10",
+  "type": "toggle",
+  "codes": "inv_argentavis_talon_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Sarcosuchus Skin x5",
+  "type": "toggle",
+  "codes": "inv_sarcosuchus_skin_x5",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Sarcosuchus Skin x10",
+  "type": "toggle",
+  "codes": "inv_sarcosuchus_skin_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Sauropod Vertebra x5",
+  "type": "toggle",
+  "codes": "inv_sauropod_vertebra_x5",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Sauropod Vertebra x10",
+  "type": "toggle",
+  "codes": "inv_sauropod_vertebra_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Titanoboa Venom x5",
+  "type": "toggle",
+  "codes": "inv_titanoboa_venom_x5",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Titanoboa Venom x10",
+  "type": "toggle",
+  "codes": "inv_titanoboa_venom_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Megalania Toxin x5",
+  "type": "toggle",
+  "codes": "inv_megalania_toxin_x5",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Megalania Toxin x10",
+  "type": "toggle",
+  "codes": "inv_megalania_toxin_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Megalodon Tooth x5",
+  "type": "toggle",
+  "codes": "inv_megalodon_tooth_x5",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Megalodon Tooth x10",
+  "type": "toggle",
+  "codes": "inv_megalodon_tooth_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Spinosaurus Sail x5",
+  "type": "toggle",
+  "codes": "inv_spinosaurus_sail_x5",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Spinosaurus Sail x10",
+  "type": "toggle",
+  "codes": "inv_spinosaurus_sail_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Therizino Claws x5",
+  "type": "toggle",
+  "codes": "inv_therizino_claws_x5",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Therizino Claws x10",
+  "type": "toggle",
+  "codes": "inv_therizino_claws_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Thylacoleo Hook-Claw x5",
+  "type": "toggle",
+  "codes": "inv_thylacoleo_hook_claw_x5",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Thylacoleo Hook-Claw x10",
+  "type": "toggle",
+  "codes": "inv_thylacoleo_hook_claw_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Allosaurus Brain x5",
+  "type": "toggle",
+  "codes": "inv_allosaurus_brain_x5",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Allosaurus Brain x10",
+  "type": "toggle",
+  "codes": "inv_allosaurus_brain_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Basilosaurus Blubber x5",
+  "type": "toggle",
+  "codes": "inv_basilosaurus_blubber_x5",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Basilosaurus Blubber x10",
+  "type": "toggle",
+  "codes": "inv_basilosaurus_blubber_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Giganotosaurus Heart x1",
+  "type": "toggle",
+  "codes": "inv_giganotosaurus_heart_x1",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Giganotosaurus Heart x2",
+  "type": "toggle",
+  "codes": "inv_giganotosaurus_heart_x2",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Tusoteuthis Tentacle x5",
+  "type": "toggle",
+  "codes": "inv_tusoteuthis_tentacle_x5",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Tusoteuthis Tentacle x10",
+  "type": "toggle",
+  "codes": "inv_tusoteuthis_tentacle_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Tyrannosaurus Arm x5",
+  "type": "toggle",
+  "codes": "inv_tyrannosaurus_arm_x5",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Tyrannosaurus Arm x10",
+  "type": "toggle",
+  "codes": "inv_tyrannosaurus_arm_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Yutyrannus Lungs x5",
+  "type": "toggle",
+  "codes": "inv_yutyrannus_lungs_x5",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Yutyrannus Lungs x10",
+  "type": "toggle",
+  "codes": "inv_yutyrannus_lungs_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 1000 Hide",
+  "type": "toggle",
+  "codes": "inv_collect_1000_hide",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 5 Woolly Rhino Horn",
+  "type": "toggle",
+  "codes": "inv_collect_5_woolly_rhino_horn",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 250 Silica Pearls",
+  "type": "toggle",
+  "codes": "inv_collect_250_silica_pearls",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 250 Oil",
+  "type": "toggle",
+  "codes": "inv_collect_250_oil",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 100 Obsidian",
+  "type": "toggle",
+  "codes": "inv_collect_100_obsidian",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 100 Crystal",
+  "type": "toggle",
+  "codes": "inv_collect_100_crystal",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Citronal x10",
+  "type": "toggle",
+  "codes": "inv_citronal_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Longrass x10",
+  "type": "toggle",
+  "codes": "inv_longrass_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Rockarrot x10",
+  "type": "toggle",
+  "codes": "inv_rockarrot_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Savoroot x10",
+  "type": "toggle",
+  "codes": "inv_savoroot_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Cooked Meat x20",
+  "type": "toggle",
+  "codes": "inv_cooked_meat_x20",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Cooked Meat Jerky x5",
+  "type": "toggle",
+  "codes": "inv_cooked_meat_jerky_x5",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Cooked Prime Meat x20",
+  "type": "toggle",
+  "codes": "inv_cooked_prime_meat_x20",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Prime Meat Jerky x5",
+  "type": "toggle",
+  "codes": "inv_prime_meat_jerky_x5",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Cooked Fish Meat x20",
+  "type": "toggle",
+  "codes": "inv_cooked_fish_meat_x20",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Cooked Prime Fish Meat x20",
+  "type": "toggle",
+  "codes": "inv_cooked_prime_fish_meat_x20",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Giant Bee Honey x3",
+  "type": "toggle",
+  "codes": "inv_giant_bee_honey_x3",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Rare Flower x50",
+  "type": "toggle",
+  "codes": "inv_rare_flower_x50",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Rare Mushroom x50",
+  "type": "toggle",
+  "codes": "inv_rare_mushroom_x50",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Plant Species X Seed x20",
+  "type": "toggle",
+  "codes": "inv_plant_species_x_seed_x20",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Beacon: White",
+  "type": "toggle",
+  "codes": "crate_beacon_white",
+  "img": "images/crate.png",
+  "disabled_img": "images/crate_off.png"
+ },
+ {
+  "name": "Beacon: Green",
+  "type": "toggle",
+  "codes": "crate_beacon_green",
+  "img": "images/crate.png",
+  "disabled_img": "images/crate_off.png"
+ },
+ {
+  "name": "Beacon: Blue",
+  "type": "toggle",
+  "codes": "crate_beacon_blue",
+  "img": "images/crate.png",
+  "disabled_img": "images/crate_off.png"
+ },
+ {
+  "name": "Beacon: Purple",
+  "type": "toggle",
+  "codes": "crate_beacon_purple",
+  "img": "images/crate.png",
+  "disabled_img": "images/crate_off.png"
+ },
+ {
+  "name": "Beacon: Yellow",
+  "type": "toggle",
+  "codes": "crate_beacon_yellow",
+  "img": "images/crate.png",
+  "disabled_img": "images/crate_off.png"
+ },
+ {
+  "name": "Beacon: Red",
+  "type": "toggle",
+  "codes": "crate_beacon_red",
+  "img": "images/crate.png",
+  "disabled_img": "images/crate_off.png"
+ },
+ {
+  "name": "Cave Crate: Cave T1",
+  "type": "toggle",
+  "codes": "crate_cave_crate_cave_t1",
+  "img": "images/crate.png",
+  "disabled_img": "images/crate_off.png"
+ },
+ {
+  "name": "Cave Crate: Cave T2",
+  "type": "toggle",
+  "codes": "crate_cave_crate_cave_t2",
+  "img": "images/crate.png",
+  "disabled_img": "images/crate_off.png"
+ },
+ {
+  "name": "Cave Crate: Cave T3",
+  "type": "toggle",
+  "codes": "crate_cave_crate_cave_t3",
+  "img": "images/crate.png",
+  "disabled_img": "images/crate_off.png"
+ },
+ {
+  "name": "Cave Crate: Cave T4",
+  "type": "toggle",
+  "codes": "crate_cave_crate_cave_t4",
+  "img": "images/crate.png",
+  "disabled_img": "images/crate_off.png"
+ },
+ {
+  "name": "Cave Crate: Ice Cave T1",
+  "type": "toggle",
+  "codes": "crate_cave_crate_ice_cave_t1",
+  "img": "images/crate.png",
+  "disabled_img": "images/crate_off.png"
+ },
+ {
+  "name": "Cave Crate: Ice Cave T2",
+  "type": "toggle",
+  "codes": "crate_cave_crate_ice_cave_t2",
+  "img": "images/crate.png",
+  "disabled_img": "images/crate_off.png"
+ },
+ {
+  "name": "Cave Crate: Ice Cave T3",
+  "type": "toggle",
+  "codes": "crate_cave_crate_ice_cave_t3",
+  "img": "images/crate.png",
+  "disabled_img": "images/crate_off.png"
+ },
+ {
+  "name": "Cave Crate: Swamp Cave T1",
+  "type": "toggle",
+  "codes": "crate_cave_crate_swamp_cave_t1",
+  "img": "images/crate.png",
+  "disabled_img": "images/crate_off.png"
+ },
+ {
+  "name": "Cave Crate: Swamp Cave T2",
+  "type": "toggle",
+  "codes": "crate_cave_crate_swamp_cave_t2",
+  "img": "images/crate.png",
+  "disabled_img": "images/crate_off.png"
+ },
+ {
+  "name": "Cave Crate: Swamp Cave T3",
+  "type": "toggle",
+  "codes": "crate_cave_crate_swamp_cave_t3",
+  "img": "images/crate.png",
+  "disabled_img": "images/crate_off.png"
+ },
+ {
+  "name": "Cave Crate: Underwater Cave T1",
+  "type": "toggle",
+  "codes": "crate_cave_crate_underwater_cave_t1",
+  "img": "images/crate.png",
+  "disabled_img": "images/crate_off.png"
+ },
+ {
+  "name": "Cave Crate: Underwater Cave T2",
+  "type": "toggle",
+  "codes": "crate_cave_crate_underwater_cave_t2",
+  "img": "images/crate.png",
+  "disabled_img": "images/crate_off.png"
+ },
+ {
+  "name": "Cave Crate: Underwater Cave T3",
+  "type": "toggle",
+  "codes": "crate_cave_crate_underwater_cave_t3",
+  "img": "images/crate.png",
+  "disabled_img": "images/crate_off.png"
+ },
+ {
+  "name": "Deep Sea Crate",
+  "type": "toggle",
+  "codes": "crate_deep_sea_crate",
+  "img": "images/crate.png",
+  "disabled_img": "images/crate_off.png"
+ },
+ {
+  "name": "Dossier: Dilophosaur",
+  "type": "toggle",
+  "codes": "dossier_dossier_dilophosaur",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Titanomyrma",
+  "type": "toggle",
+  "codes": "dossier_dossier_titanomyrma",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #1",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #1",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #2",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_2",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #1",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Allosaurus",
+  "type": "toggle",
+  "codes": "dossier_dossier_allosaurus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Anglerfish",
+  "type": "toggle",
+  "codes": "dossier_dossier_anglerfish",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Ankylosaurus",
+  "type": "toggle",
+  "codes": "dossier_dossier_ankylosaurus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Archaeopteryx",
+  "type": "toggle",
+  "codes": "dossier_dossier_archaeopteryx",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Argentavis",
+  "type": "toggle",
+  "codes": "dossier_dossier_argentavis",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Arthropleura",
+  "type": "toggle",
+  "codes": "dossier_dossier_arthropleura",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Castoroides",
+  "type": "toggle",
+  "codes": "dossier_dossier_castoroides",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Dung Beetle",
+  "type": "toggle",
+  "codes": "dossier_dossier_dung_beetle",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Beelzebufo",
+  "type": "toggle",
+  "codes": "dossier_dossier_beelzebufo",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Gigantopithecus",
+  "type": "toggle",
+  "codes": "dossier_dossier_gigantopithecus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Brontosaurus",
+  "type": "toggle",
+  "codes": "dossier_dossier_brontosaurus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Carnotaurus",
+  "type": "toggle",
+  "codes": "dossier_dossier_carnotaurus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Chalicotherium",
+  "type": "toggle",
+  "codes": "dossier_dossier_chalicotherium",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Coelacanth",
+  "type": "toggle",
+  "codes": "dossier_dossier_coelacanth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Compy",
+  "type": "toggle",
+  "codes": "dossier_dossier_compy",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Dimetrodon",
+  "type": "toggle",
+  "codes": "dossier_dossier_dimetrodon",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Dimorphodon",
+  "type": "toggle",
+  "codes": "dossier_dossier_dimorphodon",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Diplodocus",
+  "type": "toggle",
+  "codes": "dossier_dossier_diplodocus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Diplocaulus",
+  "type": "toggle",
+  "codes": "dossier_dossier_diplocaulus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Dire Bear",
+  "type": "toggle",
+  "codes": "dossier_dossier_dire_bear",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Direwolf",
+  "type": "toggle",
+  "codes": "dossier_dossier_direwolf",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Dodo",
+  "type": "toggle",
+  "codes": "dossier_dossier_dodo",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Doedicurus",
+  "type": "toggle",
+  "codes": "dossier_dossier_doedicurus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Meganeura",
+  "type": "toggle",
+  "codes": "dossier_dossier_meganeura",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Dunkleosteus",
+  "type": "toggle",
+  "codes": "dossier_dossier_dunkleosteus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Eurypterid",
+  "type": "toggle",
+  "codes": "dossier_dossier_eurypterid",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Gallimimus",
+  "type": "toggle",
+  "codes": "dossier_dossier_gallimimus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Giganotosaurus",
+  "type": "toggle",
+  "codes": "dossier_dossier_giganotosaurus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Ichthyosaurus",
+  "type": "toggle",
+  "codes": "dossier_dossier_ichthyosaurus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Kairuku",
+  "type": "toggle",
+  "codes": "dossier_dossier_kairuku",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Kaprosuchus",
+  "type": "toggle",
+  "codes": "dossier_dossier_kaprosuchus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Leech",
+  "type": "toggle",
+  "codes": "dossier_dossier_leech",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Lystrosaurus",
+  "type": "toggle",
+  "codes": "dossier_dossier_lystrosaurus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Mammoth",
+  "type": "toggle",
+  "codes": "dossier_dossier_mammoth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Manta",
+  "type": "toggle",
+  "codes": "dossier_dossier_manta",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Megaloceros",
+  "type": "toggle",
+  "codes": "dossier_dossier_megaloceros",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Megalodon",
+  "type": "toggle",
+  "codes": "dossier_dossier_megalodon",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Megalosaurus",
+  "type": "toggle",
+  "codes": "dossier_dossier_megalosaurus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Mesopithecus",
+  "type": "toggle",
+  "codes": "dossier_dossier_mesopithecus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Mosasaurus",
+  "type": "toggle",
+  "codes": "dossier_dossier_mosasaurus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Onyc",
+  "type": "toggle",
+  "codes": "dossier_dossier_onyc",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Oviraptor",
+  "type": "toggle",
+  "codes": "dossier_dossier_oviraptor",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Pachy",
+  "type": "toggle",
+  "codes": "dossier_dossier_pachy",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Paraceratherium",
+  "type": "toggle",
+  "codes": "dossier_dossier_paraceratherium",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Parasaur",
+  "type": "toggle",
+  "codes": "dossier_dossier_parasaur",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Pelagornis",
+  "type": "toggle",
+  "codes": "dossier_dossier_pelagornis",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Phiomia",
+  "type": "toggle",
+  "codes": "dossier_dossier_phiomia",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Piranha",
+  "type": "toggle",
+  "codes": "dossier_dossier_piranha",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Plesiosaur",
+  "type": "toggle",
+  "codes": "dossier_dossier_plesiosaur",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Procoptodon",
+  "type": "toggle",
+  "codes": "dossier_dossier_procoptodon",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Pteranodon",
+  "type": "toggle",
+  "codes": "dossier_dossier_pteranodon",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Quetzal",
+  "type": "toggle",
+  "codes": "dossier_dossier_quetzal",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Raptor",
+  "type": "toggle",
+  "codes": "dossier_dossier_raptor",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Woolly Rhino",
+  "type": "toggle",
+  "codes": "dossier_dossier_woolly_rhino",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Sabertooth",
+  "type": "toggle",
+  "codes": "dossier_dossier_sabertooth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Sabertooth Salmon",
+  "type": "toggle",
+  "codes": "dossier_dossier_sabertooth_salmon",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Sarco",
+  "type": "toggle",
+  "codes": "dossier_dossier_sarco",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Pulmonoscorpius",
+  "type": "toggle",
+  "codes": "dossier_dossier_pulmonoscorpius",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Araneo",
+  "type": "toggle",
+  "codes": "dossier_dossier_araneo",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Spino",
+  "type": "toggle",
+  "codes": "dossier_dossier_spino",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Stegosaurus",
+  "type": "toggle",
+  "codes": "dossier_dossier_stegosaurus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Tapejara",
+  "type": "toggle",
+  "codes": "dossier_dossier_tapejara",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Terror Bird",
+  "type": "toggle",
+  "codes": "dossier_dossier_terror_bird",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Titanosaur",
+  "type": "toggle",
+  "codes": "dossier_dossier_titanosaur",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Titanoboa",
+  "type": "toggle",
+  "codes": "dossier_dossier_titanoboa",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Rex",
+  "type": "toggle",
+  "codes": "dossier_dossier_rex",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Triceratops",
+  "type": "toggle",
+  "codes": "dossier_dossier_triceratops",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Trilobite",
+  "type": "toggle",
+  "codes": "dossier_dossier_trilobite",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Carbonemys",
+  "type": "toggle",
+  "codes": "dossier_dossier_carbonemys",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #1",
+  "type": "toggle",
+  "codes": "dossier_helena_note_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #2",
+  "type": "toggle",
+  "codes": "dossier_helena_note_2",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #3",
+  "type": "toggle",
+  "codes": "dossier_helena_note_3",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #4",
+  "type": "toggle",
+  "codes": "dossier_helena_note_4",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #2",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_2",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #3",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_3",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #4",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_4",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #3",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_3",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #4",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_4",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #2",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_2",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #3",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_3",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #4",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_4",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Hologram: Broodmother",
+  "type": "toggle",
+  "codes": "dossier_hologram_broodmother",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Hologram: Megapithecus",
+  "type": "toggle",
+  "codes": "dossier_hologram_megapithecus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Hologram: Dragon",
+  "type": "toggle",
+  "codes": "dossier_hologram_dragon",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #5",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #5",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #5",
+  "type": "toggle",
+  "codes": "dossier_helena_note_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #5",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #6",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_6",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #7",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #6",
+  "type": "toggle",
+  "codes": "dossier_helena_note_6",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #7",
+  "type": "toggle",
+  "codes": "dossier_helena_note_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #6",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_6",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #7",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #6",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_6",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #7",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Achatina",
+  "type": "toggle",
+  "codes": "dossier_dossier_achatina",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Moschops",
+  "type": "toggle",
+  "codes": "dossier_dossier_moschops",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Pachyrhinosaurus",
+  "type": "toggle",
+  "codes": "dossier_dossier_pachyrhinosaurus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #8",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #8",
+  "type": "toggle",
+  "codes": "dossier_helena_note_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #8",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #8",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #9",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_9",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #9",
+  "type": "toggle",
+  "codes": "dossier_helena_note_9",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #9",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_9",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #9",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_9",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Cnidaria",
+  "type": "toggle",
+  "codes": "dossier_dossier_cnidaria",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Troodon",
+  "type": "toggle",
+  "codes": "dossier_dossier_troodon",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Tusoteuthis",
+  "type": "toggle",
+  "codes": "dossier_dossier_tusoteuthis",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Pegomastax",
+  "type": "toggle",
+  "codes": "dossier_dossier_pegomastax",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Therizinosaur",
+  "type": "toggle",
+  "codes": "dossier_dossier_therizinosaur",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #10",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_10",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #10",
+  "type": "toggle",
+  "codes": "dossier_helena_note_10",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #10",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_10",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #10",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_10",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Ovis",
+  "type": "toggle",
+  "codes": "dossier_dossier_ovis",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Baryonyx",
+  "type": "toggle",
+  "codes": "dossier_dossier_baryonyx",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Basilosaurus",
+  "type": "toggle",
+  "codes": "dossier_dossier_basilosaurus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Purlovia",
+  "type": "toggle",
+  "codes": "dossier_dossier_purlovia",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #11",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_11",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #12",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_12",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #13",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_13",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #14",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_14",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #15",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_15",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #16",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_16",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #17",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_17",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #18",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_18",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #11",
+  "type": "toggle",
+  "codes": "dossier_helena_note_11",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #12",
+  "type": "toggle",
+  "codes": "dossier_helena_note_12",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #13",
+  "type": "toggle",
+  "codes": "dossier_helena_note_13",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #14",
+  "type": "toggle",
+  "codes": "dossier_helena_note_14",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #15",
+  "type": "toggle",
+  "codes": "dossier_helena_note_15",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #16",
+  "type": "toggle",
+  "codes": "dossier_helena_note_16",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #17",
+  "type": "toggle",
+  "codes": "dossier_helena_note_17",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #18",
+  "type": "toggle",
+  "codes": "dossier_helena_note_18",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #11",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_11",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #12",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_12",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #13",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_13",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #14",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_14",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #15",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_15",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #16",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_16",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #17",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_17",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #18",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_18",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #11",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_11",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #12",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_12",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #13",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_13",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #14",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_14",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #15",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_15",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #16",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_16",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #17",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_17",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #18",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_18",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Ammonite",
+  "type": "toggle",
+  "codes": "dossier_dossier_ammonite",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Electrophorus",
+  "type": "toggle",
+  "codes": "dossier_dossier_electrophorus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Microraptor",
+  "type": "toggle",
+  "codes": "dossier_dossier_microraptor",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Thylacoleo",
+  "type": "toggle",
+  "codes": "dossier_dossier_thylacoleo",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Equus",
+  "type": "toggle",
+  "codes": "dossier_dossier_equus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Leedsichthys",
+  "type": "toggle",
+  "codes": "dossier_dossier_leedsichthys",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Ichthyornis",
+  "type": "toggle",
+  "codes": "dossier_dossier_ichthyornis",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Iguanodon",
+  "type": "toggle",
+  "codes": "dossier_dossier_iguanodon",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #19",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_19",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #20",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_20",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #21",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_21",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #22",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_22",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #23",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_23",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #24",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_24",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #25",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_25",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #26",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_26",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #19",
+  "type": "toggle",
+  "codes": "dossier_helena_note_19",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #20",
+  "type": "toggle",
+  "codes": "dossier_helena_note_20",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #21",
+  "type": "toggle",
+  "codes": "dossier_helena_note_21",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #22",
+  "type": "toggle",
+  "codes": "dossier_helena_note_22",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #23",
+  "type": "toggle",
+  "codes": "dossier_helena_note_23",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #24",
+  "type": "toggle",
+  "codes": "dossier_helena_note_24",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #25",
+  "type": "toggle",
+  "codes": "dossier_helena_note_25",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #26",
+  "type": "toggle",
+  "codes": "dossier_helena_note_26",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #19",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_19",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #20",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_20",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #21",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_21",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #22",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_22",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #23",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_23",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #24",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_24",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #25",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_25",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #26",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_26",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #19",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_19",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #20",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_20",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #21",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_21",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #22",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_22",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #23",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_23",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #24",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_24",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #25",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_25",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #26",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_26",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Giant Bee",
+  "type": "toggle",
+  "codes": "dossier_dossier_giant_bee",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Daeodon",
+  "type": "toggle",
+  "codes": "dossier_dossier_daeodon",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Kentrosaurus",
+  "type": "toggle",
+  "codes": "dossier_dossier_kentrosaurus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Liopleurodon",
+  "type": "toggle",
+  "codes": "dossier_dossier_liopleurodon",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #27",
+  "type": "toggle",
+  "codes": "dossier_helena_note_27",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #28",
+  "type": "toggle",
+  "codes": "dossier_helena_note_28",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #29",
+  "type": "toggle",
+  "codes": "dossier_helena_note_29",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #27",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_27",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #28",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_28",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #29",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_29",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #30",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_30",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #27",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_27",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #28",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_28",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #29",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_29",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Nerva Note #30",
+  "type": "toggle",
+  "codes": "dossier_nerva_note_30",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #27",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_27",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #28",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_28",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Hyaenodon",
+  "type": "toggle",
+  "codes": "dossier_dossier_hyaenodon",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Megalania",
+  "type": "toggle",
+  "codes": "dossier_dossier_megalania",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Yutyrannus",
+  "type": "toggle",
+  "codes": "dossier_dossier_yutyrannus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Megatherium",
+  "type": "toggle",
+  "codes": "dossier_dossier_megatherium",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Hesperornis",
+  "type": "toggle",
+  "codes": "dossier_dossier_hesperornis",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Note #29",
+  "type": "toggle",
+  "codes": "dossier_rockwell_note_29",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #30",
+  "type": "toggle",
+  "codes": "dossier_helena_note_30",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Hologram: Overseer",
+  "type": "toggle",
+  "codes": "dossier_hologram_overseer",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Mei Yin Note #31",
+  "type": "toggle",
+  "codes": "dossier_mei_yin_note_31",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Otter",
+  "type": "toggle",
+  "codes": "dossier_dossier_otter",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "??? Note #1 (idx 508)",
+  "type": "toggle",
+  "codes": "dossier_note_1_idx_508",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "??? Note #2 (idx 511)",
+  "type": "toggle",
+  "codes": "dossier_note_2_idx_511",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "??? Note #3 (idx 514)",
+  "type": "toggle",
+  "codes": "dossier_note_3_idx_514",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "??? Note #4 (idx 517)",
+  "type": "toggle",
+  "codes": "dossier_note_4_idx_517",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "??? Note #5 (idx 520)",
+  "type": "toggle",
+  "codes": "dossier_note_5_idx_520",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "HLN-A Discovery #1",
+  "type": "toggle",
+  "codes": "dossier_hln_a_discovery_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "HLN-A Discovery #2",
+  "type": "toggle",
+  "codes": "dossier_hln_a_discovery_2",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "HLN-A Discovery #3",
+  "type": "toggle",
+  "codes": "dossier_hln_a_discovery_3",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Genesis Chronicles #1",
+  "type": "toggle",
+  "codes": "dossier_genesis_chronicles_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Genesis Chronicles #2",
+  "type": "toggle",
+  "codes": "dossier_genesis_chronicles_2",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Genesis Chronicles #3",
+  "type": "toggle",
+  "codes": "dossier_genesis_chronicles_3",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Genesis Chronicles #4",
+  "type": "toggle",
+  "codes": "dossier_genesis_chronicles_4",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Genesis Chronicles #5",
+  "type": "toggle",
+  "codes": "dossier_genesis_chronicles_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Carcharodontosaurus",
+  "type": "toggle",
+  "codes": "dossier_dossier_carcharodontosaurus",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Rhyniognatha",
+  "type": "toggle",
+  "codes": "dossier_dossier_rhyniognatha",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ }
+]

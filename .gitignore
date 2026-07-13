@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Packaged/build output (regenerable via tools/build_apworld.py, tools/build_release.py)
+*.apworld
+dist/
+
+# PyInstaller build output for the connector exe
+connector/build/
+connector/dist/
+
+# Visual Studio / MSBuild artifacts
+.vs/
+*.user
+*.suo
+plugin/ArkAP/x64/
+plugin/ArkAP/Debug/
+plugin/ArkAP/Release/
+*.obj
+*.ipdb
+*.iobj
+*.ilk
+*.pdb
+*.tlog
+UpgradeLog.htm
+
+# Plugin runtime state (deployed on the server, not source)
+plugin/ArkAP/ArkAP.config.json
+**/ipc/
+**/state.json
+**/seed.json
+**/counters.json
+**/applied_index.json
+**/*_queue.jsonl
+**/ArkAP_debug.log
+**/ArkAP_loaded.txt
+**/ArkAP_note_hits.jsonl
+
+# OS cruft
+.DS_Store
+Thumbs.db
