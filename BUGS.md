@@ -8,6 +8,16 @@
 
 ## Big features (scoped, deliberately not started yet)
 
+- **Dedicated ARK AP client (CommonClient GUI) + network bridge** — so each player runs a real AP
+  client window on their OWN PC (like the Wind Waker client: colored item feed, Hints tab, command
+  box) AND the bridging moves off the server PC. Interim answer that already works with zero code:
+  players connect the generic **Archipelago Text Client** to the room AS their ARK slot (AP allows
+  multiple connections per slot) - they get the full feed/hints/commands UI while the server-side
+  connector keeps doing the mechanical work. The real feature: (a) build our client on Archipelago's
+  CommonClient framework (GUI free, launches from the AP Launcher), (b) replace its file IPC with a
+  small gateway process on the server PC that relays each player's ipc/<name> folder over TCP
+  (~150 lines Python, plugin untouched; one gateway replaces N connectors). Avoid plugin-native TCP
+  (invasive C++ in the crash-sensitive plugin).
 - **YAML option to lock cave artifacts behind an item** — like `lock_taming` for artifacts. Related
   memory: `cave-locking-deferred.md` (idea C: physical entry block).
 

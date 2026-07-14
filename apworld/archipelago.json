@@ -1,0 +1,7 @@
+{
+  "game": "ARK Survival Evolved",
+  "compatible_version": 1,
+  "world_version": "1.0.0",
+  "minimum_ap_version": "0.6.0",
+  "maximum_ap_version": "0.9.99"
+}

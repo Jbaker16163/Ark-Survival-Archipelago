@@ -17,7 +17,7 @@ several-players-on-one-server mode, and a PopTracker pack.
 | Part | What it is | Runs on |
 |------|-----------|---------|
 | **`ark_ase.apworld`** | the Archipelago world (items/locations/logic/options) | the AP generator/host |
-| **ArkAP plugin** | a [ServerHub ArkServerApi](https://github.com/ServersHub/Framework-ArkServerApi) C++ plugin that gates actions + reports checks | the ARK dedicated **server PC** |
+| **ArkAP plugin** | an [ArkServerApi (AseApi)](https://github.com/ArkServerApi/AseApi) C++ plugin that gates actions + reports checks | the ARK dedicated **server PC** |
 | **Connector** | a small bridge between the plugin (file IPC) and the AP server (websocket) | the server PC |
 | **PopTracker pack** | optional visual auto-tracker | any PC |
 
@@ -36,7 +36,7 @@ walkthrough (getting ASE onto the Pre-Aquatica branch via SteamCMD, ArkServerApi
 smoke test). Everything except the game client runs on the **Server PC**.
 
 ### 1. Server PC — the plugin
-1. Install **[ARK Server API](https://github.com/ServersHub/Framework-ArkServerApi)** on your ASE
+1. Install **[ARK Server API](https://github.com/ArkServerApi/AseApi)** on your ASE
    dedicated server (Pre-Aquatica branch — see the full guide; BattlEye must be OFF).
 2. Download **`ArkAP_plugin.zip`** from the [release](../../releases), unzip it, run
    **`install_plugin.bat`**, and point it at your `...\ArkApi\Plugins` folder.

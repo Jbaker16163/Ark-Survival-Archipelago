@@ -16,7 +16,7 @@ set /p PLUGINS=Path:
 
 if not exist "%PLUGINS%" (
     echo That folder does not exist: %PLUGINS%
-    echo Make sure ARK Server API is installed first ^(https://github.com/ServersHub/Framework-ArkServerApi^).
+    echo Make sure ARK Server API is installed first ^(https://github.com/ArkServerApi/AseApi^).
     goto end
 )
 

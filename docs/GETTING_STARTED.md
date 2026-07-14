@@ -51,7 +51,7 @@ From the [Releases page](../../releases), grab:
 You'll also need (external):
 
 - **ARK: Survival Evolved dedicated server** — via SteamCMD (below).
-- **ARK Server API** — https://github.com/ServersHub/Framework-ArkServerApi
+- **ARK Server API** — https://github.com/ArkServerApi/AseApi (download from its Releases page)
 - **Archipelago** — https://github.com/ArchipelagoMW/Archipelago/releases
 - **PopTracker** (optional) — https://github.com/black-sliver/PopTracker/releases
 
@@ -79,7 +79,8 @@ pick **`preaquatica`** (no access code needed). Let Steam finish updating before
 
 ### 1c. Install ARK Server API
 
-Follow the [ArkServerApi install guide](https://github.com/ServersHub/Framework-ArkServerApi). It
+Download from the [AseApi releases page](https://github.com/ArkServerApi/AseApi/releases) and
+follow its install instructions. It
 drops `version.dll` (the loader) and an `ArkApi\` folder into
 `...\ShooterGame\Binaries\Win64\`. **BattlEye must be OFF** — ArkApi is incompatible with it (the
 launch script below already passes `-NoBattlEye`).
