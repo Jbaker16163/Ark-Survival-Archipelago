@@ -64,13 +64,34 @@ build. **Server and client must both be on this branch**, or you won't be able t
 
 ### 1a. Get the dedicated server with SteamCMD
 
-1. Download SteamCMD: https://developer.valvesoftware.com/wiki/SteamCMD
+1. Download SteamCMD: https://developer.valvesoftware.com/wiki/SteamCMD — unzip it to its own
+   folder (e.g. `C:\ArkServer\steamCMD`).
 2. Install the ASE dedicated server (app id **376030**) into a folder of your choice — this guide
-   uses `E:\ARK\Server`:
+   uses `E:\ARK\Server`. Run this **from a regular Command Prompt**, inside the SteamCMD folder
+   (don't double-click `steamcmd.exe` first — see the troubleshooting note below if you do):
    ```
-   steamcmd +force_install_dir "E:\ARK\Server" +login anonymous +app_update 376030 -beta preaquatica validate +quit
+   steamcmd.exe +force_install_dir "E:\ARK\Server" +login anonymous +app_update 376030 -beta preaquatica validate +quit
    ```
    The `-beta preaquatica` flag is what pins it to the right branch. Wait for it to finish fully.
+
+   > **"Command not found: steamcmd..."** — if you double-clicked `steamcmd.exe` instead of running
+   > it from Command Prompt, it opens its own interactive `Steam>` console. You're now *inside*
+   > SteamCMD, so retyping `steamcmd` or using `+` prefixes doesn't work there. Instead type each
+   > command on its own line, no `+`, no leading `steamcmd`:
+   > ```
+   > force_install_dir E:\ARK\Server
+   > login anonymous
+   > app_update 376030 -beta preaquatica validate
+   > quit
+   > ```
+   >
+   > **"ERROR! Failed to install app '376030' (Missing configuration)"** — a known SteamCMD hiccup
+   > with stale/corrupt local metadata, not a problem with your command. Fix, in order:
+   > 1. Just run `app_update 376030 -beta preaquatica validate` again — often works on the second try.
+   > 2. Still failing? Quit, delete `<steamcmd folder>\Steam\appcache` (and `depotcache` if present),
+   >    relaunch, `login anonymous`, then `app_update` again.
+   > 3. Still failing? Antivirus/Controlled Folder Access may be blocking the install folder — add
+   >    an exclusion, and try running Command Prompt as Administrator.
 
 ### 1b. Put your **game client** on the same branch
 
