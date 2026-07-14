@@ -3,16 +3,22 @@ REM Reset the ARK world save + all ArkAP/connector tracking for a clean test run
 REM Run on the SERVER PC. The save is MOVED to a timestamped backup (not deleted).
 REM !! STOP the ARK dedicated server first (save files are locked while it runs) !!
 
-setlocal
+setlocal enabledelayedexpansion
 REM ---- edit if your paths differ ----
 set "SERVER_ROOT=E:\ARK\Server"
+REM Must match start_ase_server.bat's CLUSTERDIR / SAVESROOT. Leave either blank to skip it
+REM (e.g. if you're not running the pseudo-cluster setup and only use plain SavedArks).
+set "CLUSTER=E:\ARK\ServerCluster\ClusterData"
+set "MAPSAVES=E:\ARK\ServerCluster\Saves"
 REM -----------------------------------
 set "PLUGIN=%SERVER_ROOT%\ShooterGame\Binaries\Win64\ArkApi\Plugins\ArkAP"
 set "SAVED=%SERVER_ROOT%\ShooterGame\Saved\SavedArks"
 
 echo This will:
-echo   - back up + clear the ARK world save:  %SAVED%
-echo   - clear ArkAP + connector tracking in: %PLUGIN%
+echo   - back up + clear the ARK world save:      %SAVED%
+if not "%MAPSAVES%"=="" echo   - back up + clear per-map world saves:     %MAPSAVES%
+if exist "%CLUSTER%" echo   - back up + clear cluster tribute data:    %CLUSTER%
+echo   - clear ArkAP + connector tracking in:      %PLUGIN%
 echo.
 echo Make sure the ARK server is STOPPED.
 pause
@@ -33,6 +39,26 @@ if exist "%SAVED%" (
     move "%SAVED%" "%BACKUP%" >nul
 )
 mkdir "%SAVED%" 2>nul
+
+REM per-map world saves, if you've split them into their own folder (blank = skip; the normal
+REM setup already resets per-map via SavedArks above, since each map's .ark file lives there).
+if not "%MAPSAVES%"=="" (
+    set "MAPSBACKUP=%MAPSAVES%_backup_%TS%"
+    if exist "%MAPSAVES%" (
+        echo Backing up map saves -^> !MAPSBACKUP!
+        move "%MAPSAVES%" "!MAPSBACKUP!" >nul
+    )
+    mkdir "%MAPSAVES%" 2>nul
+)
+
+REM cluster tribute/transfer data (obelisk characters/items/dinos) - wipe too, or a fresh test
+REM world could immediately download pre-reset gear/survivors via the transfer terminal.
+if exist "%CLUSTER%" (
+    set "CLUSTERBACKUP=%CLUSTER%_backup_%TS%"
+    echo Backing up cluster data -^> !CLUSTERBACKUP!
+    move "%CLUSTER%" "!CLUSTERBACKUP!" >nul
+    mkdir "%CLUSTER%" 2>nul
+)
 
 REM clear plugin + connector tracking (regenerated on next run)
 echo Clearing tracking files...
@@ -63,6 +89,8 @@ for /d %%D in ("%PLUGIN%\ipc\*") do rd /s /q "%%D" 2>nul
 echo.
 echo Done. World save backed up to:
 echo   %BACKUP%
+if defined MAPSBACKUP echo Map saves backed up to: !MAPSBACKUP!
+if defined CLUSTERBACKUP echo Cluster data backed up to: !CLUSTERBACKUP!
 echo Start the server for a fresh world. (Reset the AP multiworld separately by
 echo re-hosting / regenerating the .archipelago on the host PC.)
 

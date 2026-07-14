@@ -284,10 +284,27 @@ Edit these in your `ark.yaml` before generating (full commented list is in the f
 
 ## Paths you'll likely need to change
 
-This guide uses `E:\ARK\Server` as the install root. If yours differs, update **all** of these:
+This guide uses `E:\ARK\Server` as the install root and `E:\ARK\ServerCluster\...` for the
+pseudo-cluster data. If yours differs, update **all** of these:
 
-- **`start_ase_server.bat`** (from `ArkServerScripts.zip`) → `SERVER_ROOT` (and optionally `MAP`,
-  ports, `ADMINPASS`).
+- **`start_ase_server.bat`** (from `ArkServerScripts.zip`) — edit the block at the top:
+  - `SERVER_ROOT` — your real install path.
+  - `MAP`, `SESSION`, `MAXPLAYERS`, `GAMEPORT`/`QUERYPORT`/`RCONPORT` — optional, defaults are fine
+    for a single-map solo server.
+  - `ADMINPASS` — **change this from the placeholder.** It's your server's RCON/admin password.
+  - `SERVERPASS` — leave blank for no join password, or set one.
+  - `CLUSTERID` — pick your own unique name (any string; just needs to match across scripts —
+    see below). Leave blank to disable clustering entirely (single map, no pseudo-cluster).
+  - `CLUSTERDIR`, `SAVESROOT` — where cluster tribute data and per-map saves live. Can be
+    anywhere with disk space; doesn't have to be under `SERVER_ROOT`.
+  - `TRIBUTEEXP` — how long Obelisk uploads last before expiring (seconds). Default 30 days.
+- **`start_transfer_server.bat`** (only needed for live character transfers between maps) —
+  `SERVER_ROOT`, `CLUSTERID`, `CLUSTERDIR`, and `SAVESROOT` **must exactly match**
+  `start_ase_server.bat`'s values, or the bridge server won't write into the same place your main
+  server reads from.
+- **`switch_map.bat`** — `SERVER_ROOT` and `SAVESROOT` (same values again).
+- **`reset_ark_test.bat`** — `SERVER_ROOT`, `CLUSTER`, and `MAPSAVES` (same values as
+  `CLUSTERDIR`/`SAVESROOT` above) so a reset actually clears the real data, not just placeholders.
 - **`connector.ini`** → `ipc_dir` (must be your real `...\ArkApi\Plugins\ArkAP\ipc`).
 - **`install_plugin.bat`** prompt → your real `...\ArkApi\Plugins` path.
 

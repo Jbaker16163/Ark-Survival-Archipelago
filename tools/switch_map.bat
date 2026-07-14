@@ -9,6 +9,11 @@ REM   switch_map.bat ScorchedEarth_P (direct - map ID from the list below)
 
 setlocal enabledelayedexpansion
 set "SERVER_ROOT=E:\ARK\Server"
+REM Must match start_ase_server.bat's SAVESROOT/CLUSTERDIR exactly - real per-map save data
+REM lives in SAVESROOT now (ShooterGame\Saved\Cluster-<Map> is just a junction pointing at it).
+set "SAVESROOT=E:\ARK\ServerCluster\Saves"
+set "CLUSTERDIR=E:\ARK\ServerCluster\ClusterData"
+set "BACKUPROOT=E:\ARK\ServerCluster\Backups"
 set "HERE=%~dp0"
 
 REM ---- known real ASE map IDs (Lost Colony / Astraeos are ASA-only, not listed) ----
@@ -52,8 +57,9 @@ if not "%VALID%"=="1" (
 
 echo.
 echo Switching to: %TARGET%
-echo Make sure you UPLOADED your character/dinos/items at an Obelisk on the current map first
-echo if you want them to carry over - switching does not do this for you.
+echo Every map now has its OWN save folder (%SAVESROOT%\^<Map^>), so your
+echo character/dinos/items only carry over if you UPLOADED them at an Obelisk (or travelled
+echo via the bridge server) first - switching does not do this for you.
 echo.
 pause
 
@@ -77,14 +83,17 @@ if not errorlevel 1 (
     echo No server currently running.
 )
 
-REM ---- optional backup (copy, not move - other maps' saves are untouched either way) ----
-set /p "DOBACKUP=Back up SavedArks before switching? (y/n): "
+REM ---- optional backup (copy, not move - covers ALL maps' saves + cluster uploads) ----
+REM Backs up SAVESROOT + CLUSTERDIR (the real per-map data + tribute uploads) rather than
+REM ShooterGame\Saved\SavedArks - the latter is now just junction placeholders pointing there.
+set /p "DOBACKUP=Back up all map saves + cluster data before switching? (y/n): "
 if /i "%DOBACKUP%"=="y" (
     for /f %%t in ('powershell -NoProfile -Command "Get-Date -Format yyyyMMdd-HHmmss"') do set "TS=%%t"
-    set "BACKUP=%SERVER_ROOT%\ShooterGame\Saved\SavedArks_backups\!TS!"
+    set "BACKUP=%BACKUPROOT%\!TS!"
     echo Backing up -^> !BACKUP!
     mkdir "!BACKUP!" 2>nul
-    robocopy "%SERVER_ROOT%\ShooterGame\Saved\SavedArks" "!BACKUP!" /E /NFL /NDL /NJH /NJS /NP >nul
+    robocopy "%SAVESROOT%" "!BACKUP!\Saves" /E /NFL /NDL /NJH /NJS /NP >nul
+    robocopy "%CLUSTERDIR%" "!BACKUP!\ClusterData" /E /NFL /NDL /NJH /NJS /NP >nul
 )
 
 REM ---- relaunch on the new map (new window, same launch script/ports/cluster settings) ----
