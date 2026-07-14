@@ -46,6 +46,8 @@ From the [Releases page](../../releases), grab:
 | `ArkAP_plugin.zip` | the server plugin + data files | Server PC |
 | `ArkConnector.zip` | the bridge (includes `ArkConnector.exe`) | Server PC |
 | `ark_ase.apworld` | the Archipelago world | whoever generates the seed |
+| `ark.yaml` | example player options (also bundled inside the apworld) | whoever generates the seed |
+| `ArkServerScripts.zip` | launch/reset `.bat` helpers for the ARK server itself | Server PC |
 | `ark_survival_evolved_ap.zip` | PopTracker pack (optional) | any PC |
 
 You'll also need (external):
@@ -101,10 +103,9 @@ pick **`preaquatica`** (no access code needed). Let Steam finish updating before
 ### 1c. Install ARK Server API
 
 Download from the [AseApi releases page](https://github.com/ArkServerApi/AseApi/releases) and
-follow its install instructions. It
-drops `version.dll` (the loader) and an `ArkApi\` folder into
-`...\ShooterGame\Binaries\Win64\`. **BattlEye must be OFF** — ArkApi is incompatible with it (the
-launch script below already passes `-NoBattlEye`).
+extract its contents into your install location's `\ShooterGame\Binaries\Win64` — it drops
+`version.dll` (the loader) and an `ArkApi\` folder there. **BattlEye must be OFF** — ArkApi is
+incompatible with it (the launch script below already passes `-NoBattlEye`).
 
 > After this step you should have:
 > `E:\ARK\Server\ShooterGame\Binaries\Win64\ArkApi\Plugins\`
@@ -182,8 +183,9 @@ Do this on whatever machine is the "generator" (can be your Server PC, or a frie
 
 **Order matters:**
 
-1. **Start the ARK dedicated server.** Use the bundled `tools\start_ase_server.bat` (edit
-   `SERVER_ROOT` at the top to your install path first). It launches The Island with `-NoBattlEye`.
+1. **Start the ARK dedicated server.** Download **`ArkServerScripts.zip`** from the release, unzip
+   it anywhere, and use `start_ase_server.bat` (edit `SERVER_ROOT` at the top to your install path
+   first). It launches The Island with `-NoBattlEye`.
 2. **Confirm the plugin loaded** (do this once to know it's wired up). Two files appear in
    `...\ArkApi\Plugins\ArkAP\`:
    - **`ArkAP_loaded.txt`** — should read the current build marker, e.g. `v72-buff-filler`. If it's
@@ -284,7 +286,8 @@ Edit these in your `ark.yaml` before generating (full commented list is in the f
 
 This guide uses `E:\ARK\Server` as the install root. If yours differs, update **all** of these:
 
-- **`tools\start_ase_server.bat`** → `SERVER_ROOT` (and optionally `MAP`, ports, `ADMINPASS`).
+- **`start_ase_server.bat`** (from `ArkServerScripts.zip`) → `SERVER_ROOT` (and optionally `MAP`,
+  ports, `ADMINPASS`).
 - **`connector.ini`** → `ipc_dir` (must be your real `...\ArkApi\Plugins\ArkAP\ipc`).
 - **`install_plugin.bat`** prompt → your real `...\ArkApi\Plugins` path.
 
@@ -295,7 +298,8 @@ This guide uses `E:\ARK\Server` as the install root. If yours differs, update **
 A generated game is a new seed — clear old progress or stale unlocks/checks leak in. On the Server
 PC, with the ARK server **stopped**:
 
-- **Run `tools\reset_ark_test.bat`** (edit `SERVER_ROOT` at the top first). It backs up + clears the
+- **Run `reset_ark_test.bat`** (from `ArkServerScripts.zip`, edit `SERVER_ROOT` at the top first).
+  It backs up + clears the
   world save and wipes every ArkAP tracking file: `state.json`, `seed.json`, `counters.json`,
   `applied_index.json`, `events_queue.jsonl`, the `ipc\` mailbox files, all the `*_queue.jsonl`
   harvest files, and every multiplayer `ipc\<player>` subfolder. This is the whole reset — do it
