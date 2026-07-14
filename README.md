@@ -21,14 +21,6 @@ several-players-on-one-server mode, and a PopTracker pack.
 | **Connector** | a small bridge between the plugin (file IPC) and the AP server (websocket) | the server PC |
 | **PopTracker pack** | optional visual auto-tracker | any PC |
 
-```
-ARK dedicated server ── ArkAP plugin ──(ipc files)── Connector ──(websocket)── Archipelago room
-                                                                                   │
-                                                            PopTracker (auto-track)┘
-```
-
----
-
 ## Install (players)
 
 The short version is below; **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)** is the full
