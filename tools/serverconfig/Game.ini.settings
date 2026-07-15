@@ -1,0 +1,17 @@
+# Recommended Game.ini settings for an Archipelago ARK run.
+# apply_server_config.bat reads the key=value lines below and writes them into your real
+# Game.ini (under the matching [section]), updating keys in place and adding missing ones -
+# it does NOT overwrite unrelated settings you already have.
+#
+# Lines starting with # or ; are comments (ignored). Edit the values to taste, then run
+# apply_server_config.bat. Section headers in [brackets] tell the tool where each key goes.
+
+[/script/shootergame.shootergamemode]
+# how fast babies grow (higher = faster maturation)
+BabyMatureSpeedMultiplier=10.0
+# incubation / egg hatch speed (higher = faster)
+EggHatchSpeedMultiplier=10.0
+# imprint cuddle interval (lower = need to imprint less often = easier)
+BabyCuddleIntervalMultiplier=0.1
+# how soon dinos can re-mate (lower = breed sooner)
+MatingIntervalMultiplier=0.5

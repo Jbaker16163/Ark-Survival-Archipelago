@@ -223,20 +223,52 @@ class Bridge:
     # ---- main loop (auto-reconnects; AP re-sends state on each connect, plugin dedups via the
     # item index watermark, and deaths_sent/hints_sent live on this instance so an in-process
     # reconnect never replays the DeathLink/hint backlog) ----
-    async def run(self, uri: str) -> None:
+    #
+    # server-hosted rooms (archipelago.gg/uploads) sit behind a TLS-terminating proxy that
+    # expects wss:// on every room port, not just :443 - hitting it with plain ws:// gets a
+    # real HTTP response back instead of a WS handshake ("did not receive a valid HTTP
+    # response"). Self-hosted rooms (raw IP, no proxy) are usually plain ws:// only. Rather than
+    # guess from the address, try wss:// first each cycle (matching the official AP clients'
+    # behavior) and fall back to ws:// immediately if that specific attempt fails - then
+    # remember whichever scheme actually worked so later reconnects don't pay the retry cost.
+    async def run(self, server: str) -> None:
         delay = 5
+        scheme_order = ["wss", "ws"]
         while True:
-            try:
-                async with websockets.connect(uri, max_size=None) as ws:
-                    delay = 5                                  # connected -> reset the backoff
+            # connect phase: try each scheme with no delay between them - a wrong scheme
+            # fails the handshake near-instantly, so this doesn't meaningfully slow anything down.
+            ws = None
+            connect_errors = []
+            for scheme in list(scheme_order):
+                uri = f"{scheme}://{server}"
+                try:
+                    ws = await websockets.connect(uri, max_size=None)
+                    if scheme_order[0] != scheme:          # this scheme won - prefer it next time
+                        scheme_order.remove(scheme)
+                        scheme_order.insert(0, scheme)
+                    break
+                except SystemExit:
+                    raise
+                except Exception as e:
+                    connect_errors.append(f"{scheme}://: {e}")
+
+            if ws is None:
+                print(f"[connector] connection failed ({'; '.join(connect_errors)}); "
+                      f"reconnecting in {delay}s...")
+            else:
+                delay = 5                                  # connected -> reset the backoff
+                try:
                     await self._handshake(ws)
                     await asyncio.gather(self._pump_incoming(ws), self._pump_checks(ws))
-            except SystemExit:
-                raise
-            except Exception as e:
-                print(f"[connector] connection lost ({e}); reconnecting in {delay}s...")
-                await asyncio.sleep(delay)
-                delay = min(delay * 2, 60)                     # 5 -> 10 -> 20 -> 40 -> 60s cap
+                except SystemExit:
+                    raise
+                except Exception as e:
+                    print(f"[connector] connection lost ({e}); reconnecting in {delay}s...")
+                finally:
+                    await ws.close()
+
+            await asyncio.sleep(delay)
+            delay = min(delay * 2, 60)                         # 5 -> 10 -> 20 -> 40 -> 60s cap
 
     async def _handshake(self, ws) -> None:
         # Server sends RoomInfo first; grab the game list (for the datapackage), then Connect.
@@ -506,10 +538,9 @@ def main() -> None:
 
     game_ini = a.game_ini or cfg.get("game_ini") or None
 
-    uri = f"wss://{server}" if server.endswith(":443") else f"ws://{server}"
     bridge = Bridge(ipc_dir, slot, password, boss_goal, data_dir, death_link=death_link,
                     game_ini=game_ini)
-    asyncio.run(bridge.run(uri))
+    asyncio.run(bridge.run(server))
 
 
 if __name__ == "__main__":

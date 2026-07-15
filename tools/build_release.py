@@ -9,9 +9,11 @@ Produces:
   dist/ArkAP_plugin.zip                - the server plugin: ArkAP.dll + data files + install bat
   dist/ArkConnector.zip                - the Python connector + connector.ini + run bat
                                          (if connector/dist/ArkConnector.exe exists, it's included)
-  dist/ArkServerScripts.zip            - launch/reset .bat helpers for the ARK dedicated server
-                                         itself (start/switch/transfer/reset) - these live under
-                                         tools/ in the repo, which release-only downloaders don't have
+  dist/ArkServerScripts.zip            - helpers for the ARK dedicated server itself: launch/switch/
+                                         transfer/reset .bat scripts + apply_server_config (applies
+                                         recommended Game.ini/GameUserSettings.ini settings) - these
+                                         live under tools/ in the repo, which release-only
+                                         downloaders don't have
 
 Regenerates the apworld + tracker first so everything is current. Run from the repo root:
   python tools/build_release.py
@@ -96,8 +98,10 @@ def main():
     tools = os.path.join(ROOT, "tools")
     spairs = [(os.path.join(tools, n), n) for n in (
         "start_ase_server.bat", "switch_map.bat", "start_transfer_server.bat",
-        "reset_ark_test.bat",
+        "reset_ark_test.bat", "apply_server_config.bat", "apply_server_config.ps1",
     )]
+    for n in ("Game.ini.settings", "GameUserSettings.ini.settings"):
+        spairs.append((os.path.join(tools, "serverconfig", n), f"serverconfig/{n}"))
     zip_files(spairs, os.path.join(DIST, "ArkServerScripts.zip"))
 
     print("[7/7] apworld already in dist/ from step 1.")

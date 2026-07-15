@@ -95,6 +95,12 @@ build. **Server and client must both be on this branch**, or you won't be able t
    > 3. Still failing? Antivirus/Controlled Folder Access may be blocking the install folder — add
    >    an exclusion, and try running Command Prompt as Administrator.
 
+   > **A fresh Windows Server PC is also likely missing the DirectX End-User Runtime** that
+   > `ShooterGameServer.exe` needs (`X3DAudio1_7.dll` / `XAPOFX1_5.dll not found` errors when you
+   > try to start the server later). Save yourself the trouble now: download and run the
+   > [DirectX End-User Runtime (June 2010)](https://www.microsoft.com/en-us/download/details.aspx?id=8109)
+   > web installer. See the Troubleshooting section below if you hit this after the fact instead.
+
 ### 1b. Put your **game client** on the same branch
 
 In Steam: right-click **ARK: Survival Evolved** → **Properties** → **Betas** → in the beta dropdown
@@ -109,6 +115,20 @@ incompatible with it (the launch script below already passes `-NoBattlEye`).
 
 > After this step you should have:
 > `E:\ARK\Server\ShooterGame\Binaries\Win64\ArkApi\Plugins\`
+
+### 1d. (Optional) Apply recommended server settings
+
+Faster breeding/imprinting and quality-of-life rates make an Archipelago run a lot smoother.
+`ArkServerScripts.zip` includes `apply_server_config.bat` + editable templates in `serverconfig\`
+(`Game.ini.settings`, `GameUserSettings.ini.settings`).
+
+1. **Start the server once, then stop it** — the config folder
+   (`...\ShooterGame\Saved\Config\WindowsServer`) only exists after the first boot.
+2. Edit the values in `serverconfig\*.settings` to taste (defaults: 10x baby maturation, faster
+   hatching/mating, easier imprint; 5x taming, 2x harvest, 2x XP).
+3. Run `apply_server_config.bat` (edit `SERVER_ROOT` at the top first). It does a **safe key-level
+   merge** — only the keys in the templates are updated/added, everything else in your config is
+   left alone, and a `.bak` backup is made. Restart the server.
 
 ---
 
@@ -250,6 +270,28 @@ every slot - arena fights are team efforts), and Tek engrams (unlock for everyon
 If more than one ARK yaml uses `randomize_dino_spawns`, only enable `game_ini` auto-patch on ONE
 connector (there's a single Game.ini; last writer would win).
 
+### Port forwarding (friends joining over the internet)
+
+Everyone still joins the **same one ARK server** (multiplayer here is per-player AP slots, not
+separate ARK server instances), so the ports below don't multiply per player — forward them once
+on the **Server PC's router**, matching whatever you set in `start_ase_server.bat`. Only the person
+hosting needs to forward anything; joining players don't.
+
+| Port | Protocol | What it's for | Needed when |
+|------|----------|----------------|-------------|
+| `7777` (`GAMEPORT`) | UDP | Main game connection | Always |
+| `7778` (`GAMEPORT`+1) | UDP | ASE claims this automatically alongside the game port | Always |
+| `27015` (`QUERYPORT`) | UDP | Server browser / query (what clients actually connect through) | Always |
+| `27020` (`RCONPORT`) | TCP | Remote console access | Only if you use RCON tools remotely - skip for local-only admin |
+| `7779`/`7780` (bridge `GAMEPORT`/+1) | UDP | Temporary bridge server for live map-to-map transfers | Only while running `start_transfer_server.bat` with a remote friend transferring |
+| `27016` (bridge `QUERYPORT`) | UDP | Bridge server query | Same as above |
+| `27021` (bridge `RCONPORT`) | TCP | Bridge server RCON | Only if using RCON on the bridge remotely |
+| `38281` | TCP | The Archipelago room itself | Only if self-hosting the AP room (Launcher → Host) instead of using archipelago.gg |
+
+The **connector** makes an outbound-only connection (to the AP room) — it never needs a forwarded
+port itself, in solo or multiplayer mode. If you only ever transfer characters locally (no remote
+friend needs to join the bridge mid-transfer), you can skip the bridge ports entirely.
+
 ## Step 6 — PopTracker (optional)
 
 1. Install [PopTracker](https://github.com/black-sliver/PopTracker/releases).
@@ -279,6 +321,14 @@ Edit these in your `ark.yaml` before generating (full commented list is in the f
 | `death_link` | `true` | Die together with linked players. |
 | `trap_percentage` | `25` | % of filler slots that are traps (surprise wild-dino spawns). |
 | `early_dino_checks` | `true` | Keeps other games' "early" items off ARK's hard/late checks. |
+
+> **`randomize_dino_spawns` needs the full chain to actually do anything:** (1) set it in the yaml
+> you **generate from**, with the current `ark_ase.apworld` installed (older apworlds don't emit it);
+> (2) set `game_ini = ...\Game.ini` in `connector.ini` so the connector auto-writes the
+> `NPCReplacements` lines (otherwise it only drops `ipc\game_ini_fragment.txt` for you to paste);
+> (3) restart the ARK server after the lines land; (4) run `cheat DestroyWildDinos` in-game to
+> force a respawn wave under the new rules (existing wild dinos keep their old spawns). If the
+> connector window never prints `spawn randomizer: N NPCReplacements`, it's step 1 — regenerate.
 
 ---
 
@@ -329,6 +379,14 @@ index, so you only ever reset the plugin + world, never the connector.
 
 ## Troubleshooting
 
+- **`ShooterGameServer.exe - System Error`: "X3DAudio1_7.dll was not found" / "XAPOFX1_5.dll was
+  not found" (usually both, one after the other) when starting the server** — missing the DirectX
+  End-User Runtime; Windows' built-in DirectX doesn't include these legacy audio components, and
+  ARK's server still links against them even though it's headless. Download and run the
+  [DirectX End-User Runtime (June 2010)](https://www.microsoft.com/en-us/download/details.aspx?id=8109)
+  web installer, then retry. Note: that installer just **extracts** a folder of `.cab` files first —
+  extraction isn't installation. Find **`DXSETUP.exe`** in the extracted folder and run it (as
+  Administrator) to actually install the DLLs; then start the server again.
 - **Can't see / join the server** — confirm client is on `preaquatica`, launched with `-NoBattlEye`,
   and you're using **LAN IP + query port `:27015`** (not 7777, not public IP).
 - **"Unable to query server info for invite" / Steam Join fails** — use ARK's own direct connect
