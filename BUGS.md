@@ -2,6 +2,20 @@
 
 ## Open bugs (reported, not yet fixed)
 
+- **randomize_dino_spawns: empty spawns (wrong class names) — CROSS-CHECKED, likely fixed, needs
+  one live retest.** Full wiki blueprint-path audit (2026-07-14) of all 103 classes: 99 were
+  already correct; 4 were wrong and are now fixed in `spawn_classes.json` (both copies + rebuilt
+  apworld): Unicorn (`Equus_Character_BP_Unicorn_C` - it's an Equus variant), Ammonite
+  (`Ammonite_Character_C`), Eurypterid (`Euryp_Character_C`), Trilobite (`Trilobite_Character_C`)
+  - the last three have NO `_BP` in their class names. NOTE the user report ("only brontos and
+  pteranodons spawn") suggests something broader than 4 bad water/cave classes, so the audit may
+  not be the whole story - retest with a fresh regenerated seed. If land spawns are still empty,
+  run the v73 harvest for ground truth: `/dumpdinos` in-game (and/or `cheat DestroyWildDinos`),
+  then `python tools/gen_spawn_classes.py ArkAP_dino_classes.jsonl` rebuilds the list from what
+  the server actually spawns. Also possible: the OLD (pre-fix) NPCReplacements block is still in
+  Game.ini from the previous seed - the connector replaces its managed block on next connect, but
+  only if `game_ini=` is set; check the block's contents match the new seed.
+
 - **Reconnecting kills everyone** — root cause found + fixed in the connector (see Fixed below).
   Keep this line until the fix is confirmed live: needs one real reconnect test with the new
   `ArkConnector.exe` while another DeathLink player is connected.

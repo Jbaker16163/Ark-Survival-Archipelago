@@ -348,11 +348,23 @@ void Hook_APrimalStructureItemContainer_SupplyCrate_BeginPlay(APrimalStructureIt
 // (SpiderBoss/GorillaBoss/DragonBoss/Overseer) and reports that boss's location.
 static void GrantTekForBoss(const std::string& baseTag);   // defined below (after ApplyItem helpers)
 
+// passive harvest of real wild-dino Character_BP class names (ground truth for the
+// randomize_dino_spawns spawn_classes.json). Every distinct class seen dying is logged once to
+// ArkAP_dino_classes.jsonl - run 'cheat DestroyWildDinos' near spawn zones to harvest en masse.
+static std::set<std::string> g_seenDinoClasses;
+static void HarvestDinoClass(const std::string& name) {
+    if (name.find("_Character_BP") == std::string::npos) return;   // only real dino BP classes
+    if (!g_seenDinoClasses.insert(name).second) return;            // once each
+    std::ofstream f(PluginDir() / "ArkAP_dino_classes.jsonl", std::ios::app);
+    if (f) f << "{\"class\": \"" << name << "\"}\n";
+}
+
 static void DoBossDeath(APrimalDinoCharacter* dino, AActor* damageCauser) {
     FString fn; dino->GetFullName(&fn, nullptr);
     std::string full = fn.ToString();
     std::string name = full.substr(0, full.find(' '));          // class name prefix
     if (name.empty()) return;
+    HarvestDinoClass(name);                                     // ground-truth spawn class names
     for (auto& b : g_bosses) {
         if (name.find(b.frag) != std::string::npos) {
             // difficulty from the class name: _Easy = Gamma, _Medium = Beta, else Alpha (incl _Hard).
@@ -891,6 +903,31 @@ static void DumpNotes(APlayerController*, FString*, bool) {
     __except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
+// One-shot harvest of every wild-dino Character_BP class currently loaded near the player.
+// Ground truth for spawn_classes.json (randomize_dino_spawns). Chat: /dumpdinos - fly around the
+// map's spawn zones running it, or run 'cheat DestroyWildDinos' (passive harvest on Die catches
+// everything that dies). Results accumulate in ArkAP_dino_classes.jsonl.
+static void DoDumpDinos(AShooterPlayerController* pc) {
+    if (!pc) return;
+    FVector ppos = ArkApi::GetApiUtils().GetPosition(pc);
+    int before = (int)g_seenDinoClasses.size();
+    for (AActor* a : ArkApi::GetApiUtils().GetAllActorsInRange(ppos, 500000.f, EServerOctreeGroup::DINOPAWNS)) {
+        auto* d = static_cast<APrimalDinoCharacter*>(a);
+        if (!d) continue;
+        FString fn; d->GetFullName(&fn, nullptr);
+        std::string full = fn.ToString();
+        HarvestDinoClass(full.substr(0, full.find(' ')));
+    }
+    int total = (int)g_seenDinoClasses.size();
+    std::wstring m = L"Harvested " + std::to_wstring(total - before) + L" new dino classes (" +
+                     std::to_wstring(total) + L" total) -> ArkAP_dino_classes.jsonl";
+    ChatNotify(m.c_str());
+    DebugLog("DUMPDINOS new=" + std::to_string(total - before) + " total=" + std::to_string(total));
+}
+static void DumpDinosChat(AShooterPlayerController* pc, FString*, EChatSendMode::Type) {
+    __try { DoDumpDinos(pc); } __except (EXCEPTION_EXECUTE_HANDLER) {}
+}
+
 // --- /hint : quote the resource cost ; /buyhint : pay resources + reveal (connector runs AP !hint) ---
 struct ResCost { std::string cls; std::string label; int qty; };
 static std::vector<ResCost> HintCost(int id) {
@@ -1284,7 +1321,7 @@ static void Tick() {
 }
 
 // ----------------------------------------------------------------- lifecycle
-static const char* ARKAP_BUILD = "v72-buff-filler";
+static const char* ARKAP_BUILD = "v73-dino-class-harvest";
 
 static void Load() {
     fs::path base = PluginDir();
@@ -1457,6 +1494,7 @@ static void Load() {
     ArkApi::GetCommands().AddConsoleCommand("ArkAP.BuildRegistry", &BuildRegistryCmd);
     ArkApi::GetCommands().AddChatCommand("/dumpengrams", &DumpEngramsChat);
     ArkApi::GetCommands().AddChatCommand("/dumpnotes", &DumpNotesChat);
+    ArkApi::GetCommands().AddChatCommand("/dumpdinos", &DumpDinosChat);
     ArkApi::GetCommands().AddChatCommand("/buildregistry", &BuildRegistryChat);
     ArkApi::GetCommands().AddChatCommand("/hint", &HintQuoteChat);
     ArkApi::GetCommands().AddChatCommand("/buyhint", &HintBuyChat);
@@ -1500,6 +1538,7 @@ static void Unload() {
     ArkApi::GetCommands().RemoveConsoleCommand("ArkAP.BuildRegistry");
     ArkApi::GetCommands().RemoveChatCommand("/dumpengrams");
     ArkApi::GetCommands().RemoveChatCommand("/dumpnotes");
+    ArkApi::GetCommands().RemoveChatCommand("/dumpdinos");
     ArkApi::GetCommands().RemoveChatCommand("/buildregistry");
     ArkApi::GetCommands().RemoveChatCommand("/hint");
     ArkApi::GetCommands().RemoveChatCommand("/buyhint");
