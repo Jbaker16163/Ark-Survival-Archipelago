@@ -39,7 +39,7 @@ its Archipelago client.
 
 ## What to download
 
-From the [Releases page](../../releases), grab:
+From the [Releases page](https://github.com/Jbaker16163/Ark-Survival-Archipelago/releases), grab:
 
 | File | What it's for | Goes on |
 |------|---------------|---------|

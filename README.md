@@ -38,7 +38,7 @@ smoke test). Everything except the game client runs on the **Server PC**.
 ### 1. Server PC — the plugin
 1. Install **[ARK Server API](https://github.com/ArkServerApi/AseApi)** on your ASE
    dedicated server (Pre-Aquatica branch — see the full guide; BattlEye must be OFF).
-2. Download **`ArkAP_plugin.zip`** from the [release](../../releases), unzip it, run
+2. Download **`ArkAP_plugin.zip`** from the [release](https://github.com/Jbaker16163/Ark-Survival-Archipelago/releases), unzip it, run
    **`install_plugin.bat`**, and point it at your `...\ArkApi\Plugins` folder.
 3. The plugin defaults to **`ap`** mode (follow the AP room). Only an `ArkAP.config.json` with
    `"mode": "offline"` changes that — the usual "it does nothing" cause. Restart the server.
