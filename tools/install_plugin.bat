@@ -22,7 +22,14 @@ if not exist "%PLUGINS%" (
 
 echo Installing to %PLUGINS%\ArkAP ...
 REM /E = include subdirs, merge (does NOT delete ipc/ or tracking files already there).
-robocopy "%SRC%" "%PLUGINS%\ArkAP" /E /NFL /NDL /NJH /NJS /NP >nul
+REM Preserve an existing ArkAP.config.json on upgrade - never clobber live settings
+REM (mode / multiplayer). Fresh installs get the shipped default.
+set "XCFG="
+if exist "%PLUGINS%\ArkAP\ArkAP.config.json" (
+    set "XCFG=/XF ArkAP.config.json"
+    echo Existing ArkAP.config.json found - keeping your settings.
+)
+robocopy "%SRC%" "%PLUGINS%\ArkAP" /E /NFL /NDL /NJH /NJS /NP %XCFG% >nul
 
 echo.
 echo Done. The ArkAP plugin is installed. Start (or restart) your ARK dedicated server.

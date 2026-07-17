@@ -22,24 +22,78 @@ OUT = os.path.normpath(os.path.join(HERE, "..", "data", "spawn_classes.json"))
 BUNDLED = os.path.normpath(os.path.join(HERE, "..", "apworld", "ark_ase", "data", "spawn_classes.json"))
 
 # class-name substrings that mark a class as NOT a normal wild spawn to shuffle.
-# alphas are the Mega* predators + ocean Mega_/_Mega; bosses/tek/minions/event variants excluded.
+# alphas are the Mega*/Alpha_* predators + _Mega variants; Bionic* = tek-skin spawns;
+# bosses/minions/event variants excluded. (All verified against a real Island harvest.)
 EXCLUDE = (
-    "Boss", "Tek", "Minion", "Corrupt", "Eden", "Gauntlet", "Escort", "_VR", "Character_BP_Aggressive",
-    "MegaRaptor", "MegaCarno", "MegaRex", "Mega_", "_Mega", "Alpha", "Retrieve", "Summon",
-    "Baby", "Gen2", "Bog", "Ocean", "STA_", "Race", "Hunt", "Mission",
-    "Titanosaur", "Bee_Character",  # map-limited mega spawn / hive mechanic (kept out on purpose)
+    "Boss", "Tek", "Bionic", "Minion", "Corrupt", "Eden", "Gauntlet", "Escort", "_VR",
+    "Character_BP_Aggressive",
+    "MegaRaptor", "MegaCarno", "MegaRex", "MegaMegalodon", "Mega_", "_Mega", "Alpha",
+    "Retrieve", "Summon", "Baby", "Gen2", "Bog", "STA_", "Race", "Hunt", "Mission",
+    "Titanosaur", "Bee_Queen", "Bee_Character",  # map-limited mega spawn / hive mechanic
 )
+
+# The Island's cave roster - kept OUT of the shuffle entirely (their spawns stay vanilla).
+# Cave spawn zones are tight/dark/artifact-guarding; a shuffled Paracer in a crouch-tunnel
+# gets stuck, and cave-only species vanishing from caves breaks their kill checks.
+CAVE_CLASSES = (
+    "Bat_Character_BP_C",            # Onyc
+    "SpiderS_Character_BP_C",        # Araneo
+    "Scorpion_Character_BP_C",       # Pulmonoscorpius
+    "Arthro_Character_BP_C",         # Arthropleura
+    "Megalosaurus_Character_BP_C",
+    "BoaFrill_Character_BP_C",       # Titanoboa
+    "DungBeetle_Character_BP_C",
+    "Dragonfly_Character_BP_C",      # Meganeura
+    "Megalania_Character_BP_C",
+    "Yeti_Character_BP_C",
+)
+
+# danger classification (grouped mode down-weights predators so zones aren't predator-saturated:
+# apex EntryWeight 0.2, mid 0.5, docile 1.0 - the weights themselves live in the apworld).
+APEX_STEMS = ("Rex_", "Gigant_", "Carcha_", "Spino_", "Allo_", "Yutyrannus", "Therizino",
+              "Mosa_", "Plesiosaur", "Tusoteuthis", "Rhynio", "Leeds", "Liopleurodon")
+MID_STEMS = ("Carno_", "Raptor_", "Sarco_", "Kaprosuchus", "Baryonyx", "Direbear", "Direwolf",
+             "Thylacoleo", "Purlovia", "TerrorBird", "Saber_", "Hyaenodon", "Daeodon", "Troodon",
+             "Bigfoot", "Chalico", "Argent_", "Quetz", "Dimorph", "Microraptor", "FlyingAnt",
+             "Megalodon", "Dunkle", "Angler", "Eel_", "Cnidaria", "Piranha", "Manta",
+             "Euryp")
+
+
+def danger(cls: str) -> str:
+    if any(s in cls for s in APEX_STEMS):
+        return "apex"
+    if any(s in cls for s in MID_STEMS):
+        return "mid"
+    return "docile"
+
 
 # habitat classification by class-name substring. Everything not matched = land.
 WATER_KEYS = (
     "Coel", "Dolphin", "Ichthyosaur", "Megalodon", "Mosa", "Plesiosaur", "Angler", "Manta",
-    "Dunkle", "Basilo", "Leech", "Trilobite", "Eel", "Electrophorus", "Cnidaria", "Jellyfish",
+    "Dunkle", "Basilo", "Leech", "Leeds", "Trilobite", "Eel", "Electrophorus", "Cnidaria", "Jellyfish",
     "Euryp", "Salmon", "Piranha", "Tuso", "Liopleurodon", "Diplocaulus", "Ammonite", "Otter",
     "Hesperornis", "Sabertooth_Salmon", "Lamprey",
 )
 AIR_KEYS = (
     "Ptero", "Argent", "Pela", "Dimorph", "Bat", "Ichthyornis", "Quetz", "Tapejara", "Rhynio",
-    "Vulture", "Microraptor", "Archa",   # Microraptor/Archaeopteryx glide - treat as air-ish
+    "Vulture", "Microraptor", "Archa", "FlyingAnt",   # Microraptor/Archa glide - treat as air-ish
+)
+
+# rare/cave/deep spawns that a normal harvest pass often misses, but whose class names are
+# verified against ark.wiki.gg blueprint paths (2026-07-14 audit). Appended if not harvested.
+WIKI_CONFIRMED_EXTRA = (
+    ("Quetzal",          "Quetz_Character_BP_C",        "air"),
+    ("Giganotosaurus",   "Gigant_Character_BP_C",       "land"),
+    ("Megalania",        "Megalania_Character_BP_C",    "land"),
+    ("Megalosaurus",     "Megalosaurus_Character_BP_C", "land"),
+    ("Castoroides",      "Beaver_Character_BP_C",       "land"),
+    ("Rhyniognatha",     "Rhynio_Character_BP_C",       "air"),
+    ("Carcharodontosaurus", "Carcha_Character_BP_C",    "land"),
+    ("Liopleurodon",     "Liopleurodon_Character_BP_C", "water"),
+    ("Ammonite",         "Ammonite_Character_C",        "water"),
+    ("Eurypterid",       "Euryp_Character_C",           "water"),
+    ("Trilobite",        "Trilobite_Character_C",       "water"),
+    ("Leech",            "Leech_Character_C",           "water"),
 )
 
 
@@ -53,13 +107,12 @@ def habitat(cls: str) -> str:
 
 
 def pretty(cls: str) -> str:
-    # "Raptor_Character_BP_C" -> "Raptor"
+    # "Raptor_Character_BP_C" -> "Raptor"; "Purlovia_Character_BP_Polar_C" -> "Purlovia Polar"
     name = cls
-    for suf in ("_Character_BP_C", "_Character_C", "_Character_BP", "_C"):
-        if name.endswith(suf):
-            name = name[: -len(suf)]
-            break
-    return name
+    if name.endswith("_C"):
+        name = name[:-2]
+    name = name.replace("_Character_BP", "").replace("_Character", "")
+    return name.replace("_", " ").strip()
 
 
 def main() -> None:
@@ -84,10 +137,18 @@ def main() -> None:
 
     kept, dropped = [], []
     for cls in sorted(classes):
-        if any(x in cls for x in EXCLUDE) or "_Character_BP" not in cls:
+        # note: some real classes have no _BP (Ammonite_Character_C etc) - accept _Character too
+        if any(x in cls for x in EXCLUDE) or cls in CAVE_CLASSES or "_Character" not in cls:
             dropped.append(cls)
             continue
-        kept.append({"name": pretty(cls), "class": cls, "habitat": habitat(cls)})
+        kept.append({"name": pretty(cls), "class": cls, "habitat": habitat(cls),
+                     "danger": danger(cls)})
+
+    harvested = {e["class"] for e in kept}
+    extras = [{"name": n, "class": c, "habitat": h, "danger": danger(c)}
+              for n, c, h in WIKI_CONFIRMED_EXTRA
+              if c not in harvested and c not in CAVE_CLASSES]
+    kept += extras
 
     by_hab = {"land": 0, "water": 0, "air": 0}
     for e in kept:

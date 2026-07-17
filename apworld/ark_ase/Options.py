@@ -188,14 +188,17 @@ class BundleStructures(Toggle):
 
 
 class RandomizeDinoSpawns(Choice):
-    """Shuffle which wild dino spawns where, seed-deterministically, via Game.ini NPCReplacements
-    (the connector writes the lines; one server restart applies them).
+    """FULLY randomize which species live in which biome: every species is dealt across the
+    map's spawn zones, and each biome's spawn roster is completely REPLACED by its seeded hand
+    (via Game.ini spawn-container overrides the connector writes; one server start applies).
+    Every species is guaranteed to spawn SOMEWHERE, so all checks stay obtainable.
       off     - normal spawns
-      grouped - shuffle within habitat: land<->land, water<->water, air<->air (safe default)
-      chaos   - one big shuffle across everything (Plesiosaurs in the forest, Rexes in the ocean
-                drowning... you asked for it)
-    Bosses, alphas, and event creatures are never touched. Kill/tame checks follow the actual
-    creature, so all checks still work - but where you FIND each species changes completely."""
+      grouped - land+air species dealt across land biomes, water species across water zones,
+                with predators down-weighted (apex rare, mid uncommon) so zones stay livable
+      chaos   - everything dealt across everything at EQUAL weight (beached mosas, ocean rexes,
+                predator-saturated beaches... the full experience)
+    Bosses, alphas, tek variants, cave interiors, and specialty spawners (Giga, Quetz, beaver
+    dams...) are never touched."""
     display_name = "Randomize Dino Spawns"
     option_off = 0
     option_grouped = 1

@@ -1,20 +1,69 @@
 # Known bugs / open items
 
+## ROOT CAUSE FOUND 2026-07-16 (v80-srwlock): std::mutex is FORBIDDEN in this plugin
+
+- /connect crashed the ARK server 3× (v76-v79). Crash dump symbolication
+  (ShooterGameServer.exe.552.dmp): `msvcp140!mtx_do_lock` null-deref on the FIRST
+  `std::mutex::lock()` in APClient. The ARK server process loads an ANCIENT msvcp140.dll
+  (14.16.27012 / VS2017-era); binaries built with modern MSVC STL (VS2022 17.10+ constexpr
+  std::mutex layout) are incompatible with that dll's _Mtx_* functions. ANY std::mutex lock =
+  instant AV. This is also the true, previously-undiagnosed cause of the old "Ipc std::mutex
+  faulted in ReportCheck" incident (mutex was removed as a workaround without knowing why).
+  FIX: `ApLock` (SRWLOCK wrapper, kernel32-only) in APClient.hpp; verified via dumpbin that the
+  DLL no longer imports _Mtx_*. RULE: never std::mutex / std::condition_variable in this plugin -
+  use ApLock. (v79's ws-first probe order + session-handle reuse were kept: correct hygiene,
+  wrong suspect.)
+
+## Added 2026-07-16 (plugin v76-embedded-ap) — EXPERIMENTAL, needs live server testing
+
+- **Embedded AP client: in-game `/connect <slot> <host:port> [password]`, `/disconnect`,
+  `/apstatus`.** No external connector process needed. Implementation: `APClient.hpp` — WinHTTP
+  websocket (native `wss://` via Schannel, zero vendored TLS; wss-first with ws fallback like the
+  Python connector), full AP protocol port (Connect/ReceivedItems-by-index/LocationChecks/
+  Bounce-DeathLink/hints via Say !hint/goal via boss_groups/seed-reset). CRITICAL DESIGN: it
+  drives the SAME per-route mailbox files as the external connector, so the plugin's apply/dedup/
+  state logic is untouched and the external connector stays a drop-in alternative (rollback =
+  don't type /connect; checkpoint commit 968aa5e predates the feature). Route = caller's survivor
+  name -> in multiplayer the survivor does NOT need to match the slot name (unlike the external
+  connector). Connections persist in `ap_connections.json` (room password in plain text - same
+  trust level as connector.ini) and auto-resume on server start. Threads never touch ArkApi;
+  clean join happens in the exported `Plugin_Unload` (loader-lock safe); status/errors surface in
+  game chat via msg_in.jsonl.
+  **Tested OFF-server against a real local AP 0.6.7 room** (standalone harness): handshake,
+  ws fallback, check -> item round-trip (server logged "Ghios sent Engram: Tranq Dart... (Reach
+  Level 2)", items_in.jsonl got {"item_id","from","index"}), DeathLink bounce sent, InvalidSlot
+  refusal -> chat message + no retry spam, clean stop.
+  **LIVE-VERIFIED 2026-07-16 (v80/v81)** after the std::mutex crash fix: two slots (Alice +
+  Bob) connected simultaneously from game chat on the user's real server, items delivered.
+  v81 added the route guard (refuse /connect while the survivor name is unresolved -> no more
+  "_unnamed" mailbox binding) + same-slot session dedup on re-/connect.
+  Known gaps: no DataPackage fetch (cross-game item names show as "an item"); spawn-randomizer
+  writes game_ini_fragment.txt only (plugin-side boot patch scoped under Big features); slot
+  names with spaces can't be typed into /connect; don't run embedded + external connector for
+  the same slot simultaneously (double-send).
+
 ## Open bugs (reported, not yet fixed)
 
-- **randomize_dino_spawns: empty spawns (wrong class names) — CROSS-CHECKED, likely fixed, needs
-  one live retest.** Full wiki blueprint-path audit (2026-07-14) of all 103 classes: 99 were
-  already correct; 4 were wrong and are now fixed in `spawn_classes.json` (both copies + rebuilt
-  apworld): Unicorn (`Equus_Character_BP_Unicorn_C` - it's an Equus variant), Ammonite
-  (`Ammonite_Character_C`), Eurypterid (`Euryp_Character_C`), Trilobite (`Trilobite_Character_C`)
-  - the last three have NO `_BP` in their class names. NOTE the user report ("only brontos and
-  pteranodons spawn") suggests something broader than 4 bad water/cave classes, so the audit may
-  not be the whole story - retest with a fresh regenerated seed. If land spawns are still empty,
-  run the v73 harvest for ground truth: `/dumpdinos` in-game (and/or `cheat DestroyWildDinos`),
-  then `python tools/gen_spawn_classes.py ArkAP_dino_classes.jsonl` rebuilds the list from what
-  the server actually spawns. Also possible: the OLD (pre-fix) NPCReplacements block is still in
-  Game.ini from the previous seed - the connector replaces its managed block on next connect, but
-  only if `game_ini=` is set; check the block's contents match the new seed.
+- **randomize_dino_spawns v3 (FULL OVERRIDE design) — BUILT 2026-07-15, needs one live test.**
+  History: v1 NPCReplacements permutation proven broken live (chains resolve recursively; cycles
+  cancel/void spawns; chain-free replacement forces extinctions = broken checks). v2 additions
+  (foreign species ADDED alongside natives) tested working live but felt sparse - user wanted
+  full randomization. v3, per user's insight, REPLACES each biome's roster outright via
+  `ConfigOverrideNPCSpawnEntriesContainer` (cleaner than wiping via empty NPCReplacements: no
+  density collapse from voided native rolls, no replacement semantics at all). All 96
+  live-verified species are PARTITIONED round-robin across The Island's 14 major biome containers
+  (grouped: land+air dealt across 7 land biomes ~10 each, water across 7 water zones ~3-4 each;
+  chaos: everything across everything) - every species spawns somewhere by construction, so all
+  Killed:/Tamed: checks stay obtainable (simulation-verified: all 96 assigned exactly once).
+  Caves, bosses, alphas, tek, and specialty spawners (Giga/Quetz/beaver dams/Titanosaur/Unicorn)
+  keep native rosters. slot_data key: `spawn_overrides`; connector renders
+  ConfigOverrideNPCSpawnEntriesContainer lines (still renders legacy additions/replacements
+  shapes for old seeds). LIVE-CONFIRMED WORKING by the user 2026-07-15 ("working well but very
+  chaotic"). Follow-up shipped same day: `grouped` now DOWN-WEIGHTS predators (danger tags in
+  spawn_classes.json: 10 apex @ EntryWeight 0.2, 31 mid @ 0.5, 55 docile @ 1.0 - slot_data
+  entries are now [class, weight] pairs; connector accepts both shapes) so zones read as fauna
+  with predators in them rather than predator walls. `chaos` deliberately keeps equal weights =
+  the full predator-saturated experience. Needs one regen to take effect.
 
 - **Reconnecting kills everyone** — root cause found + fixed in the connector (see Fixed below).
   Keep this line until the fix is confirmed live: needs one real reconnect test with the new
@@ -22,6 +71,16 @@
 
 ## Big features (scoped, deliberately not started yet)
 
+- **Plugin-side Game.ini auto-patch at boot (v82 candidate)** — the LAST gap keeping /connect from
+  fully replacing the external connector. With `randomize_dino_spawns`, the embedded client can
+  only write `ipc\game_ini_fragment.txt` (ARK rewrites Game.ini from memory at shutdown, so
+  patching while live is futile). Plan: the plugin loads at process start BEFORE the engine reads
+  Game.ini (AseApi loads plugins before UGameEngine::Init - verified in the user's ArkApi log), so
+  Load() can apply the saved fragment to Game.ini then - same "takes effect on restart" semantics
+  as the external connector's stopped-server patch, zero manual steps. Reuse the managed-block
+  markers; take the NEWEST fragment across mailboxes; keep it idempotent (skip write when the
+  block is already identical, avoid touching the file every boot). User confirmed 2026-07-16:
+  wanted, deferred to post-alpha.
 - **Dedicated ARK AP client (CommonClient GUI) + network bridge** — so each player runs a real AP
   client window on their OWN PC (like the Wind Waker client: colored item feed, Hints tab, command
   box) AND the bridging moves off the server PC. Interim answer that already works with zero code:

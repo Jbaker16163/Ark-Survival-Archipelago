@@ -17,14 +17,14 @@ several-players-on-one-server mode, and a PopTracker pack.
 | Part | What it is | Runs on |
 |------|-----------|---------|
 | **`ark_ase.apworld`** | the Archipelago world (items/locations/logic/options) | the AP generator/host |
-| **ArkAP plugin** | an [ArkServerApi (AseApi)](https://github.com/ArkServerApi/AseApi) C++ plugin that gates actions + reports checks | the ARK dedicated **server PC** |
-| **Connector** | a small bridge between the plugin (file IPC) and the AP server (websocket) | the server PC |
+| **ArkAP plugin** | an [ArkServerApi (AseApi)](https://github.com/ArkServerApi/AseApi) C++ plugin that gates actions, reports checks, and connects to the AP room itself — type `/connect <slot> <host:port>` in game chat | the ARK dedicated **server PC** |
+| **Connector** | optional external bridge (fallback for `/connect`; needed for the `randomize_dino_spawns` Game.ini auto-patch) | the server PC |
 | **PopTracker pack** | optional visual auto-tracker | any PC |
 
 ```
-ARK dedicated server ── ArkAP plugin ──(ipc files)── Connector ──(websocket)── Archipelago room
-                                                                                   │
-                                                            PopTracker (auto-track)┘
+ARK dedicated server ── ArkAP plugin ──(websocket, via in-game /connect)── Archipelago room
+                                                                               │
+                                                        PopTracker (auto-track)┘
 ```
 
 ---
@@ -43,16 +43,19 @@ smoke test). Everything except the game client runs on the **Server PC**.
 3. The plugin defaults to **`ap`** mode (follow the AP room). Only an `ArkAP.config.json` with
    `"mode": "offline"` changes that — the usual "it does nothing" cause. Restart the server.
 
-### 2. Server PC — the connector
-1. Download **`ArkConnector.zip`** from the release, unzip it.
-2. Edit **`connector.ini`** — set `server` (your AP room host:port), `slot` (your yaml name),
-   `password`, and `ipc_dir` (the `ipc` folder inside the installed plugin). Auto-reconnects.
-3. Run **`ArkConnector.exe`** (or `run_connector.bat` if you have Python).
-
-### 3. Archipelago — generate the game
+### 2. Archipelago — generate the game
 1. Put **`ark_ase.apworld`** in your Archipelago install's `custom_worlds/` folder.
 2. Copy the example yaml (`ark.yaml` inside the apworld), edit your options, drop it in `Players/`.
-3. Generate + host the room. Use the room's host:port + your slot in `connector.ini`.
+3. Generate + host the room; note its host:port.
+
+### 3. Connect — in game chat
+Join your server, spawn in, and type:
+```
+/connect YourSlotName archipelago.gg:38281
+```
+`/apstatus` to check, `/disconnect` to drop; reconnects automatically across server restarts.
+(Alternative: the external **`ArkConnector.zip`** bridge — see the guide; it's the fallback, and
+currently required for the `randomize_dino_spawns` Game.ini auto-patch.)
 
 ### 4. PopTracker (optional)
 1. Install [PopTracker](https://github.com/black-sliver/PopTracker/releases).
@@ -82,7 +85,8 @@ See `ark.yaml` for the full commented list and defaults; the highlights:
   wild-dino ambushes and debuff effects; good filler includes buffs, kibble, and resources.
 
 Several people can share one ARK server as separate AP slots (`"multiplayer": true` in
-`ArkAP.config.json`, one connector each) — see the guide's Multiplayer section.
+`ArkAP.config.json`; each player runs their own in-game `/connect`) — see the guide's
+Multiplayer section.
 
 ---
 

@@ -14,7 +14,8 @@ from worlds.AutoWorld import World, WebWorld
 from worlds.generic.Rules import add_rule
 
 from .data import (load_engram_data, load_location_data, load_dino_data, load_crate_data,
-                   load_filler_data, load_tek_data, load_spawn_class_data)
+                   load_filler_data, load_tek_data, load_spawn_class_data,
+                   load_spawn_container_data)
 from .Items import (ArkItem, build_item_table, FILLER_NAME, FILLER_ID,
                     STRUCTURE_BUNDLES, structure_bundle_members)
 from .Locations import ArkLocation, build_location_table
@@ -86,6 +87,7 @@ class ArkASAWorld(World):
     _crates = load_crate_data()
     _filler = load_filler_data()
     _spawn_classes = load_spawn_class_data().get("spawn_classes", [])
+    _spawn_containers = load_spawn_container_data().get("spawn_containers", [])
     # Tek engrams: never in the AP pool - the plugin grants each boss's set on its first kill.
     _tek_names = {n for grants in load_tek_data().get("grants", {}).values() for n in grants}
     _filler_names = {f["ap_name"] for f in _filler.get("filler", [])} | {FILLER_NAME}
@@ -429,24 +431,50 @@ class ArkASAWorld(World):
         self.multiworld.completion_condition[self.player] = \
             lambda state: all(state.has(n, self.player) for n in events)
 
-    # randomize_dino_spawns: seed-deterministic permutation of wild spawn classes -> the connector
-    # turns the pairs into Game.ini NPCReplacements lines. grouped = shuffle within each habitat
-    # (land/water/air) so water spawn points never produce drowning land dinos; chaos = one big
-    # shuffle. Identity pairs are dropped (no ini line needed for "X stays X").
-    def _npc_replacements(self) -> list:
+    # randomize_dino_spawns: FULL biome roster randomization. Every species is dealt (partitioned)
+    # across the biome spawn containers, and the connector emits one
+    # ConfigOverrideNPCSpawnEntriesContainer Game.ini line per container - each biome's spawn
+    # roster is completely REPLACED by its seeded hand, at natural spawn density. Partitioning
+    # guarantees every species still spawns somewhere, so all Killed:/Tamed: checks stay
+    # obtainable. Caves / specialty spawners (Giga, Quetz, beaver dams...) aren't overridden and
+    # keep their natives. (NPCReplacements-based shuffling is impossible: live-tested 2026-07-15,
+    # ARK resolves replacement chains recursively so any cycle cancels or voids the spawn.)
+    # grouped = land+air species dealt across land biomes, water species across water zones,
+    # with predators DOWN-WEIGHTED (danger tag from spawn_classes.json: apex 0.1, mid 0.5,
+    # docile 1.0) so zones read as fauna with predators in them, not predator walls;
+    # chaos = everything dealt across everything at equal weight (beached mosas and all).
+    # Apex is intentionally low (0.1) - the big water giants (Mosa/Plesio/Tuso/Liop/Leeds) and
+    # land apexes (Carcha/Rex/Giga...) were overpopulating; this thins them to rare encounters.
+    DANGER_WEIGHT = {"apex": 0.1, "mid": 0.5, "docile": 1.0}
+
+    def _spawn_overrides(self) -> list:
         mode = self.options.randomize_dino_spawns.value
-        if not mode or not self._spawn_classes:
+        if not mode or not self._spawn_classes or not self._spawn_containers:
             return []
-        groups: Dict[str, list] = {}
-        for e in self._spawn_classes:
-            key = e["habitat"] if mode == 1 else "all"
-            groups.setdefault(key, []).append(e["class"])
-        pairs = []
-        for classes in groups.values():
-            shuffled = classes[:]
-            self.random.shuffle(shuffled)
-            pairs += [[a, b] for a, b in zip(classes, shuffled) if a != b]
-        return pairs
+        if mode == 2:      # chaos: one big deal across every container, equal weights
+            weight = {e["class"]: 1.0 for e in self._spawn_classes}
+            pools = {"all": [e["class"] for e in self._spawn_classes]}
+            groups = {"all": [c["container"] for c in self._spawn_containers]}
+        else:              # grouped: land+air species -> land containers, water -> water
+            weight = {e["class"]: self.DANGER_WEIGHT.get(e.get("danger", "docile"), 1.0)
+                      for e in self._spawn_classes}
+            pools = {
+                "land":  [e["class"] for e in self._spawn_classes if e["habitat"] in ("land", "air")],
+                "water": [e["class"] for e in self._spawn_classes if e["habitat"] == "water"],
+            }
+            groups = {"land": [], "water": []}
+            for c in self._spawn_containers:
+                groups.setdefault(c["habitat"], []).append(c["container"])
+        assign: Dict[str, list] = {}
+        for key, containers in groups.items():
+            species = pools.get(key, [])[:]
+            if not containers or not species:
+                continue
+            self.random.shuffle(species)
+            for i, cls in enumerate(species):            # round-robin deal -> every species lives
+                assign.setdefault(containers[i % len(containers)], []).append(cls)
+        return [[c, sorted([cls, weight[cls]] for cls in classes)]
+                for c, classes in sorted(assign.items())]
 
     # tell the connector which bosses count for the goal + whether saddles are bundled (it relays
     # bundle_saddles to the plugin so the plugin grants the saddle on tame unlock).
@@ -462,4 +490,6 @@ class ArkASAWorld(World):
                 "bundle_saddles": bool(self.options.bundle_saddles.value),
                 "free_starter_engrams": bool(self.options.free_starter_engrams.value),
                 "death_link": bool(self.options.death_link.value),
-                "npc_replacements": self._npc_replacements()}
+                "npc_replacements": [],           # legacy key (permutation design retired)
+                "spawn_additions": [],            # legacy key (additions design superseded)
+                "spawn_overrides": self._spawn_overrides()}

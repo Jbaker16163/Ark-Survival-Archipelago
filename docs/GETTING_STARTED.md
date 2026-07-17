@@ -17,9 +17,7 @@ milestones, and defeating bosses send checks out to everyone else's games.
    Server PC
    ┌─────────────────────────────────────────────┐
    │  ARK dedicated server (Pre-Aquatica)         │
-   │      + ArkServerApi + ArkAP.dll (plugin)     │
-   │            │  (ipc files)                     │
-   │        Connector (ArkConnector.exe)          │──(websocket)──►  Archipelago room
+   │      + ArkServerApi + ArkAP.dll (plugin)     │──(websocket)──►  Archipelago room
    └────────────┼─────────────────────────────────┘                      ▲
                 │ LAN                                                     │ internet
         Your ARK game client                              Friends' games + AP clients
@@ -27,13 +25,15 @@ milestones, and defeating bosses send checks out to everyone else's games.
 
 - **ARK dedicated server** — the game server, on the Pre-Aquatica beta branch.
 - **ArkServerApi** — third-party server modding framework the plugin loads into.
-- **ArkAP plugin (`ArkAP.dll`)** — gates actions and reports checks. Lives inside the server.
-- **Connector** — bridges the plugin's local files to the Archipelago room over websocket.
+- **ArkAP plugin (`ArkAP.dll`)** — gates actions, reports checks, and connects to the
+  Archipelago room itself: type **`/connect <slot> <host:port>`** in game chat and play.
 - **apworld (`ark_ase.apworld`)** — the world definition, used on the machine that *generates* the seed.
+- **Connector (`ArkConnector.zip`)** — optional external bridge; fallback for `/connect`, and
+  currently needed for one thing: auto-patching `Game.ini` when `randomize_dino_spawns` is on.
 - **PopTracker pack** — optional auto-tracker, any PC.
 
-You (the ARK player) run the first three on the Server PC. Friends only need their own game + its
-Archipelago client.
+You (the ARK player) run the server + plugin on the Server PC. Friends only need their own game +
+its Archipelago client.
 
 ---
 
@@ -43,11 +43,11 @@ From the [Releases page](../../releases), grab:
 
 | File | What it's for | Goes on |
 |------|---------------|---------|
-| `ArkAP_plugin.zip` | the server plugin + data files | Server PC |
-| `ArkConnector.zip` | the bridge (includes `ArkConnector.exe`) | Server PC |
+| `ArkAP_plugin.zip` | the server plugin + data files (includes the in-game `/connect` AP client) | Server PC |
 | `ark_ase.apworld` | the Archipelago world | whoever generates the seed |
 | `ark.yaml` | example player options (also bundled inside the apworld) | whoever generates the seed |
 | `ArkServerScripts.zip` | launch/reset `.bat` helpers for the ARK server itself | Server PC |
+| `ArkConnector.zip` | optional external bridge (fallback for `/connect`; needed for `randomize_dino_spawns` auto-patch) | Server PC |
 | `ark_survival_evolved_ap.zip` | PopTracker pack (optional) | any PC |
 
 You'll also need (external):
@@ -136,19 +136,18 @@ Faster breeding/imprinting and quality-of-life rates make an Archipelago run a l
 
 1. Unzip **`ArkAP_plugin.zip`**. It contains an `ArkAP\` folder (the `.dll`, the data files
    `engrams.json` / `dinos.json` / `locations.json` / `crates.json` / `filler.json`, and
-   `ArkAP.config.default.json`) plus `install_plugin.bat`.
+   `ArkAP.config.json`) plus `install_plugin.bat`.
 2. Run **`install_plugin.bat`**. When prompted, paste your ArkApi **Plugins** folder path, e.g.:
    ```
    E:\ARK\Server\ShooterGame\Binaries\Win64\ArkApi\Plugins
    ```
-   It copies everything into `...\Plugins\ArkAP\`.
-3. **Check the mode.** The plugin runs in **`ap`** mode (follow the Archipelago room) by default —
-   that's what you want. It only switches to `offline` (self-randomize, no AP server) if a file
-   named `ArkAP.config.json` next to the dll says so. So:
-   - Fresh install, no `ArkAP.config.json` present → already `ap`, nothing to do.
-   - If you have an `ArkAP.config.json` from earlier testing, open it and make sure it reads
-     `"mode": "ap"` (a leftover `"mode": "offline"` is the #1 reason the multiworld "does nothing").
-     `ArkAP.config.default.json` is a correct template.
+   It copies everything into `...\Plugins\ArkAP\`. On upgrades it **keeps your existing
+   `ArkAP.config.json`** (never clobbers your settings).
+3. **`ArkAP.config.json` is the plugin's settings file** (this exact name — the plugin reads no
+   other). The shipped default is correct for a normal game: `"mode": "ap"` (follow the AP room;
+   `offline` is a self-randomize test mode — a leftover `"mode": "offline"` is the #1 reason the
+   multiworld "does nothing") and `"multiplayer": false` (flip to `true` for several players on
+   one server — see the Multiplayer section).
 4. Don't start the server yet — do Step 4 (generate) first so the connector has a room to point at.
 
 > Manual alternative: copy the `ArkAP\` folder into `...\ArkApi\Plugins\` yourself.
@@ -157,7 +156,36 @@ Faster breeding/imprinting and quality-of-life rates make an Archipelago run a l
 
 ---
 
-## Step 3 — Install the connector
+## Step 3 — Connect to Archipelago: in-game `/connect`
+
+The plugin has a built-in AP client — **no extra software to run**. Once the room exists
+(Step 4), spawn in on your survivor, then type in game chat:
+
+```
+/connect <YourSlotName> <host:port> [password]     e.g. /connect Ghios archipelago.gg:38281
+```
+
+- `/apstatus` shows the connection(s); `/disconnect` drops yours.
+- Connections **auto-resume** when the ARK server restarts, and reconnect with backoff if the
+  room goes down. If chat says *AP refused*, fix the slot/password and `/connect` again.
+- **Multiplayer:** each player spawns in fully, then runs their own `/connect` — the plugin
+  identifies them by their survivor automatically (survivor name does NOT need to match the
+  slot). If it says it can't read your survivor name yet, wait a few seconds and retry.
+- Slot names with **spaces** can't be typed into `/connect` — use space-free `name:` values in
+  your yamls.
+- The address must be reachable **from the Server PC** (chat commands run on the server): a room
+  on the server's LAN works for remote players too.
+
+**One current limitation:** with `randomize_dino_spawns` enabled, the in-game client can't patch
+`Game.ini` (ARK rewrites that file at shutdown). It writes `ipc\game_ini_fragment.txt` and tells
+you in chat — paste that into `Game.ini` while the server is stopped, or use the external
+connector below once with `game_ini=` set. Plugin-side auto-patch at boot is planned.
+
+### Alternative — external connector (fallback)
+
+Fully supported; use it if `/connect` misbehaves (its console output is handy for
+troubleshooting) or for the `randomize_dino_spawns` auto-patch. **Don't run both the in-game
+client and an external connector for the same slot at once** — they'd double-send.
 
 1. Unzip **`ArkConnector.zip`** anywhere on the Server PC (it has `ArkConnector.exe`,
    `connector.ini`, `run_connector.bat`).
@@ -172,8 +200,8 @@ Faster breeding/imprinting and quality-of-life rates make an Archipelago run a l
    ```
    **`ipc_dir` must point at the `ipc` folder inside the plugin you just installed.** The plugin
    creates that folder on first server start.
-3. You'll run it in Step 5 (after the room exists). `ArkConnector.exe` needs no Python. If you
-   prefer running from source, `run_connector.bat` auto-installs the one dependency (`websockets`).
+3. Run it after the room exists. `ArkConnector.exe` needs no Python. If you prefer running from
+   source, `run_connector.bat` auto-installs the one dependency (`websockets`).
 
 ---
 
@@ -208,21 +236,22 @@ Do this on whatever machine is the "generator" (can be your Server PC, or a frie
    first). It launches The Island with `-NoBattlEye`.
 2. **Confirm the plugin loaded** (do this once to know it's wired up). Two files appear in
    `...\ArkApi\Plugins\ArkAP\`:
-   - **`ArkAP_loaded.txt`** — should read the current build marker, e.g. `v72-buff-filler`. If it's
+   - **`ArkAP_loaded.txt`** — should read the current build marker, e.g. `v81-route-guard`. If it's
      an older marker, you deployed a stale dll.
    - **`ArkAP_debug.log`** — look for a `LOAD ...` line near the top. It shows `mode=ap` (not
      `offline`) and non-zero counts like `engram_classes=`, `note_locs=`, `tame_dinos=`. If it says
      `mode=offline`, fix `ArkAP.config.json` (Step 2.3) and restart.
-3. **Start the connector.** Double-click `ArkConnector.exe` (or `run_connector.bat`). On success it
-   prints:
-   ```
-   [connector] connected as 'Ghios' (N locations remaining); goal = defeat ...
-   ```
-   Leave this window open — it auto-reconnects if the room drops.
-4. **Friends connect** their own game's AP client to the same `host:port` with their slot names.
-5. **Join your server in ARK.** Launch the client with **`-NoBattlEye`**, then join by **LAN IP +
+3. **Friends connect** their own game's AP client to the same `host:port` with their slot names.
+4. **Join your server in ARK.** Launch the client with **`-NoBattlEye`**, then join by **LAN IP +
    query port**, e.g. `192.168.x.x:27015` — *not* the game port 7777, and not your public IP
    (router hairpin issues). In-game console you can also use `open 192.168.x.x:7777`.
+5. **Connect to the room from game chat** (once spawned in):
+   ```
+   /connect Ghios archipelago.gg:38281
+   ```
+   Chat replies `AP: connected as 'Ghios'`; `/apstatus` confirms. This persists — after a server
+   restart it reconnects by itself. (Using the external connector instead? Start
+   `ArkConnector.exe` now and leave its window open.)
 
 Now play. Learning an engram / taming / opening a crate is gated until AP grants it; collecting
 notes, taming/killing, leveling, and boss kills fire checks out to the multiworld. Items friends
@@ -234,11 +263,9 @@ Fastest end-to-end confirmation, once you're in-world:
 
 - **Item IN:** in the **host's server console** (the ArchipelagoServer window, or the web room's
   command box) run `/send Ghios Engram: Spear` (use your own slot name). Within a second or two you
-  should see an "Unlocked ..." message in ARK chat, and the connector window logs `received ...`.
-  The Spear engram becomes learnable.
-- **Check OUT:** collect an explorer note, or tame/kill a creature. The connector window logs
-  `sending checks: ...` and any item placed there releases to its owner. `ArkAP_debug.log` shows a
-  matching `REPORT loc=... -> checks_out.jsonl` line.
+  should see an "Unlocked ..." message in ARK chat. The Spear engram becomes learnable.
+- **Check OUT:** collect an explorer note, or tame/kill a creature. The room console shows the
+  check arriving, and `ArkAP_debug.log` shows a matching `REPORT loc=... -> checks_out.jsonl` line.
 
 If both directions round-trip, the whole stack is working.
 
@@ -250,17 +277,28 @@ Several people can play on the SAME dedicated server, each as their **own Archip
 their own engram locks, tame unlocks, and checks. Identity = the **survivor character name** typed
 at character creation (it can't be changed once set).
 
-1. In `...\ArkApi\Plugins\ArkAP\ArkAP.config.json` set `"multiplayer": true` (see
-   `ArkAP.config.default.json`) and restart the ARK server.
+1. In `...\ArkApi\Plugins\ArkAP\ArkAP.config.json` set `"multiplayer": true` and restart the ARK
+   server. Confirm in-game with `/whoami` — it should say `multiplayer=ON` and show your
+   character's mailbox route.
 2. Each player adds their own ARK yaml to the generation (unique `name:`).
-3. On the Server PC, run **one connector per player**. Copy the ArkConnector folder per player (or
-   use `ArkConnector.exe --config playerB.ini`), each ini pointing at that player's mailbox:
-   ```ini
-   slot    = TheirSlotName
-   ipc_dir = E:\ARK\Server\...\ArkApi\Plugins\ArkAP\ipc\TheirCharacterName
+3. Connect each player — easiest is in game chat: each player **spawns in fully on their
+   survivor**, then types their own:
    ```
-   **The subfolder name must be the survivor's character name, exactly.** The plugin creates it
-   the first time that player does anything.
+   /connect TheirSlotName archipelago.gg:38281
+   ```
+   (the plugin routes by their survivor automatically; `/apstatus` to verify; if it says it
+   can't read your survivor name yet, wait a moment and retry). OR run
+   **one external connector per player** on the Server PC. Copy the ArkConnector folder per player
+   (or use `ArkConnector.exe --config playerB.ini`). Every ini uses the **same** `ipc_dir` (the
+   plugin's root `ipc` folder); each sets `multiplayer = true` and its own `slot`:
+   ```ini
+   slot        = TheirSlotName
+   ipc_dir     = E:\ARK\Server\...\ArkApi\Plugins\ArkAP\ipc
+   multiplayer = true
+   ```
+   The connector auto-creates and uses `ipc\TheirSlotName` at startup — no per-player paths to type.
+   **Each player's ARK survivor name must equal their slot, exactly as `/whoami` shows it** (that's
+   the route the plugin writes to). Leave `multiplayer = false` for solo play.
 4. Everyone joins the ARK server with their own survivor. Done - each player's tames/kills/notes/
    levels/inventory/breeding count toward their own slot, engram locks are per-player, DeathLink
    is per-player.
@@ -317,7 +355,7 @@ Edit these in your `ark.yaml` before generating (full commented list is in the f
 | `food_sanity` | `100` | % of the 14 food "hold N in inventory" checks included (0/25/50/75/100). |
 | `tame_sanity` | `100` | % of per-species "Tamed: X" checks required (25/50/75/100). Lower = fewer required tames; all Tame unlock items stay in the pool. |
 | `bundle_structures` | `false` | One item unlocks ALL structures of a material (Wood/Stone/Metal/Greenhouse). Tools stay individual. |
-| `randomize_dino_spawns` | `off` | Shuffle wild spawns (`grouped` = within land/water/air, `chaos` = everything). Connector writes Game.ini NPCReplacements; one server restart applies. |
+| `randomize_dino_spawns` | `off` | Fully randomize which species live in which biome — each zone's roster is replaced by a seeded hand, every species still spawns somewhere (`grouped` = habitat-appropriate, `chaos` = anything anywhere). Connector writes the Game.ini lines; one server start applies. |
 | `death_link` | `true` | Die together with linked players. |
 | `trap_percentage` | `25` | % of filler slots that are traps (surprise wild-dino spawns). |
 | `early_dino_checks` | `true` | Keeps other games' "early" items off ARK's hard/late checks. |
@@ -325,10 +363,12 @@ Edit these in your `ark.yaml` before generating (full commented list is in the f
 > **`randomize_dino_spawns` needs the full chain to actually do anything:** (1) set it in the yaml
 > you **generate from**, with the current `ark_ase.apworld` installed (older apworlds don't emit it);
 > (2) set `game_ini = ...\Game.ini` in `connector.ini` so the connector auto-writes the
-> `NPCReplacements` lines (otherwise it only drops `ipc\game_ini_fragment.txt` for you to paste);
-> (3) restart the ARK server after the lines land; (4) run `cheat DestroyWildDinos` in-game to
-> force a respawn wave under the new rules (existing wild dinos keep their old spawns). If the
-> connector window never prints `spawn randomizer: N NPCReplacements`, it's step 1 — regenerate.
+> spawn-addition lines (otherwise it only drops `ipc\game_ini_fragment.txt` for you to paste) —
+> and make sure the ARK server is **stopped** when the connector patches Game.ini (ARK rewrites
+> the file from memory on shutdown, wiping edits made while it runs); (3) start the ARK server;
+> (4) run `cheat DestroyWildDinos` in-game to force a respawn wave (existing wild dinos predate
+> the change). If the connector window never prints `spawn randomizer: N container additions`,
+> it's step 1 — regenerate.
 
 ---
 

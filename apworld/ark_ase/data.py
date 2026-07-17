@@ -57,6 +57,15 @@ def load_spawn_class_data() -> Dict[str, Any]:
         return {"spawn_classes": []}
 
 
+def load_spawn_container_data() -> Dict[str, Any]:
+    """The Island's biome spawn containers (+ habitat) for randomize_dino_spawns (additions
+    design). Optional - empty disables the option silently."""
+    try:
+        return _load("spawn_containers.json")
+    except FileNotFoundError:
+        return {"spawn_containers": []}
+
+
 def load_filler_data() -> Dict[str, Any]:
     """Filler + trap items. Falls back to a single neutral filler if filler.json isn't bundled."""
     try:

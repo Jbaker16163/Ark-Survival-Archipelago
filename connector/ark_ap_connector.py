@@ -39,10 +39,31 @@ BOSS_LOCS = [8750000, 8750001, 8750002, 8750003]
 CLIENT_GOAL = 30   # AP ClientStatus.CLIENT_GOAL
 
 
+def _sanitize_route(s: str) -> str:
+    """Mirror the plugin's SanitizeRoute (PluginMain.cpp) so the per-player mailbox
+    folder name the connector creates matches the route the plugin writes to:
+    keep ASCII alphanumerics + space/dash/underscore, trim edge spaces, cap at 40."""
+    out = "".join(c for c in s if (c.isascii() and c.isalnum()) or c in " -_")
+    out = out.strip(" ")
+    if len(out) > 40:
+        out = out[:40]
+    return out or "_unnamed"
+
+
 class Bridge:
     def __init__(self, ipc_dir: str, slot: str, password: str | None,
                  boss_goal_count: int = 4, data_dir: str | None = None,
-                 death_link: bool = True, game_ini: str | None = None):
+                 death_link: bool = True, game_ini: str | None = None,
+                 multiplayer: bool = False):
+        # ipc_root = the plugin's shared ipc folder (holds the json data files + applied_index.json).
+        # In multiplayer, each connector gets its own ipc_root/<slot> mailbox, created here at
+        # startup - so everyone points ipc_dir at the same root and only `slot` differs. The plugin
+        # routes by sanitized survivor name, so your ARK survivor name must equal your slot (the
+        # folder name must match what /whoami shows).
+        self.ipc_root = ipc_dir
+        self.multiplayer = multiplayer
+        if multiplayer:
+            ipc_dir = os.path.join(ipc_dir, _sanitize_route(slot))
         self.ipc_dir = ipc_dir
         self.slot = slot
         self.password = password
@@ -78,14 +99,14 @@ class Bridge:
         self.game_items: dict[str, dict[int, str]] = {}   # game -> {item id -> name}
         self.game_locs: dict[str, dict[int, str]] = {}    # game -> {location id -> name}
         self._room_games: list = []
-        os.makedirs(ipc_dir, exist_ok=True)
+        os.makedirs(self.ipc_dir, exist_ok=True)
         self.sent_checks: Set[int] = set()
         # In-memory only (resets each run) so a connector restart always re-delivers
         # everything AP resends; the PLUGIN dedups via its own state. No persistence.
         self.received: Set[int] = set()
         self.players: dict[int, str] = {}   # slot id -> display name
         # id -> readable name, read from the plugin's data files (default: next to the ipc dir).
-        self.item_names, self.loc_names = self._load_names(data_dir or os.path.dirname(ipc_dir))
+        self.item_names, self.loc_names = self._load_names(data_dir or os.path.dirname(self.ipc_root))
 
     @staticmethod
     def _line_count(path: str) -> int:
@@ -188,7 +209,7 @@ class Bridge:
             pass
         if not self._seed or self._seed == last:
             return
-        for f in (self.items_in, os.path.join(os.path.dirname(self.ipc_dir), "applied_index.json")):
+        for f in (self.items_in, os.path.join(os.path.dirname(self.ipc_root), "applied_index.json")):
             try:
                 if os.path.exists(f):
                     os.remove(f)
@@ -337,7 +358,9 @@ class Bridge:
             self._hint_points = msg.get("hint_points", 0)
             self._write_hint_status()
             try:
-                self._write_spawn_ini(sd.get("npc_replacements") or [])
+                self._write_spawn_ini(sd.get("npc_replacements") or [],
+                                      sd.get("spawn_additions") or [],
+                                      sd.get("spawn_overrides") or [])
             except Exception as ex:
                 print(f"[connector] spawn-randomizer ini write failed: {ex}")
             goal_names = ", ".join(self.loc_name(g[0]).split(" (")[0] for g in self.required_groups)
@@ -394,21 +417,56 @@ class Bridge:
             await self._maybe_goal(ws)
             await asyncio.sleep(0.5)
 
-    # randomize_dino_spawns: slot_data carries [FromClass, ToClass] pairs -> Game.ini
-    # NPCReplacements lines. Always writes ipc/game_ini_fragment.txt; if connector.ini sets
-    # game_ini=<path to Game.ini>, also patches that file in place, managing ONLY a marked block
-    # (everything else in the file is left alone). A server restart applies the change.
+    # randomize_dino_spawns: slot_data carries container OVERRIDES ("spawn_overrides":
+    # [[container, [classes...]], ...] -> ConfigOverrideNPCSpawnEntriesContainer lines: each
+    # biome container's spawn roster is REPLACED by its seeded species hand, at natural density).
+    # Legacy shapes still render for old seeds: "spawn_additions" ->
+    # ConfigAddNPCSpawnEntriesContainer, "npc_replacements" -> NPCReplacements pairs.
+    # Always writes ipc/game_ini_fragment.txt; if connector.ini sets game_ini=<path to Game.ini>,
+    # also patches that file in place, managing ONLY a marked block (everything else in the file
+    # is left alone). Patch while the ARK server is STOPPED (it rewrites Game.ini on shutdown);
+    # a server start applies the change.
     _INI_SECTION = "[/script/shootergame.shootergamemode]"
     _INI_BEGIN = "; === ArkAP NPCReplacements BEGIN (auto-managed, do not edit) ==="
     _INI_END = "; === ArkAP NPCReplacements END ==="
+    _ADD_WEIGHT = 0.2          # additions: EntryWeight per invader (natives typically total ~1.0+)
+    _ADD_MAX_PCT = 0.05        # additions: population cap per invader species per container
 
-    def _write_spawn_ini(self, pairs) -> None:
+    @classmethod
+    def _addition_line(cls, container: str, classes) -> str:
+        entries = ",".join(
+            f'(AnEntryName="AP_{c}",EntryWeight={cls._ADD_WEIGHT},NPCsToSpawnStrings=("{c}"))'
+            for c in classes)
+        limits = ",".join(
+            f'(NPCClassString="{c}",MaxPercentageOfDesiredNumToAllow={cls._ADD_MAX_PCT})'
+            for c in classes)
+        return (f'ConfigAddNPCSpawnEntriesContainer=('
+                f'NPCSpawnEntriesContainerClassString="{container}",'
+                f'NPCSpawnEntries=({entries}),NPCSpawnLimits=({limits}))')
+
+    @staticmethod
+    def _override_line(container: str, entries) -> str:
+        parts = []
+        for e in entries:
+            cls, w = (e, 1.0) if isinstance(e, str) else (e[0], e[1])  # "cls" or [cls, weight]
+            parts.append(f'(AnEntryName="AP_{cls}",EntryWeight={w},NPCsToSpawnStrings=("{cls}"))')
+        return (f'ConfigOverrideNPCSpawnEntriesContainer=('
+                f'NPCSpawnEntriesContainerClassString="{container}",'
+                f'NPCSpawnEntries=({",".join(parts)}))')
+
+    def _write_spawn_ini(self, pairs, additions=(), overrides=()) -> None:
         lines = [f'NPCReplacements=(FromClassName="{a}",ToClassName="{b}")' for a, b in pairs]
+        lines += [self._addition_line(container, classes) for container, classes in additions]
+        lines += [self._override_line(container, classes) for container, classes in overrides]
         frag = os.path.join(self.ipc_dir, "game_ini_fragment.txt")
         if lines:
             with open(frag, "w", encoding="utf-8") as fh:
                 fh.write(self._INI_SECTION + "\n" + "\n".join(lines) + "\n")
-            print(f"[connector] spawn randomizer: {len(lines)} NPCReplacements -> {frag}")
+            parts = []
+            if overrides: parts.append(f"{len(overrides)} container overrides")
+            if additions: parts.append(f"{len(additions)} container additions")
+            if pairs:     parts.append(f"{len(pairs)} legacy replacements")
+            print(f"[connector] spawn randomizer: {' + '.join(parts)} -> {frag}")
         elif os.path.exists(frag):
             os.remove(frag)
         if not self.game_ini:
@@ -481,8 +539,8 @@ class Bridge:
 
 
 def _load_config(path: str) -> dict:
-    """Read [connector] from an ini file (server/slot/password/ipc_dir/data_dir/boss_goal_count/
-    death_link). Returns {} if the file is absent. CLI flags override these."""
+    """Read [connector] from an ini file (server/slot/password/ipc_dir/multiplayer/data_dir/
+    boss_goal_count/death_link). Returns {} if the file is absent. CLI flags override these."""
     import configparser
     if not path or not os.path.exists(path):
         return {}
@@ -507,6 +565,9 @@ def main() -> None:
     ap.add_argument("--slot")
     ap.add_argument("--password", default=None)
     ap.add_argument("--ipc-dir")
+    ap.add_argument("--multiplayer", action="store_true",
+                    help="multiplayer: use ipc_dir/<slot> as this player's mailbox (auto-created). "
+                         "Your ARK survivor name must equal your slot. Omit for solo.")
     ap.add_argument("--boss-goal-count", type=int, default=None,
                     help="fallback goal: first N bosses (overridden by the yaml goal via slot_data)")
     ap.add_argument("--data-dir", default=None,
@@ -537,9 +598,16 @@ def main() -> None:
                  f"{a.config} (or pass --{missing[0].replace('_', '-')} ...)")
 
     game_ini = a.game_ini or cfg.get("game_ini") or None
+    multiplayer = a.multiplayer or str(cfg.get("multiplayer", "false")).strip().lower() \
+        in ("true", "1", "yes", "on")
+
+    if multiplayer:
+        print(f"[connector] multiplayer: slot '{slot}' -> mailbox "
+              f"{os.path.join(ipc_dir, _sanitize_route(slot))} "
+              f"(your ARK survivor name must be '{slot}')")
 
     bridge = Bridge(ipc_dir, slot, password, boss_goal, data_dir, death_link=death_link,
-                    game_ini=game_ini)
+                    game_ini=game_ini, multiplayer=multiplayer)
     asyncio.run(bridge.run(server))
 
 

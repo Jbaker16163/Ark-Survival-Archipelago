@@ -1,0 +1,19 @@
+{
+  "_comment": "The Island's major biome spawn containers for randomize_dino_spawns (ADDITIONS design: ConfigAddNPCSpawnEntriesContainer adds seed-picked foreign species to each container at moderate weight - natives untouched, so every species stays obtainable and no NPCReplacements chain semantics apply). Container class names scraped from ark.wiki.gg/wiki/Spawn_entries The Island section (2026-07-15). Caves + single-species utility containers (Bee/Unicorn/Titano/Quetz/etc) deliberately excluded. habitat picks which species pool invades: land containers draw land+air species, water containers draw water species ('chaos' mode draws from everything everywhere).",
+  "spawn_containers": [
+    { "container": "DinoSpawnEntriesBeach_C",        "habitat": "land"  },
+    { "container": "DinoSpawnEntriesGrassland_C",    "habitat": "land"  },
+    { "container": "DinoSpawnEntriesJungle_C",       "habitat": "land"  },
+    { "container": "DinoSpawnEntriesMountain_C",     "habitat": "land"  },
+    { "container": "DinoSpawnEntriesRedwoods_C",     "habitat": "land"  },
+    { "container": "DinoSpawnEntriesSnow_C",         "habitat": "land"  },
+    { "container": "DinoSpawnEntriesSwamp_C",        "habitat": "land"  },
+    { "container": "DinoSpawnEntries_ShallowWater_C","habitat": "water" },
+    { "container": "DinoSpawnEntries_InlandWater_C", "habitat": "water" },
+    { "container": "DinoSpawnEntries_RedwoodWater_C","habitat": "water" },
+    { "container": "DinoSpawnEntries_SwampWater_C",  "habitat": "water" },
+    { "container": "DinoSpawnEntries_DeepWater_C",   "habitat": "water" },
+    { "container": "DinoSpawnEntries_Ocean_C",       "habitat": "water" },
+    { "container": "DinoSpawnEntries_DarkWater_C",   "habitat": "water" }
+  ]
+}

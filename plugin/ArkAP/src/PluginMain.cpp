@@ -26,6 +26,7 @@
 #include "Timer.h"
 #include "json.hpp"
 #include "ArkAP.hpp"
+#include "APClient.hpp"
 
 #pragma comment(lib, "ArkApi.lib")
 
@@ -38,6 +39,7 @@ using ArkAP::Mode;
 static Tables g_tables;
 static std::unique_ptr<State> g_state;
 static std::unique_ptr<Ipc>   g_ipc;
+static std::unique_ptr<ArkAP::APManager> g_apManager;   // embedded AP client (/connect)
 static Mode  g_mode = Mode::AP;
 static bool  g_applying = false;       // true while WE grant, so the gate doesn't block us
 // MULTIPLAYER (ArkAP.config.json "multiplayer": true): every gate/grant/check is routed by the
@@ -438,14 +440,38 @@ bool Hook_APrimalDinoCharacter_Die(APrimalDinoCharacter* _this, float KillingDam
 }
 
 // --- DeathLink: broadcast when a player dies (unless WE killed them for an incoming link) ---
-static void DoPlayerDeath(AShooterCharacter* who) {
-    // which player's death is this? (their route decides which slot broadcasts the DeathLink)
-    std::string route;
+// The real Die() can unpossess the character, after which no controller reports it via
+// GetPlayerCharacter() - resolving the route post-death silently yielded "" and dumped every
+// multiplayer death into the ROOT death_out.jsonl (which no per-slot connector reads, so
+// DeathLink went dead both ways). So resolve the route BEFORE Die() runs, while the controller
+// still owns the character, and stash it for DoPlayerDeath. Game thread only; the Die hook is
+// the sole writer/reader, and it consumes the value on the very next line.
+static std::string g_dyingRoute;
+static bool g_dyingRouteValid = false;
+static void ResolveDyingRoute(AShooterCharacter* who) {
+    g_dyingRoute.clear();
+    g_dyingRouteValid = false;
     UWorld* world = ArkApi::GetApiUtils().GetWorld();
     if (world) for (TWeakObjectPtr<APlayerController> wpc : world->PlayerControllerListField()) {
         auto* pc = static_cast<AShooterPlayerController*>(wpc.Get());
-        if (pc && pc->GetPlayerCharacter() == who) { route = RouteFor(pc); break; }
+        if (pc && pc->GetPlayerCharacter() == who) { g_dyingRoute = RouteFor(pc); g_dyingRouteValid = true; break; }
     }
+}
+static void DoPlayerDeath(AShooterCharacter* who) {
+    // which player's death is this? (their route decides which slot broadcasts the DeathLink)
+    // pre-Die resolution wins; fall back to a post-Die sweep if it somehow didn't run.
+    std::string route;
+    if (g_dyingRouteValid) {
+        route = g_dyingRoute;
+    } else {
+        UWorld* world = ArkApi::GetApiUtils().GetWorld();
+        if (world) for (TWeakObjectPtr<APlayerController> wpc : world->PlayerControllerListField()) {
+            auto* pc = static_cast<AShooterPlayerController*>(wpc.Get());
+            if (pc && pc->GetPlayerCharacter() == who) { route = RouteFor(pc); break; }
+        }
+    }
+    if (g_multiplayer && route.empty())              // never silently share a death with everyone
+        DebugLog("PLAYER death: route unresolved - death goes to the ROOT mailbox (shared)");
     auto sit = g_suppressDeathUntil.find(route);
     if (sit != g_suppressDeathUntil.end() && std::time(nullptr) < sit->second) return;   // incoming-link kill -> don't echo
     DebugLog("PLAYER death -> death_out.jsonl" + (route.empty() ? std::string() : " route=" + route));
@@ -454,6 +480,7 @@ static void DoPlayerDeath(AShooterCharacter* who) {
 }
 bool Hook_AShooterCharacter_Die(AShooterCharacter* _this, float KillingDamage,
         FDamageEvent* DamageEvent, AController* Killer, AActor* DamageCauser) {
+    __try { ResolveDyingRoute(_this); } __except (EXCEPTION_EXECUTE_HANDLER) {}   // BEFORE Die: controller still owns the character
     bool ret = AShooterCharacter_Die_original(_this, KillingDamage, DamageEvent, Killer, DamageCauser);
     __try { DoPlayerDeath(_this); } __except (EXCEPTION_EXECUTE_HANDLER) {}
     return ret;
@@ -779,6 +806,19 @@ static void PollMailbox(const std::string& route) {
       if (f) { std::stringstream ss; ss << f.rdbuf(); content = ss.str(); } }
     if (content.empty()) return;
 
+    // multiplayer misconfig tripwire: items in the ROOT mailbox are SHARED (unlock for every
+    // player). In multiplayer each slot's connector must point at ipc\<CharacterName> instead.
+    if (g_multiplayer && route.empty()) {
+        static bool warned = false;
+        if (!warned) {
+            warned = true;
+            DebugLog("!! MULTIPLAYER WARNING: items arriving in the ROOT ipc mailbox are shared "
+                     "with ALL players. Point each slot's connector at ipc\\<CharacterName>.");
+            ChatNotify(L"ArkAP: items arrived in the SHARED root mailbox - in multiplayer, each "
+                       L"connector must use ipc\\<CharacterName>. Check connector.ini ipc_dir.");
+        }
+    }
+
     std::stringstream ls(content);
     std::string line;
     bool wmDirty = false;
@@ -926,6 +966,69 @@ static void DoDumpDinos(AShooterPlayerController* pc) {
 }
 static void DumpDinosChat(AShooterPlayerController* pc, FString*, EChatSendMode::Type) {
     __try { DoDumpDinos(pc); } __except (EXCEPTION_EXECUTE_HANDLER) {}
+}
+
+// /whoami - show which AP route (survivor character name) this player resolves to, and whether
+// multiplayer routing is on. The route must EXACTLY match the connector's ipc\<name> folder.
+static void DoWhoAmI(AShooterPlayerController* pc) {
+    std::string route = RouteFor(pc);
+    std::wstring m = std::wstring(L"ArkAP: multiplayer=") + (g_multiplayer ? L"ON" : L"OFF (solo/shared)");
+    if (g_multiplayer)
+        m += L" | your route: '" + ArkApi::Tools::Utf8Decode(route) +
+             L"' -> mailbox ipc\\" + ArkApi::Tools::Utf8Decode(route);
+    ChatNotify(m.c_str());
+    DebugLog("WHOAMI multiplayer=" + std::string(g_multiplayer ? "1" : "0") + " route=" + route);
+}
+static void WhoAmIChat(AShooterPlayerController* pc, FString*, EChatSendMode::Type) {
+    __try { DoWhoAmI(pc); } __except (EXCEPTION_EXECUTE_HANDLER) {}
+}
+
+// --- embedded AP client: /connect <slot> <host:port> [password] / /disconnect / /apstatus ---
+// The session runs on its own threads inside the plugin and drives the SAME mailbox files the
+// external connector uses - so /connect and the external connector are interchangeable per slot
+// (don't run both for the same player at once: they'd double-send).
+static void DoApConnect(AShooterPlayerController* pc, FString* message) {
+    if (!g_apManager) { ChatNotify(L"ArkAP: embedded AP client not initialised."); return; }
+    std::vector<std::string> tok;
+    { std::istringstream ss(message ? message->ToString() : std::string());
+      std::string t; while (ss >> t) tok.push_back(t); }          // tok[0] = "/connect"
+    if (tok.size() < 3) {
+        ChatNotify(L"Usage: /connect <slot> <host:port> [password]  "
+                   L"e.g. /connect Alice archipelago.gg:38281");
+        return;
+    }
+    std::string password;                        // room passwords may contain spaces
+    for (size_t i = 3; i < tok.size(); ++i) { if (i > 3) password += " "; password += tok[i]; }
+    std::string route = RouteFor(pc);            // multiplayer: this player's own mailbox
+    // If the survivor name can't be resolved right now (still spawning in, respawn screen...)
+    // the route degrades to "_unnamed" - binding the session there would deliver this slot's
+    // items to a mailbox no player routes to (live-hit 2026-07-16). Refuse and ask to retry.
+    if (g_multiplayer && route == "_unnamed") {
+        ChatNotify(L"ArkAP: couldn't read your survivor name yet - spawn in fully, then run /connect again.");
+        return;
+    }
+    std::string reply = g_apManager->Connect(route, tok[1], tok[2], password);
+    ChatNotify(ArkApi::Tools::Utf8Decode(reply).c_str());
+    DebugLog("APCONNECT slot=" + tok[1] + " server=" + tok[2] +
+             (route.empty() ? "" : " route=" + route));
+}
+static void ApConnectChat(AShooterPlayerController* pc, FString* m, EChatSendMode::Type) {
+    __try { DoApConnect(pc, m); } __except (EXCEPTION_EXECUTE_HANDLER) {}
+}
+static void DoApDisconnect(AShooterPlayerController* pc) {
+    if (!g_apManager) return;
+    std::string reply = g_apManager->Disconnect(RouteFor(pc));
+    ChatNotify(ArkApi::Tools::Utf8Decode(reply).c_str());
+}
+static void ApDisconnectChat(AShooterPlayerController* pc, FString*, EChatSendMode::Type) {
+    __try { DoApDisconnect(pc); } __except (EXCEPTION_EXECUTE_HANDLER) {}
+}
+static void DoApStatus() {
+    if (!g_apManager) return;
+    ChatNotify(ArkApi::Tools::Utf8Decode(g_apManager->StatusAll()).c_str());
+}
+static void ApStatusChat(AShooterPlayerController*, FString*, EChatSendMode::Type) {
+    __try { DoApStatus(); } __except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
 // --- /hint : quote the resource cost ; /buyhint : pay resources + reveal (connector runs AP !hint) ---
@@ -1321,22 +1424,37 @@ static void Tick() {
 }
 
 // ----------------------------------------------------------------- lifecycle
-static const char* ARKAP_BUILD = "v73-dino-class-harvest";
+static const char* ARKAP_BUILD = "v81-route-guard";
 
 static void Load() {
     fs::path base = PluginDir();
     // build marker - lets us confirm which dll is actually loaded
     try { std::ofstream(base / "ArkAP_loaded.txt") << ARKAP_BUILD << "\n"; } catch (...) {}
+    bool embeddedAp = true;                              // /connect kill-switch (see below)
     if (fs::exists(base / "ArkAP.config.json")) {
         try { nlohmann::json j; std::ifstream(base / "ArkAP.config.json") >> j;
             if (j.value("mode", "ap") == "offline") g_mode = Mode::Offline;
             g_multiplayer = j.value("multiplayer", false);   // per-player slots (see docs)
+            embeddedAp = j.value("embedded_ap", true);       // false = disable /connect entirely
         } catch (...) {}
     }
     g_tables.Load(base / "engrams.json", base / "locations.json");
     g_state = std::make_unique<State>(base, g_mode);
     g_state->Load();
     g_ipc = std::make_unique<Ipc>(base / "ipc");
+    // embedded AP client (/connect). Sessions run on their own threads and only touch
+    // files/network - never ArkApi - so starting them from Load is safe. Kill-switch:
+    // "embedded_ap": false in ArkAP.config.json disables it entirely (auto-resume included) -
+    // the escape hatch if a persisted connection ever crashes the server at boot.
+    if (embeddedAp)
+        g_apManager = std::make_unique<ArkAP::APManager>(
+            base,
+            [](const std::string& s) { DebugLog(s); },
+            [](int id) {
+                auto it = g_tables.item_name.find(id);
+                return it == g_tables.item_name.end() ? std::string() : it->second;
+            },
+            [](const std::string& route) { return g_ipc->DirFor(route); });
 
     // free starter engrams: resolve engrams.json "starter_engrams" ap_names -> item ids.
     try {
@@ -1495,9 +1613,13 @@ static void Load() {
     ArkApi::GetCommands().AddChatCommand("/dumpengrams", &DumpEngramsChat);
     ArkApi::GetCommands().AddChatCommand("/dumpnotes", &DumpNotesChat);
     ArkApi::GetCommands().AddChatCommand("/dumpdinos", &DumpDinosChat);
+    ArkApi::GetCommands().AddChatCommand("/whoami", &WhoAmIChat);
     ArkApi::GetCommands().AddChatCommand("/buildregistry", &BuildRegistryChat);
     ArkApi::GetCommands().AddChatCommand("/hint", &HintQuoteChat);
     ArkApi::GetCommands().AddChatCommand("/buyhint", &HintBuyChat);
+    ArkApi::GetCommands().AddChatCommand("/connect", &ApConnectChat);
+    ArkApi::GetCommands().AddChatCommand("/disconnect", &ApDisconnectChat);
+    ArkApi::GetCommands().AddChatCommand("/apstatus", &ApStatusChat);
 
     // 1s game-thread tick (reliable ArkApi timer; API::Timer registered at DLL-load didn't fire).
     ArkApi::GetCommands().AddOnTimerCallback("ArkAP_tick", []() { Tick(); });
@@ -1515,6 +1637,10 @@ static void Load() {
              " tek_bosses=" + std::to_string(g_tekGrants.size()) +
              " inv_checks=" + std::to_string(g_invChecks.size()) +
              " hooks+timer registered");
+
+    // resume /connect sessions persisted in ap_connections.json (after everything above is
+    // initialised - the sessions' threads read g_tables via the itemName callback).
+    if (g_apManager) g_apManager->ResumePersisted();
 }
 
 static void Unload() {
@@ -1539,10 +1665,21 @@ static void Unload() {
     ArkApi::GetCommands().RemoveChatCommand("/dumpengrams");
     ArkApi::GetCommands().RemoveChatCommand("/dumpnotes");
     ArkApi::GetCommands().RemoveChatCommand("/dumpdinos");
+    ArkApi::GetCommands().RemoveChatCommand("/whoami");
     ArkApi::GetCommands().RemoveChatCommand("/buildregistry");
     ArkApi::GetCommands().RemoveChatCommand("/hint");
     ArkApi::GetCommands().RemoveChatCommand("/buyhint");
+    ArkApi::GetCommands().RemoveChatCommand("/connect");
+    ArkApi::GetCommands().RemoveChatCommand("/disconnect");
+    ArkApi::GetCommands().RemoveChatCommand("/apstatus");
     if (g_state) g_state->Save();
+}
+
+// AseApi calls this exported symbol BEFORE FreeLibrary (outside the loader lock) - the only
+// safe place to JOIN the embedded AP client's threads. Joining inside DllMain(PROCESS_DETACH)
+// can deadlock on the loader lock during a hot plugin unload.
+extern "C" __declspec(dllexport) void Plugin_Unload() {
+    try { g_apManager.reset(); } catch (...) {}
 }
 
 BOOL APIENTRY DllMain(HMODULE, DWORD reason, LPVOID) {
@@ -1553,6 +1690,10 @@ BOOL APIENTRY DllMain(HMODULE, DWORD reason, LPVOID) {
         catch (...) { DebugLog("Load threw unknown exception"); }
         break;
     case DLL_PROCESS_DETACH:
+        // If Plugin_Unload already ran, g_apManager is gone. Otherwise (process exit) the OS
+        // has terminated the session threads - RELEASE the manager instead of destroying it,
+        // because ~APSession would join() under the loader lock.
+        g_apManager.release();
         try { Unload(); } catch (...) {}
         break;
     }

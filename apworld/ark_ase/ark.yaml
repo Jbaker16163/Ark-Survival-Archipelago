@@ -55,7 +55,9 @@ ARK Survival Evolved:
   # One item unlocks ALL structures of a material (Wood/Stone/Metal/Greenhouse bundles).
   # Tools like the Metal Pick stay individual. Shrinks the item pool by ~100.
   bundle_structures: false
-  # Shuffle wild dino spawns (seed-deterministic, via Game.ini NPCReplacements - the connector
-  # writes the lines, one server restart applies). off | grouped (land/water/air stay in their
-  # habitat - safe) | chaos (full shuffle). Bosses/alphas/events never touched.
+  # FULLY randomize which species live where: each biome's spawn roster is replaced by a seeded
+  # hand of species; every species still spawns somewhere (checks stay obtainable).
+  # off | grouped (habitat-appropriate + predators kept rare) | chaos (anything anywhere, equal
+  # odds - predator walls included). Bosses/alphas/tek/caves/specialty spawners never touched.
+  # Connector writes the Game.ini lines; one server start applies.
   randomize_dino_spawns: off

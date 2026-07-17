@@ -74,9 +74,12 @@ def main():
     print("[4/7] Server plugin bundle (DLL + data + install bat)...")
     dll = os.path.join(ROOT, "plugin", "ArkAP", "x64", "Release", "ArkAP.dll")
     data = os.path.join(ROOT, "data")
+    # the config template ships AS ArkAP.config.json (the name the plugin actually reads -
+    # shipping it as *.default.json confused people). install_plugin.bat preserves an existing
+    # ArkAP.config.json on upgrade, so live settings are never clobbered.
     pairs = [(dll, "ArkAP/ArkAP.dll"),
              (os.path.join(ROOT, "plugin", "ArkAP", "ArkAP.config.default.json"),
-              "ArkAP/ArkAP.config.default.json"),
+              "ArkAP/ArkAP.config.json"),
              (os.path.join(ROOT, "tools", "install_plugin.bat"), "install_plugin.bat")]
     for name in ("engrams.json", "dinos.json", "locations.json", "crates.json", "filler.json"):
         pairs.append((os.path.join(data, name), f"ArkAP/{name}"))

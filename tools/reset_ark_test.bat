@@ -73,6 +73,8 @@ del /q "%PLUGIN%\ipc\msg_in.jsonl"      2>nul
 del /q "%PLUGIN%\ipc\hint_out.jsonl"    2>nul
 del /q "%PLUGIN%\ipc\hint_status.json"  2>nul
 del /q "%PLUGIN%\ipc\flags.json"        2>nul
+del /q "%PLUGIN%\ipc\session.json"      2>nul
+del /q "%PLUGIN%\ipc\game_ini_fragment.txt" 2>nul
 del /q "%PLUGIN%\applied_index.json"    2>nul
 del /q "%PLUGIN%\counters.json"         2>nul
 del /q "%PLUGIN%\events_queue.jsonl"    2>nul
