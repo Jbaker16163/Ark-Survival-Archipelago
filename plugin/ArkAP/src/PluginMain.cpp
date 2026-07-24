@@ -20,6 +20,7 @@
 #include <ctime>
 #include <cctype>
 #include <unordered_map>
+#include <algorithm>   // std::search (case-insensitive Game.ini section find)
 #include <Windows.h>   // SEH (__try/__except) to survive access violations in game-data reads
 
 #include <API/ARK/Ark.h>
@@ -47,6 +48,7 @@ static bool  g_applying = false;       // true while WE grant, so the gate doesn
 // (one connector instance per AP slot) + its own state/counter buckets. Flag OFF = every route
 // is "" = one shared bucket + the root ipc folder = exactly the old solo behavior.
 static bool  g_multiplayer = false;
+static std::string g_gameIniOverride;      // ArkAP.config.json "game_ini_path" (blank = auto-derive)
 static std::map<std::string, std::time_t> g_suppressDeathUntil;  // per-route anti-loop for DeathLink kills
 // live COLLECTIVE counters per route (every tame/kill/breed, repeats included). Persisted in
 // counters.json. Hooks append "<kind>\t<route>" lines to events_queue.jsonl on the net thread;
@@ -218,6 +220,8 @@ DECLARE_HOOK(APrimalStructureItemContainer_SupplyCrate_BeginPlay, void, APrimalS
 DECLARE_HOOK(APrimalDinoCharacter_Die, bool, APrimalDinoCharacter*, float, FDamageEvent*, AController*, AActor*);
 DECLARE_HOOK(AShooterCharacter_Die, bool, AShooterCharacter*, float, FDamageEvent*, AController*, AActor*);
 DECLARE_HOOK(APrimalDinoCharacter_DoMate, void, APrimalDinoCharacter*, APrimalDinoCharacter*);
+DECLARE_HOOK(AShooterGameMode_Logout, void, AShooterGameMode*, AController*);
+void ForgetGreeted(void* pc);                                    // defined with the greeter below
 
 // dino name tag as std::string ("" on fault). Has FString objects -> kept out of any __try.
 static std::string DinoTag(APrimalDinoCharacter* dino) {
@@ -369,12 +373,14 @@ static void DoBossDeath(APrimalDinoCharacter* dino, AActor* damageCauser) {
     HarvestDinoClass(name);                                     // ground-truth spawn class names
     for (auto& b : g_bosses) {
         if (name.find(b.frag) != std::string::npos) {
-            // difficulty from the class name: _Easy = Gamma, _Medium = Beta, else Alpha (incl _Hard).
-            int loc = (name.find("_Easy") != std::string::npos) ? b.locGamma
-                    : (name.find("_Medium") != std::string::npos) ? b.locBeta : b.locAlpha;
-            DebugLog("BOSS-KILL name=" + name + " loc=" + std::to_string(loc));
-            // boss fights are team efforts: credit EVERY known slot (solo: just "").
-            for (auto& r : KnownRoutes()) ReportLocation(r, loc);
+            // Boss kills are the GOAL, not AP check locations (nothing gets stranded behind a hard
+            // boss kill). Signal the defeat by base-tag to boss_out.jsonl in EVERY known route's
+            // mailbox (boss fights are team efforts); the client counts required tags -> AP goal.
+            DebugLog("BOSS-KILL name=" + name + " boss=" + b.baseTag + " -> boss_out.jsonl");
+            for (auto& r : KnownRoutes()) {
+                std::ofstream f(g_ipc->DirFor(r) / "boss_out.jsonl", std::ios::app);
+                if (f) f << b.baseTag << "\n";
+            }
             GrantTekForBoss(b.baseTag);                         // tek engrams unlock on any difficulty
             return;
         }
@@ -424,6 +430,15 @@ static void DoBreedCount(APrimalDinoCharacter* dino) {   // objects here, SEH in
     AShooterPlayerController* owner = PcForTeam(dino->TargetingTeamField());
     QueueCountEvent("breed", RouteFor(owner));
 }
+// Player left -> forget them so their NEXT join greets again. Detecting LEAVE is far more reliable
+// than detecting join: the join hook never fired, and controller identity alone is unusable because
+// the controller both LINGERS after a disconnect and can be REUSED on reconnect.
+void Hook_AShooterGameMode_Logout(AShooterGameMode* _this, AController* Exiting) {
+    ForgetGreeted((void*)Exiting);                               // pointer compare only - no deref
+    DebugLog("LOGOUT -> greet state cleared (next join will be greeted)");
+    AShooterGameMode_Logout_original(_this, Exiting);
+}
+
 void Hook_APrimalDinoCharacter_DoMate(APrimalDinoCharacter* _this, APrimalDinoCharacter* WithMate) {
     APrimalDinoCharacter_DoMate_original(_this, WithMate);
     if (!_this) return;
@@ -626,14 +641,27 @@ static bool BuffFiller(const std::string& route, int item_id) {
     return ok;
 }
 
-// filler effects that arrived while the target player wasn't in-world - retried each tick.
+// per-tick cap on EXPENSIVE filler effects (dino spawns / item gives / buffs). A big AP send -
+// e.g. ~400 traps arriving at once after an idle endgame - applied in ONE game frame spawned
+// hundreds of dino groups simultaneously and flooded/hitched the server (live-hit 2026-07-20).
+// Non-filler unlocks (engrams/tames) stay unthrottled: they're cheap idempotent state writes.
+// Refilled each tick (1s); overflow queues to g_pendingFx and drains on later ticks.
+static const int FX_PER_TICK = 6;
+static int       g_fxBudget = FX_PER_TICK;
+
+// filler effects that arrived while the target player wasn't in-world (OR were throttled) -
+// retried each tick, still subject to the per-tick budget.
 static std::vector<std::pair<std::string, int>> g_pendingFx;   // (route, item id)
 static void RetryPendingFx() {
     if (g_pendingFx.empty()) return;
     std::vector<std::pair<std::string, int>> again;
-    for (auto& [route, id] : g_pendingFx)
+    for (auto& [route, id] : g_pendingFx) {
+        if (g_fxBudget <= 0) { again.emplace_back(route, id); continue; }   // throttled -> next tick
         if (!SpawnTrap(route, id) || !GiveFiller(route, id) || !BuffFiller(route, id))
-            again.emplace_back(route, id);
+            again.emplace_back(route, id);                                   // player absent -> keep
+        else
+            --g_fxBudget;                                                    // one effect fired
+    }
     if (again.size() < g_pendingFx.size())
         DebugLog("FX retried: delivered " + std::to_string(g_pendingFx.size() - again.size()) +
                  ", still pending " + std::to_string(again.size()));
@@ -692,6 +720,13 @@ void ApplyItem(const std::string& route, int item_id, const std::string& from) {
     // the pool holds many COPIES of the same filler id; each copy (new index) re-fires its
     // effect. Everything else dedups by id.
     if (!is_new && !is_filler) return;             // already received (non-filler)
+
+    // throttle expensive filler so a huge simultaneous send doesn't flood one frame: when the
+    // per-tick budget is spent, defer this copy (effect AND its chat line) to a later tick.
+    if (is_filler) {
+        if (g_fxBudget <= 0) { g_pendingFx.emplace_back(route, item_id); return; }
+        --g_fxBudget;
+    }
 
     // announce known items (skip unknown ids)
     auto nameIt = g_tables.item_name.find(item_id);
@@ -983,7 +1018,7 @@ static void WhoAmIChat(AShooterPlayerController* pc, FString*, EChatSendMode::Ty
     __try { DoWhoAmI(pc); } __except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
-// --- embedded AP client: /connect <slot> <host:port> [password] / /disconnect / /apstatus ---
+// --- embedded AP client: /connect <host:port> <slot> [password] / /disconnect / /apstatus ---
 // The session runs on its own threads inside the plugin and drives the SAME mailbox files the
 // external connector uses - so /connect and the external connector are interchangeable per slot
 // (don't run both for the same player at once: they'd double-send).
@@ -993,8 +1028,20 @@ static void DoApConnect(AShooterPlayerController* pc, FString* message) {
     { std::istringstream ss(message ? message->ToString() : std::string());
       std::string t; while (ss >> t) tok.push_back(t); }          // tok[0] = "/connect"
     if (tok.size() < 3) {
-        ChatNotify(L"Usage: /connect <slot> <host:port> [password]  "
-                   L"e.g. /connect Alice archipelago.gg:38281");
+        ChatNotify(L"Usage: /connect <host>:<port> <slot> [password]  "
+                   L"e.g. /connect archipelago.gg:38281 Alice");
+        return;
+    }
+    // Accept EITHER order - "<host:port> <slot>" (new, AP convention) or "<slot> <host:port>"
+    // (old, v76-v81) - so nobody's existing habit/instructions break. The address is the token
+    // that parses as host:port (has a numeric port); the other is the slot. Password is always
+    // tok[3+] in both layouts, so only the server/slot pick differs.
+    std::string server, slot;
+    if (ArkAP::ApParseServer(tok[1]).valid)      { server = tok[1]; slot = tok[2]; }
+    else if (ArkAP::ApParseServer(tok[2]).valid) { server = tok[2]; slot = tok[1]; }
+    else {
+        ChatNotify(L"ArkAP: couldn't find a host and port in that command. "
+                   L"Use /connect <host>:<port> <slot>  e.g. /connect archipelago.gg:38281 Alice");
         return;
     }
     std::string password;                        // room passwords may contain spaces
@@ -1007,9 +1054,9 @@ static void DoApConnect(AShooterPlayerController* pc, FString* message) {
         ChatNotify(L"ArkAP: couldn't read your survivor name yet - spawn in fully, then run /connect again.");
         return;
     }
-    std::string reply = g_apManager->Connect(route, tok[1], tok[2], password);
+    std::string reply = g_apManager->Connect(route, slot, server, password);
     ChatNotify(ArkApi::Tools::Utf8Decode(reply).c_str());
-    DebugLog("APCONNECT slot=" + tok[1] + " server=" + tok[2] +
+    DebugLog("APCONNECT server=" + server + " slot=" + slot +
              (route.empty() ? "" : " route=" + route));
 }
 static void ApConnectChat(AShooterPlayerController* pc, FString* m, EChatSendMode::Type) {
@@ -1029,6 +1076,280 @@ static void DoApStatus() {
 }
 static void ApStatusChat(AShooterPlayerController*, FString*, EChatSendMode::Type) {
     __try { DoApStatus(); } __except (EXCEPTION_EXECUTE_HANDLER) {}
+}
+
+// --- /confirm : apply randomize_dino_spawns to Game.ini and RESTART the server ---
+// The embedded /connect client can't patch Game.ini live (ARK rewrites it from memory at a
+// graceful shutdown, wiping the patch). So /confirm splices the connector-format fragment the
+// client wrote (ipc\<route>\game_ini_fragment.txt) into Game.ini as a managed block, saves the
+// world, spawns a detached helper that waits for THIS process to exit and relaunches the exact
+// same command line, then HARD-terminates (no graceful shutdown => the patch survives). Net
+// effect: the server restarts itself in a few seconds with randomized spawns live.
+static const char* kIniSection = "[/script/shootergame.shootergamemode]";
+static const char* kIniBegin   = "; === ArkAP NPCReplacements BEGIN (auto-managed, do not edit) ===";
+static const char* kIniEnd     = "; === ArkAP NPCReplacements END ===";
+
+static fs::path GameIniPath() {
+    if (!g_gameIniOverride.empty()) return fs::path(g_gameIniOverride);
+    std::error_code ec;
+    fs::path cwd = fs::current_path(ec);                 // ...\ShooterGame\Binaries\Win64
+    return cwd / ".." / ".." / "Saved" / "Config" / "WindowsServer" / "Game.ini";
+}
+// exact whole-line presence / removal (ARK's ini writer reorders and drops comments, so we can't
+// rely on our BEGIN/END markers still being there - match the Config lines themselves).
+static bool HasIniLine(const std::string& txt, const std::string& line) {
+    size_t p = 0;
+    while ((p = txt.find(line, p)) != std::string::npos) {
+        size_t e = p + line.size();
+        bool startOk = (p == 0) || txt[p - 1] == '\n';
+        bool endOk = (e == txt.size()) || txt[e] == '\n' || txt[e] == '\r';
+        if (startOk && endOk) return true;
+        p = e;
+    }
+    return false;
+}
+static void RemoveIniLine(std::string& txt, const std::string& line) {
+    size_t p = 0;
+    while ((p = txt.find(line, p)) != std::string::npos) {
+        size_t e = p + line.size();
+        bool startOk = (p == 0) || txt[p - 1] == '\n';
+        bool endOk = (e == txt.size()) || txt[e] == '\n' || txt[e] == '\r';
+        if (startOk && endOk) {
+            size_t del = e;
+            if (del < txt.size() && txt[del] == '\r') ++del;
+            if (del < txt.size() && txt[del] == '\n') ++del;
+            txt.erase(p, del - p);
+        } else {
+            p = e;
+        }
+    }
+}
+static size_t CiFind(const std::string& hay, const std::string& needle) {
+    auto it = std::search(hay.begin(), hay.end(), needle.begin(), needle.end(),
+        [](char a, char b) { return tolower((unsigned char)a) == tolower((unsigned char)b); });
+    return it == hay.end() ? std::string::npos : (size_t)(it - hay.begin());
+}
+// splice the fragment's Config* lines into iniPath as a managed block. 1=changed, 0=identical, -1=no fragment.
+// dryRun = report what WOULD happen without writing (used by the /confirm prompt check).
+static int PatchGameIniFromFragment(const fs::path& fragPath, const fs::path& iniPath,
+                                    bool dryRun = false) {
+    std::error_code ec;
+    if (!fs::exists(fragPath, ec)) return -1;
+    std::vector<std::string> cfg;
+    { std::ifstream f(fragPath); std::string line;
+      while (std::getline(f, line)) {
+          if (!line.empty() && line.back() == '\r') line.pop_back();
+          if (line.empty() || line[0] == '[') continue;              // skip blanks + section header
+          if (line.rfind("ConfigOverrideNPCSpawnEntriesContainer", 0) == 0 ||
+              line.rfind("ConfigAddNPCSpawnEntriesContainer", 0) == 0 ||
+              line.rfind("NPCReplacements", 0) == 0) cfg.push_back(line);
+      } }
+    if (cfg.empty()) return -1;
+    std::string block = std::string(kIniBegin) + "\n";
+    for (auto& l : cfg) block += l + "\n";
+    block += std::string(kIniEnd) + "\n";
+
+    std::string txt;
+    { std::ifstream f(iniPath, std::ios::binary); if (f) { std::stringstream ss; ss << f.rdbuf(); txt = ss.str(); } }
+
+    // ALREADY APPLIED? Decide on the Config LINES, not our comment markers. ARK rewrites Game.ini
+    // and strips comments, so after the restart the markers are gone even though the settings are
+    // live - marker-based detection made /confirm think it was still pending and re-prompt (and
+    // would have re-restarted) forever.
+    bool allPresent = true;
+    for (auto& l : cfg) if (!HasIniLine(txt, l)) { allPresent = false; break; }
+    if (allPresent) return 0;
+
+    std::string before = txt;
+    for (auto& l : cfg) RemoveIniLine(txt, l);            // drop stragglers so we never duplicate
+    size_t b = txt.find(kIniBegin);                       // remove any existing managed block
+    if (b != std::string::npos) {
+        size_t e = txt.find(kIniEnd, b);
+        if (e != std::string::npos) {
+            e += strlen(kIniEnd);
+            if (e < txt.size() && txt[e] == '\r') ++e;
+            if (e < txt.size() && txt[e] == '\n') ++e;
+            txt.erase(b, e - b);
+        }
+    }
+    size_t sec = CiFind(txt, kIniSection);                // insert under the section header (or append)
+    if (sec == std::string::npos) {
+        if (!txt.empty() && txt.back() != '\n') txt += "\n";
+        txt += std::string(kIniSection) + "\n" + block;
+    } else {
+        size_t nl = txt.find('\n', sec);
+        size_t at = (nl == std::string::npos) ? txt.size() : nl + 1;
+        txt.insert(at, block);
+    }
+    if (txt == before) return 0;                          // already applied -> no restart needed
+    if (dryRun) return 1;                                 // "would change" probe (prompt check)
+    std::ofstream f(iniPath, std::ios::binary);
+    if (!f) return -1;
+    f << txt;
+    return 1;
+}
+static std::string WideToUtf8(const wchar_t* w) {
+    if (!w) return "";
+    int n = WideCharToMultiByte(CP_UTF8, 0, w, -1, nullptr, 0, nullptr, nullptr);
+    std::string s(n > 0 ? n - 1 : 0, '\0');
+    if (n > 0) WideCharToMultiByte(CP_UTF8, 0, w, -1, &s[0], n, nullptr, nullptr);
+    return s;
+}
+// Find the host's launcher by walking up from ...\ShooterGame\Binaries\Win64 to the server root and
+// above (so E:\ARK\Server\... finds E:\ARK\Server\start_ase_server.bat or E:\ARK\start_ase_server.bat).
+// Empty if absent -> the relauncher falls back to replaying our command line.
+static fs::path FindRestartScript() {
+    std::error_code ec;
+    // Anchor on the EXE's own folder as well as the cwd: start_ase_server.bat launches
+    // "%EXE%" without cd'ing, so the server's cwd is whatever folder the bat was run from.
+    fs::path starts[2] = { fs::current_path(ec), {} };
+    char exe[MAX_PATH]{};
+    if (GetModuleFileNameA(nullptr, exe, MAX_PATH))
+        starts[1] = fs::path(exe).parent_path();          // ...\ShooterGame\Binaries\Win64
+    for (const fs::path& start : starts) {
+        fs::path d = start;
+        for (int i = 0; i < 6 && !d.empty(); ++i) {
+            fs::path p = d / "start_ase_server.bat";
+            if (fs::exists(p, ec)) return p;
+            if (!d.has_parent_path() || d.parent_path() == d) break;
+            d = d.parent_path();
+        }
+    }
+    return {};
+}
+
+// The running map = the leading token of ARK's option string ("TheIsland?listen?SessionName=...").
+// Parsed from our own command line so a scripted restart returns to the SAME map, not the script's
+// default. Returns "" if it can't be identified - the launcher script then keeps its own MAP.
+static std::string CurrentMapName() {
+    std::string cl = WideToUtf8(GetCommandLineW());
+    size_t i = 0;
+    if (!cl.empty() && cl[0] == '"') {                    // skip a quoted argv[0]
+        size_t q = cl.find('"', 1);
+        i = (q == std::string::npos) ? cl.size() : q + 1;
+    } else {
+        size_t s = cl.find(' ');
+        i = (s == std::string::npos) ? cl.size() : s;
+    }
+    while (i < cl.size() && (cl[i] == ' ' || cl[i] == '\t')) ++i;
+    if (i < cl.size() && cl[i] == '"') ++i;
+    std::string tok;
+    for (; i < cl.size() && cl[i] != '"' && cl[i] != ' ' && cl[i] != '?'; ++i) tok += cl[i];
+    if (!tok.empty() && tok[0] == '-') return "";         // a flag, not the map option string
+    return tok;
+}
+
+// spawn a detached cmd that waits for OUR pid to vanish, then relaunches the server.
+// Returns true only if the helper actually started - the caller MUST NOT kill the server otherwise
+// (that's how you get "it closed and never came back").
+static bool SpawnRelauncher() {
+    std::string cl = WideToUtf8(GetCommandLineW());
+    std::error_code ec;
+    std::string cwd = fs::current_path(ec).string();
+    DWORD pid = GetCurrentProcessId();
+    fs::path bat = PluginDir() / "ap_restart.bat";
+    fs::path rlog = PluginDir() / "ap_restart.log";
+    { std::ofstream f(bat);
+      if (!f) { DebugLog("RESTART: cannot write " + bat.string()); return false; }
+      f << "@echo off\r\n"
+        << "echo [%date% %time%] relauncher up, waiting for pid " << pid << " >> \"" << rlog.string() << "\"\r\n"
+        // Block on the pid with Wait-Process. The old `tasklist | find` poll HUNG when the helper
+        // ran detached: `find` reads stdin, and a pipeline in a process with no console/valid
+        // stdin blocks forever (symptom: a stuck black window titled `find /i "ShooterGameServer"`).
+        // Wait-Process needs no stdin and no polling; it returns instantly if the pid is already gone.
+        << "powershell -NoProfile -ExecutionPolicy Bypass -Command \"try { Wait-Process -Id "
+        << pid << " -Timeout 300 -ErrorAction Stop } catch { }\"\r\n"
+        << "echo [%date% %time%] server exited - relaunching >> \"" << rlog.string() << "\"\r\n";
+      // Preferred: re-run the host's own launcher (start_ase_server.bat, found by walking up from
+      // the binaries dir) - it already knows the ports/cluster/save-dir and needs no command-line
+      // reconstruction. Pass the RUNNING map as arg 1 (the script accepts it, same as
+      // switch_map.bat) so a restart never silently comes back on the script's default MAP.
+      // Fall back to replaying our own command line.
+      // Launch with CALL, not START. `start "" "x.bat" "arg"` mis-parses (cmd glued it into one
+      // token: '...x.bat"  "TheIsland' is not recognized), and every START quoting variant is a
+      // guess. CALL takes plain quoted args with no title/parsing rules, and because the helper
+      // now owns a real console (CREATE_NEW_CONSOLE), the server runs in it exactly as if the bat
+      // had been double-clicked - keeping its -log output visible. The map arg is omitted entirely
+      // when unknown (an empty "" would blank MAP in the script).
+      // Wipe wild creatures on THIS boot only, so the new biome rosters repopulate immediately.
+      // -ForceRespawnDinos is ARK's own startup flag: no admin rights, no player needed, unlike an
+      // in-game DestroyWildDinos (whose cheat manager is null for a non-admin controller).
+      // Launcher path: hand it over as an env var the script turns into the flag. Replay path: we
+      // own the command line, so append it directly.
+      fs::path sp = FindRestartScript();
+      std::string map = CurrentMapName();
+      if (!sp.empty()) {
+          std::string dir = sp.parent_path().string();
+          DebugLog("RESTART: using launcher " + sp.string() + " map=" + map);
+          f << "set \"ARKAP_FORCE_RESPAWN=1\"\r\n"
+            << "cd /d \"" << (dir.empty() ? cwd : dir) << "\"\r\n"
+            << "call \"" << sp.string() << "\"";
+          if (!map.empty()) f << " \"" << map << "\"";
+          f << "\r\n";
+      } else {
+          DebugLog("RESTART: no start_ase_server.bat found - replaying command line");
+          f << "cd /d \"" << cwd << "\"\r\n" << cl << " -ForceRespawnDinos\r\n";
+      }
+      f << "echo [%date% %time%] start issued, errorlevel=%errorlevel% >> \"" << rlog.string() << "\"\r\n"; }
+    std::string cmd = "cmd.exe /c \"" + bat.string() + "\"";
+    std::vector<char> mut(cmd.begin(), cmd.end()); mut.push_back('\0');
+    // CREATE_BREAKAWAY_FROM_JOB fails with ERROR_ACCESS_DENIED when the server runs inside a job
+    // object that doesn't allow breakaway (service wrappers, some panels) - retry without it.
+    // CREATE_NEW_CONSOLE (not DETACHED_PROCESS): a detached helper has no console and no valid std
+    // handles, which is what made the old `tasklist | find` poll hang on stdin. Its own console
+    // also means the relaunched server inherits a normal console and keeps its -log output, just
+    // like double-clicking the launcher. The window doubles as visible "restarting..." feedback.
+    const DWORD flags[2] = { CREATE_NEW_CONSOLE | CREATE_BREAKAWAY_FROM_JOB,
+                             CREATE_NEW_CONSOLE };
+    for (int i = 0; i < 2; ++i) {
+        STARTUPINFOA si{}; si.cb = sizeof(si);
+        PROCESS_INFORMATION pi{};
+        std::vector<char> arg(mut);
+        if (CreateProcessA(nullptr, arg.data(), nullptr, nullptr, FALSE, flags[i],
+                           nullptr, nullptr, &si, &pi)) {
+            CloseHandle(pi.hThread); CloseHandle(pi.hProcess);
+            DebugLog("RESTART: relauncher spawned (attempt " + std::to_string(i + 1) + ")");
+            return true;
+        }
+        DebugLog("RESTART: CreateProcess attempt " + std::to_string(i + 1) +
+                 " failed, GetLastError=" + std::to_string(GetLastError()));
+    }
+    return false;
+}
+static void SafeSaveWorld() {                            // no C++ objects -> __try is legal here
+    __try { auto* gm = ArkApi::GetApiUtils().GetShooterGameMode(); if (gm) gm->SaveWorld(true); }
+    __except (EXCEPTION_EXECUTE_HANDLER) {}
+}
+static void DoApConfirm(AShooterPlayerController* pc) {
+    // find a spawn fragment in ANY mailbox (the player who /connect'd with randomize_dino_spawns
+    // wrote it; any player may /confirm).
+    fs::path frag, ini = GameIniPath();
+    for (auto& route : MailboxRoutes()) {
+        fs::path p = g_ipc->DirFor(route) / "game_ini_fragment.txt";
+        std::error_code ec; if (fs::exists(p, ec)) { frag = p; break; }
+    }
+    if (frag.empty()) { ChatNotify(L"ArkAP: no randomized-spawns config to apply (nothing pending)."); return; }
+    int r = PatchGameIniFromFragment(frag, ini);
+    if (r < 0) { ChatNotify(L"ArkAP: couldn't read the spawn fragment / Game.ini - nothing changed."); return; }
+    if (r == 0) { ChatNotify(L"ArkAP: randomized spawns are already applied - no restart needed."); return; }
+    DebugLog("CONFIRM: Game.ini patched from " + frag.string() + " -> restarting");
+    // Start the relauncher BEFORE killing anything. If it can't start, stay up and say so -
+    // never leave the host with a closed server and no way back.
+    if (!SpawnRelauncher()) {
+        ChatNotify(L"ArkAP: Game.ini updated, but the auto-restart helper could not start. "
+                   L"The server is still running - restart it manually to apply randomized spawns.");
+        DebugLog("CONFIRM: relauncher failed to spawn - NOT terminating (manual restart needed)");
+        return;
+    }
+    ChatNotify(L"ArkAP: saving the world and restarting the server to apply randomized spawns "
+               L"(back in ~15s). Wild creatures are wiped on that restart (-ForceRespawnDinos) so "
+               L"the new rosters repopulate.");
+    SafeSaveWorld();
+    Sleep(750);                                           // let the save flush + helper spin up
+    TerminateProcess(GetCurrentProcess(), 0);             // hard exit: ARK never rewrites Game.ini
+}
+static void ApConfirmChat(AShooterPlayerController* pc, FString*, EChatSendMode::Type) {
+    __try { DoApConfirm(pc); } __except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
 // --- /hint : quote the resource cost ; /buyhint : pay resources + reveal (connector runs AP !hint) ---
@@ -1386,6 +1707,150 @@ static void ApplyMessages() {
     __try { DoApplyMessages(); } __except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
+// Is anyone actually in-world? A PlayerController can exist while the player is still loading, so
+// require a spawned character - otherwise chat lines go nowhere and console commands no-op. Every
+// ONE-SHOT announcement must gate on this: the state that says "already handled" is only allowed
+// to advance once there is somebody to receive it (this is what silently ate the /confirm prompt,
+// the connect status and the wild-dino wipe on an auto-resumed server start).
+static AShooterPlayerController* FirstReadyPlayer() {
+    UWorld* world = ArkApi::GetApiUtils().GetWorld();
+    if (!world) return nullptr;
+    for (TWeakObjectPtr<APlayerController> wpc : world->PlayerControllerListField()) {
+        auto* pc = static_cast<AShooterPlayerController*>(wpc.Get());
+        if (pc && pc->GetPlayerCharacter()) return pc;
+    }
+    return nullptr;
+}
+
+// Embedded AP client connection status -> chat. Each session overwrites conn_status.txt with
+// "<seq>\t<message>"; we announce it whenever <seq> changes. Because it's a single overwritten
+// line (not an append log), the CURRENT status is shown once after a server restart too (the
+// resumed session's connect writes seq>=1, our first tick shows it) - so a player always learns
+// whether the room is connected/disconnected without the msg_in boot-swallow eating it.
+static void DoShowConnStatus() {
+    static std::map<std::string, long long> shown;
+    // Nobody in-world yet (server just came up and auto-resumed the session): do NOT consume the
+    // seq here, or the player who joins a moment later never learns they're connected.
+    if (!FirstReadyPlayer()) return;
+    for (auto& route : MailboxRoutes()) {
+        fs::path p = g_ipc->DirFor(route) / "conn_status.txt";
+        std::error_code ec;
+        if (!fs::exists(p, ec)) continue;
+        std::string line;
+        { std::ifstream f(p); if (!std::getline(f, line)) continue; }
+        auto tab = line.find('\t');
+        if (tab == std::string::npos) continue;
+        long long seq = 0;
+        try { seq = std::stoll(line.substr(0, tab)); } catch (...) { continue; }
+        auto it = shown.find(route);
+        if (it != shown.end() && it->second == seq) continue;   // already announced this state
+        shown[route] = seq;
+        ChatNotify(ArkApi::Tools::Utf8Decode(line.substr(tab + 1)).c_str());
+    }
+}
+static void ShowConnStatus() { __try { DoShowConnStatus(); } __except (EXCEPTION_EXECUTE_HANDLER) {} }
+
+// Tell a player their CURRENT AP connection state when they JOIN. DoShowConnStatus only fires on a
+// status CHANGE (the conn_status seq) and records it for the whole server session, so a rejoin with
+// nothing changed said nothing.
+//
+// Keyed on the PlayerController POINTER. That's the bit that makes join-vs-respawn work:
+//   * a REJOIN builds a NEW controller  -> unseen pointer -> greet
+//   * a RESPAWN reuses the SAME controller (only the character is replaced) -> already greeted
+// Keying on the survivor NAME failed both ways: a logged-out controller lingers in the list (name
+// never cleared, so rejoins were silent) and death briefly nulls the character (name dropped, so
+// respawning falsely re-greeted). Hooking AShooterGameMode.HandleNewPlayer_Implementation was tried
+// instead and never fired at all - no GREET line ever reached the log - so this stays on the tick.
+// Stale pointers are only ever COMPARED against the live list, never dereferenced.
+static void DoGreetPlayer(AShooterPlayerController* pc) {
+    if (!pc) return;
+    std::string status;
+    if (g_ipc) {                                                 // this survivor's own mailbox
+        std::ifstream f(g_ipc->DirFor(RouteFor(pc)) / "conn_status.txt");
+        std::string line;
+        if (std::getline(f, line)) {
+            auto tab = line.find('\t');
+            if (tab != std::string::npos) status = line.substr(tab + 1);
+        }
+    }
+    if (status.empty())
+        status = "AP: not connected - use /connect <host>:<port> <slot> to link this survivor.";
+    // pass the text as an ARGUMENT: FString::Format is fmt-style, so braces in a survivor name
+    // would otherwise be treated as a format field.
+    ArkApi::GetApiUtils().SendChatMessage(pc, FString(L"Archipelago"), L"{}",
+                                          ArkApi::Tools::Utf8Decode(status));
+    DebugLog("GREET (sent to client) " + ArkApi::GetApiUtils().GetCharacterName(pc).ToString()
+             + " -> " + status);
+}
+static std::set<void*> g_greeted;                                // controller identity, never deref'd
+static std::map<void*, long long> g_greetDue;                    // controller -> when to send
+static const int GREET_DELAY_SEC = 8;                            // client needs time before chat shows
+
+void ForgetGreeted(void* pc) {                                   // called from the Logout hook
+    g_greeted.erase(pc);
+    g_greetDue.erase(pc);
+}
+
+static void DoGreetJoiners() {
+    UWorld* world = ArkApi::GetApiUtils().GetWorld();
+    if (!world) return;
+    long long now = (long long)std::time(nullptr);
+    std::set<void*> present;
+    for (TWeakObjectPtr<APlayerController> wpc : world->PlayerControllerListField()) {
+        auto* pc = static_cast<AShooterPlayerController*>(wpc.Get());
+        if (!pc) continue;
+        // A controller LINGERS in this list after its player disconnects - that's why pointer
+        // identity alone still missed rejoins (and why ARK reusing the object hid it completely).
+        // A live player has a NetConnection; a disconnected one does not.
+        if (!pc->NetConnectionField()) continue;                 // gone -> falls out of `present`
+        present.insert((void*)pc);
+        if (g_greeted.count((void*)pc)) continue;
+        if (!pc->GetPlayerCharacter()) continue;                 // mid-load: greet on a later tick
+        // Having a character is NOT the same as being able to see chat: the client is still
+        // finishing its load, and a message sent now is accepted server-side but never displayed
+        // (the log said GREET while the player saw nothing). Wait a few seconds after the
+        // character appears, then send.
+        auto due = g_greetDue.find((void*)pc);
+        if (due == g_greetDue.end()) { g_greetDue[(void*)pc] = now + GREET_DELAY_SEC; continue; }
+        if (now < due->second) continue;                         // not yet - try again next tick
+        g_greetDue.erase(due);
+        g_greeted.insert((void*)pc);
+        DoGreetPlayer(pc);
+    }
+    for (auto it = g_greeted.begin(); it != g_greeted.end(); )   // disconnected -> greet on rejoin
+        if (present.count(*it)) ++it; else it = g_greeted.erase(it);
+    for (auto it = g_greetDue.begin(); it != g_greetDue.end(); ) // left before we got to greet them
+        if (present.count(it->first)) ++it; else it = g_greetDue.erase(it);
+}
+static void GreetJoiners() { __try { DoGreetJoiners(); } __except (EXCEPTION_EXECUTE_HANDLER) {} }
+
+// "/confirm is pending" prompt. This CANNOT be delivered through msg_in.jsonl: on a server start
+// the resumed AP session writes the fragment (and its prompt) before the first ApplyMessages tick,
+// and that tick marks everything already in the file as seen ("don't replay old chat history") -
+// so the prompt was silently swallowed every time. Drive it from STATE instead: if a spawn
+// fragment exists and Game.ini does not already contain it, say so - and only once a player is
+// actually online, otherwise the chat line goes nowhere and the one-shot is wasted.
+static void DoShowSpawnPrompt() {
+    static bool announced = false;
+    if (announced || !g_ipc) return;
+    fs::path frag;
+    for (auto& route : MailboxRoutes()) {
+        fs::path p = g_ipc->DirFor(route) / "game_ini_fragment.txt";
+        std::error_code ec;
+        if (fs::exists(p, ec)) { frag = p; break; }
+    }
+    if (frag.empty()) return;
+    if (PatchGameIniFromFragment(frag, GameIniPath(), true) != 1) return;   // nothing pending
+    if (!FirstReadyPlayer()) return;                        // nobody to read it yet - try next tick
+    announced = true;
+    DebugLog("PROMPT: randomized spawns pending -> told players to /confirm");
+    ChatNotify(L"ArkAP: randomize_dino_spawns is pending - type /confirm to apply it to Game.ini "
+               L"and restart the server (back in ~15s). One-time per seed.");
+}
+static void ShowSpawnPrompt() { __try { DoShowSpawnPrompt(); } __except (EXCEPTION_EXECUTE_HANDLER) {} }
+
+
+
 static void DoTick() {
     static int tn = 0; ++tn;
     if (g_pollFaulted) { g_pollFaulted = false; DebugLog("!! FAULT in PollIncoming"); }
@@ -1396,12 +1861,16 @@ static void DoTick() {
     if (!ServerReady()) return;
     if (!g_registry_built) BuildEngramRegistry();   // SEH-guarded; builds once when ready
     DoGrantStarter();                               // free starter engrams (once, when flag known)
+    g_fxBudget = FX_PER_TICK;                        // refill the per-tick filler budget (#5 throttle)
     PollIncoming();
     RetryPendingFx();                               // deliver filler effects deferred while no player
     ReassertEngrams();                              // re-apply received engrams (join-timing safe)
     ProcessPendingChecks();                         // handle network-thread-queued note/tame checks
     ApplyDeaths();                                  // DeathLink: kill our player on a remote death
     ApplyMessages();                                // show connector item-flow lines in-game
+    ShowConnStatus();                               // embedded /connect connect/disconnect -> chat
+    GreetJoiners();                                 // on JOIN: tell THAT player their AP state
+    ShowSpawnPrompt();                              // "/confirm pending" (state-based, not msg_in)
     // refresh runtime flags the connector(s) relay (bundle_saddles) - cheap, idempotent.
     // Multiplayer: any slot's flags.json turns a feature on (v1 simplification - per-slot
     // flag splits are rare; revisit if a mixed lobby needs per-player bundle_saddles).
@@ -1424,7 +1893,7 @@ static void Tick() {
 }
 
 // ----------------------------------------------------------------- lifecycle
-static const char* ARKAP_BUILD = "v81-route-guard";
+static const char* ARKAP_BUILD = "v96-no-emoji-usage";
 
 static void Load() {
     fs::path base = PluginDir();
@@ -1436,6 +1905,7 @@ static void Load() {
             if (j.value("mode", "ap") == "offline") g_mode = Mode::Offline;
             g_multiplayer = j.value("multiplayer", false);   // per-player slots (see docs)
             embeddedAp = j.value("embedded_ap", true);       // false = disable /connect entirely
+            g_gameIniOverride = j.value("game_ini_path", "");// /confirm target (blank = auto-derive)
         } catch (...) {}
     }
     g_tables.Load(base / "engrams.json", base / "locations.json");
@@ -1606,6 +2076,8 @@ static void Load() {
         &Hook_AShooterCharacter_Die, &AShooterCharacter_Die_original);
     ArkApi::GetHooks().SetHook("APrimalDinoCharacter.DoMate",
         &Hook_APrimalDinoCharacter_DoMate, &APrimalDinoCharacter_DoMate_original);
+    ArkApi::GetHooks().SetHook("AShooterGameMode.Logout",
+        &Hook_AShooterGameMode_Logout, &AShooterGameMode_Logout_original);
 
     ArkApi::GetCommands().AddConsoleCommand("ArkAP.DumpEngrams", &DumpEngrams);
     ArkApi::GetCommands().AddConsoleCommand("ArkAP.DumpNotes", &DumpNotes);
@@ -1620,6 +2092,7 @@ static void Load() {
     ArkApi::GetCommands().AddChatCommand("/connect", &ApConnectChat);
     ArkApi::GetCommands().AddChatCommand("/disconnect", &ApDisconnectChat);
     ArkApi::GetCommands().AddChatCommand("/apstatus", &ApStatusChat);
+    ArkApi::GetCommands().AddChatCommand("/confirm", &ApConfirmChat);
 
     // 1s game-thread tick (reliable ArkApi timer; API::Timer registered at DLL-load didn't fire).
     ArkApi::GetCommands().AddOnTimerCallback("ArkAP_tick", []() { Tick(); });
@@ -1658,6 +2131,7 @@ static void Unload() {
         &Hook_AShooterCharacter_Die);
     ArkApi::GetHooks().DisableHook("APrimalDinoCharacter.DoMate",
         &Hook_APrimalDinoCharacter_DoMate);
+    ArkApi::GetHooks().DisableHook("AShooterGameMode.Logout", &Hook_AShooterGameMode_Logout);
     ArkApi::GetCommands().RemoveOnTimerCallback("ArkAP_tick");
     ArkApi::GetCommands().RemoveConsoleCommand("ArkAP.DumpEngrams");
     ArkApi::GetCommands().RemoveConsoleCommand("ArkAP.DumpNotes");
@@ -1672,6 +2146,7 @@ static void Unload() {
     ArkApi::GetCommands().RemoveChatCommand("/connect");
     ArkApi::GetCommands().RemoveChatCommand("/disconnect");
     ArkApi::GetCommands().RemoveChatCommand("/apstatus");
+    ArkApi::GetCommands().RemoveChatCommand("/confirm");
     if (g_state) g_state->Save();
 }
 

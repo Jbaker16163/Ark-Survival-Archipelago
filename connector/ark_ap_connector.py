@@ -31,11 +31,10 @@ import websockets  # type: ignore
 
 GAME = "ARK Survival Evolved"
 
-# Boss-kill location ids (locations.json BOSS_ID_BASE 8750000+), in cumulative-goal order:
-# Broodmother, Megapithecus, Dragon, Overseer. The yaml goal picks how many (first N) are
-# required; the apworld sends that as slot_data.goal_bosses, and we send the AP goal
-# (StatusUpdate CLIENT_GOAL) once those N are all checked.
-BOSS_LOCS = [8750000, 8750001, 8750002, 8750003]
+# Goal = defeat the required bosses. The plugin signals each defeat by base-tag (e.g. "SpiderBoss")
+# to boss_out.jsonl; the apworld sends the required tag set as slot_data.goal_boss_tags, and we
+# send the AP goal (StatusUpdate CLIENT_GOAL) once all required tags have appeared. Boss kills are
+# NOT AP check locations - so nothing can get stranded behind a hard/near-impossible boss kill.
 CLIENT_GOAL = 30   # AP ClientStatus.CLIENT_GOAL
 
 
@@ -68,9 +67,10 @@ class Bridge:
         self.slot = slot
         self.password = password
         self.game_ini = game_ini or ""      # optional Game.ini path for the spawn randomizer
-        # required bosses to win: list of GROUPS (one per boss, any loc in a group counts - a
-        # group holds the boss's Gamma/Beta/Alpha check ids). slot_data overrides on connect.
-        self.required_groups = [[b] for b in BOSS_LOCS[: max(1, min(boss_goal_count, len(BOSS_LOCS)))]]
+        # required bosses to win: the base-tags the plugin signals on defeat (boss_out.jsonl).
+        # Boss kills are the goal, NOT AP check locations. slot_data sets the real set on connect;
+        # empty until then (goal never fires before the yaml's goal is known).
+        self.goal_boss_tags: set = set()
         self.goaled = False
         self.death_link = death_link             # slot_data overrides on connect
         self._death_link_cli_off = not death_link  # --no-death-link forces off regardless of yaml
@@ -81,6 +81,7 @@ class Bridge:
         self.msg_in = os.path.join(ipc_dir, "msg_in.jsonl")         # here -> plugin: text to show in-game
         self.hint_out = os.path.join(ipc_dir, "hint_out.jsonl")     # plugin -> here: /buyhint item names
         self.hint_status = os.path.join(ipc_dir, "hint_status.json")  # here -> plugin: AP hint points + cost
+        self.boss_out = os.path.join(ipc_dir, "boss_out.jsonl")     # plugin -> here: a boss base-tag per defeat
         self._seed = ""
         self._hint_cost_pct = 10
         self._total_locs = 0
@@ -209,7 +210,8 @@ class Bridge:
             pass
         if not self._seed or self._seed == last:
             return
-        for f in (self.items_in, os.path.join(os.path.dirname(self.ipc_root), "applied_index.json")):
+        for f in (self.items_in, self.boss_out,
+                  os.path.join(os.path.dirname(self.ipc_root), "applied_index.json")):
             try:
                 if os.path.exists(f):
                     os.remove(f)
@@ -342,12 +344,8 @@ class Bridge:
             for p in msg.get("players", []):       # prefer alias if set
                 self.slot_pname[p["slot"]] = p.get("alias") or p.get("name", self.slot_pname.get(p["slot"], ""))
             sd = msg.get("slot_data") or {}
-            gb = sd.get("goal_bosses")
-            groups = sd.get("boss_groups")         # [[gamma,beta,alpha] per boss] (newer apworld)
-            if gb and groups:
-                self.required_groups = [list(g) for g in groups[: max(1, min(int(gb), len(groups)))]]
-            elif gb:                                # legacy: single loc per boss
-                self.required_groups = [[b] for b in BOSS_LOCS[: max(1, min(int(gb), len(BOSS_LOCS)))]]
+            # goal = defeat these boss base-tags (plugin signals defeats to boss_out.jsonl).
+            self.goal_boss_tags = set(sd.get("goal_boss_tags") or [])
             if "death_link" in sd:                 # yaml option overrides the CLI default
                 self.death_link = bool(sd["death_link"]) and not self._death_link_cli_off
             # relay plugin-side flags (the plugin reads ipc/flags.json)
@@ -363,10 +361,10 @@ class Bridge:
                                       sd.get("spawn_overrides") or [])
             except Exception as ex:
                 print(f"[connector] spawn-randomizer ini write failed: {ex}")
-            goal_names = ", ".join(self.loc_name(g[0]).split(" (")[0] for g in self.required_groups)
             print(f"[connector] connected as '{self.slot}' "
                   f"({len(msg.get('missing_locations', []))} locations remaining); "
-                  f"goal = defeat {goal_names} (any difficulty)")
+                  f"goal = defeat {len(self.goal_boss_tags)} boss(es) "
+                  f"[{', '.join(sorted(self.goal_boss_tags))}]")
         elif cmd == "RoomUpdate":
             if "hint_points" in msg:
                 self._hint_points = msg["hint_points"]
@@ -526,15 +524,27 @@ class Bridge:
                 "data": {"time": time.time(), "source": self.slot, "cause": f"{self.slot} died in ARK"},
             }]))
 
-    # win when every required boss has ANY difficulty checked -> tell AP we reached the goal.
+    # win when every required boss base-tag has appeared in boss_out.jsonl (plugin-signalled) ->
+    # tell AP we reached the goal. Boss kills are the goal, not AP check locations.
+    def _defeated_bosses(self) -> set:
+        out: set = set()
+        try:
+            with open(self.boss_out, encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if line:
+                        out.add(line)
+        except OSError:
+            pass
+        return out
+
     async def _maybe_goal(self, ws) -> None:
-        if self.goaled:
+        if self.goaled or not self.goal_boss_tags:
             return
-        if self.required_groups and all(any(l in self.sent_checks for l in g)
-                                        for g in self.required_groups):
+        if self.goal_boss_tags <= self._defeated_bosses():
             self.goaled = True
-            names = ", ".join(self.loc_name(g[0]).split(" (")[0] for g in self.required_groups)
-            print(f"[connector] goal bosses defeated ({names}) -> GOAL reached, sending CLIENT_GOAL")
+            print(f"[connector] all goal bosses defeated ({', '.join(sorted(self.goal_boss_tags))}) "
+                  f"-> GOAL reached, sending CLIENT_GOAL")
             await ws.send(json.dumps([{"cmd": "StatusUpdate", "status": CLIENT_GOAL}]))
 
 

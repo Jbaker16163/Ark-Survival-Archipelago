@@ -26,22 +26,19 @@ ARK Survival Evolved:
   start_inventory_from_pool: {}
   # % of filler slots that are traps (wild dino spawns) vs Bonus Resources/kibble/etc.
   trap_percentage: 25
-  # Lockout guard: keeps another game's "early" item off late/hard ARK checks (see
-  # progression_tiers below, which supersedes this if both are on).
-  early_dino_checks: true
-  # Tech-tree mode: split checks into 4 tiers gated by Smithy+Mortar And Pestle -> Forge ->
-  # Fabricator. Also acts as the lockout guard (early items land only in Tier 0). false = pure RNG.
-  progression_tiers: true
-  # Where the tier gate engrams go (only matters if progression_tiers is on):
-  #   tiered = your own checks, staggered T0/T1/T2 (default)
-  #   local_early = forced early in your world | global_early = forced early anywhere
-  station_placement: global_early
-  # Force extra specific items early too (same routing as station_placement). Quote names:
+  # Softlock-safe ordering is AUTOMATIC: a "Tamed: X" check requires the engrams X's taming
+  # method needs (e.g. Rex needs the Crossbow chain), so the fill can never strand a needed item
+  # behind a creature you can't yet tame. No option to configure.
+  #
+  # Force extra specific items early. Quote names:
   #   extra_early_items:
   #     - "Engram: Bow"
   extra_early_items: []
-  # Tier 0 creature overrides (progression_tiers only). Add forces into T0, remove bumps to T1:
-  #   tier0_add: [Carno, Sabertooth]
+  # Where extra_early_items land: local_early = early in YOUR world | global_early = early anywhere.
+  station_placement: local_early
+  # Nudge a creature's assumed taming difficulty for the access logic. add -> treat as no-requirement
+  # (Tier 0), remove -> bump a default-Tier-0 creature up to needing an early KO method:
+  #   tier0_add: [Carno]
   #   tier0_remove: [Coelacanth]
   tier0_add: []
   tier0_remove: []

@@ -11,14 +11,6 @@
       "kill_loc": 8755000
     },
     {
-      "id": 8732002,
-      "ap_name": "Tame: Acrocanthosaurus",
-      "dino_tag": "Acro",
-      "saddle_class": null,
-      "tame_loc": 8753001,
-      "kill_loc": 8755001
-    },
-    {
       "id": 8732003,
       "ap_name": "Tame: Allosaurus",
       "dino_tag": "Allo",
@@ -623,14 +615,6 @@
       "saddle_class": "BlueprintGeneratedClass /Game/PrimalEarth/CoreBlueprints/Items/Armor/Saddles/PrimalItemArmor_StegoSaddle.PrimalItemArmor_StegoSaddle_C",
       "tame_loc": 8753078,
       "kill_loc": 8755078
-    },
-    {
-      "id": 8732080,
-      "ap_name": "Tame: Styracosaurus",
-      "dino_tag": "Styra",
-      "saddle_class": null,
-      "tame_loc": 8753079,
-      "kill_loc": 8755079
     },
     {
       "id": 8732081,

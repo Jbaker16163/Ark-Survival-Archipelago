@@ -75,6 +75,14 @@ del /q "%PLUGIN%\ipc\hint_status.json"  2>nul
 del /q "%PLUGIN%\ipc\flags.json"        2>nul
 del /q "%PLUGIN%\ipc\session.json"      2>nul
 del /q "%PLUGIN%\ipc\game_ini_fragment.txt" 2>nul
+del /q "%PLUGIN%\ipc\conn_status.txt"   2>nul
+del /q "%PLUGIN%\ipc\boss_out.jsonl"    2>nul
+REM PER-PLAYER MAILBOXES: with /connect (or multiplayer), each survivor gets its own
+REM ipc\<CharacterName>\ folder - the root wipes above DON'T touch those. Leaving them behind
+REM keeps stale state across a reset; a stale game_ini_fragment.txt in there is why /confirm
+REM could still apply an OLD seed's randomized spawns. Mailboxes are recreated on connect.
+for /d %%D in ("%PLUGIN%\ipc\*") do rd /s /q "%%D" 2>nul
+del /q "%PLUGIN%\ap_wipe_wild.flag"     2>nul
 del /q "%PLUGIN%\applied_index.json"    2>nul
 del /q "%PLUGIN%\counters.json"         2>nul
 del /q "%PLUGIN%\events_queue.jsonl"    2>nul
@@ -85,8 +93,23 @@ del /q "%PLUGIN%\kill_check_queue.jsonl" 2>nul
 del /q "%PLUGIN%\dino_queue.jsonl"      2>nul
 del /q "%PLUGIN%\crate_queue.jsonl"     2>nul
 del /q "%PLUGIN%\ArkAP_debug.log"       2>nul
+del /q "%PLUGIN%\ap_connections.json"   2>nul
 REM multiplayer: each player's mailbox is an ipc\<CharacterName> subfolder - wipe them all.
 for /d %%D in ("%PLUGIN%\ipc\*") do rd /s /q "%%D" 2>nul
+
+REM ---- strip randomize_dino_spawns from Game.ini -------------------------------------------
+REM Otherwise the previous seed's biome rosters stay live on a "fresh" world, and /confirm sees
+REM them as already applied so it never re-prompts. NOTE: we can't just cut our
+REM "; === ArkAP ... BEGIN/END ===" block - ARK rewrites Game.ini and STRIPS COMMENTS, so after a
+REM restart the Config lines survive with no markers around them. Match the lines themselves.
+REM Everything else in Game.ini is preserved, and a timestamped .apbak copy is made first.
+set "GAMEINI=%SERVER_ROOT%\ShooterGame\Saved\Config\WindowsServer\Game.ini"
+if exist "%GAMEINI%" (
+    copy /y "%GAMEINI%" "%GAMEINI%.apbak_%TS%" >nul
+    powershell -NoProfile -Command "$p='%GAMEINI%'; $l=@(Get-Content -LiteralPath $p); $k=@($l.Where({ $_ -notmatch '^\s*(ConfigOverrideNPCSpawnEntriesContainer|ConfigAddNPCSpawnEntriesContainer|NPCReplacements)\s*=' -and $_ -notmatch 'ArkAP NPCReplacements' })); [IO.File]::WriteAllLines($p,[string[]]$k); Write-Host ('  Game.ini: removed ' + ($l.Count-$k.Count) + ' randomized-spawn line(s)')"
+) else (
+    echo   Game.ini not found at %GAMEINI% - skipped ^(check SERVER_ROOT^)
+)
 
 echo.
 echo Done. World save backed up to:

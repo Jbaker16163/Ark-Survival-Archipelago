@@ -60,11 +60,21 @@ if not "%CLUSTERID%"=="" (
     set "CLUSTERARGS=-ClusterId=%CLUSTERID% -ClusterDirOverride=%CLUSTERDIR% -NoTransferFromFiltering"
 )
 
+REM ArkAP: /confirm's relauncher sets ARKAP_FORCE_RESPAWN=1 for ONE boot after applying randomized
+REM spawns. -ForceRespawnDinos makes ARK wipe all wild creatures at startup so the new biome
+REM rosters repopulate immediately (otherwise the old saved creatures linger until they despawn).
+REM This is the reliable, privilege-free way to do it - an in-game DestroyWildDinos needs admin.
+set "FORCERESPAWN="
+if not "%ARKAP_FORCE_RESPAWN%"=="" (
+    set "FORCERESPAWN=-ForceRespawnDinos"
+    echo ArkAP: wiping wild creatures this boot ^(-ForceRespawnDinos^) so randomized spawns apply.
+)
+
 echo Launching: %SESSION% on %MAP%  (game %GAMEPORT% / query %QUERYPORT% / rcon %RCONPORT%)
 echo Save dir: %MAPSAVEDIR%
 if not "%CLUSTERID%"=="" echo Cluster: %CLUSTERID%  (%CLUSTERDIR%)
 echo.
-"%EXE%" "%OPTS%" -server -log -NoBattlEye %CLUSTERARGS%
+"%EXE%" "%OPTS%" -server -log -NoBattlEye %CLUSTERARGS% %FORCERESPAWN%
 
 :end
 endlocal

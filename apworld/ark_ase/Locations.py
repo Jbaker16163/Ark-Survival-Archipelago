@@ -20,7 +20,10 @@ def build_location_table(location_data: Dict[str, Any],
     """
     table: Dict[str, int] = {}
     cats = location_data["location_categories"]
-    for key in ("dossiers", "bosses", "milestones", "levels", "alpha_kills", "inventory_checks"):
+    # "bosses" is deliberately excluded - boss kills are the goal (signalled via boss_out.jsonl),
+    # not AP check locations. Keeping them out of the datapackage means the plugin never reports a
+    # boss loc id that isn't a real location (which would break other players' clients).
+    for key in ("dossiers", "milestones", "levels", "alpha_kills", "inventory_checks"):
         for entry in cats.get(key, {}).get("entries", []):
             table[entry["name"]] = entry["id"]
     for d in (dino_data or {}).get("dinos", []):

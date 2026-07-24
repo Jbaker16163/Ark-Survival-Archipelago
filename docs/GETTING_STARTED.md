@@ -26,7 +26,7 @@ milestones, and defeating bosses send checks out to everyone else's games.
 - **ARK dedicated server** — the game server, on the Pre-Aquatica beta branch.
 - **ArkServerApi** — third-party server modding framework the plugin loads into.
 - **ArkAP plugin (`ArkAP.dll`)** — gates actions, reports checks, and connects to the
-  Archipelago room itself: type **`/connect <slot> <host:port>`** in game chat and play.
+  Archipelago room itself: type **`/connect <host:port> <slot>`** in game chat and play.
 - **apworld (`ark_ase.apworld`)** — the world definition, used on the machine that *generates* the seed.
 - **Connector (`ArkConnector.zip`)** — optional external bridge; fallback for `/connect`, and
   currently needed for one thing: auto-patching `Game.ini` when `randomize_dino_spawns` is on.
@@ -162,30 +162,43 @@ The plugin has a built-in AP client — **no extra software to run**. Once the r
 (Step 4), spawn in on your survivor, then type in game chat:
 
 ```
-/connect <YourSlotName> <host:port> [password]     e.g. /connect Ghios archipelago.gg:38281
+/connect <host:port> <YourSlotName> [password]     e.g. /connect archipelago.gg:38281 Ghios
 ```
 
 - `/apstatus` shows the connection(s); `/disconnect` drops yours.
 - Connections **auto-resume** when the ARK server restarts, and reconnect with backoff if the
-  room goes down. If chat says *AP refused*, fix the slot/password and `/connect` again.
+  room goes down — chat announces connect/disconnect as it happens. If it says *AP refused*, fix
+  the slot/password and `/connect` again.
 - **Multiplayer:** each player spawns in fully, then runs their own `/connect` — the plugin
   identifies them by their survivor automatically (survivor name does NOT need to match the
   slot). If it says it can't read your survivor name yet, wait a few seconds and retry.
+- Either argument order works — `/connect <host:port> <slot>` or the older
+  `/connect <slot> <host:port>` — the plugin figures out which token is the address.
 - Slot names with **spaces** can't be typed into `/connect` — use space-free `name:` values in
   your yamls.
 - The address must be reachable **from the Server PC** (chat commands run on the server): a room
   on the server's LAN works for remote players too.
 
-**One current limitation:** with `randomize_dino_spawns` enabled, the in-game client can't patch
-`Game.ini` (ARK rewrites that file at shutdown). It writes `ipc\game_ini_fragment.txt` and tells
-you in chat — paste that into `Game.ini` while the server is stopped, or use the external
-connector below once with `game_ini=` set. Plugin-side auto-patch at boot is planned.
+**`randomize_dino_spawns`:** when your seed has it on, after you `/connect` the plugin says so and
+asks you to type **`/confirm`**. That patches the randomized spawns into `Game.ini`, saves the
+world, and **restarts the server itself** (back up in ~15s) so the new spawns take effect — no
+files to edit, no manual restart. It's one-time per seed (once applied, `/confirm` is a no-op).
+Nothing to configure: `/confirm` looks for your **`start_ase_server.bat`** (searching upward from
+the server binaries folder, so anywhere at or above the server root is found) and relaunches with
+it — the script already holds your ports, cluster and save-dir settings. The currently-running map
+is passed to it as argument 1, so a restart never comes back on the script's default `MAP`. If no
+launcher is found, the running command line is replayed instead.
+(Prefer to do it by hand? The fragment is still written to `ipc\game_ini_fragment.txt`.)
+
+> **If the restart doesn't come back:** the server is now **left running** whenever the restart
+> helper can't start, with a chat message telling you to restart manually — it will never shut down
+> with no way back. Check `ap_restart.log` next to `ArkAP.dll` to see how far it got.
 
 ### Alternative — external connector (fallback)
 
 Fully supported; use it if `/connect` misbehaves (its console output is handy for
-troubleshooting) or for the `randomize_dino_spawns` auto-patch. **Don't run both the in-game
-client and an external connector for the same slot at once** — they'd double-send.
+troubleshooting). **Don't run both the in-game client and an external connector for the same slot
+at once** — they'd double-send.
 
 1. Unzip **`ArkConnector.zip`** anywhere on the Server PC (it has `ArkConnector.exe`,
    `connector.ini`, `run_connector.bat`).
@@ -247,7 +260,7 @@ Do this on whatever machine is the "generator" (can be your Server PC, or a frie
    (router hairpin issues). In-game console you can also use `open 192.168.x.x:7777`.
 5. **Connect to the room from game chat** (once spawned in):
    ```
-   /connect Ghios archipelago.gg:38281
+   /connect archipelago.gg:38281 Ghios
    ```
    Chat replies `AP: connected as 'Ghios'`; `/apstatus` confirms. This persists — after a server
    restart it reconnects by itself. (Using the external connector instead? Start
@@ -284,7 +297,7 @@ at character creation (it can't be changed once set).
 3. Connect each player — easiest is in game chat: each player **spawns in fully on their
    survivor**, then types their own:
    ```
-   /connect TheirSlotName archipelago.gg:38281
+   /connect archipelago.gg:38281 TheirSlotName
    ```
    (the plugin routes by their survivor automatically; `/apstatus` to verify; if it says it
    can't read your survivor name yet, wait a moment and retry). OR run

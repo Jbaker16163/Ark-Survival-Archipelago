@@ -73,3 +73,12 @@ def load_filler_data() -> Dict[str, Any]:
     except FileNotFoundError:
         return {"filler": [{"id": 8739500, "ap_name": "Bonus Resources", "trap": False,
                             "effect": {"kind": "none"}}]}
+
+
+def load_tame_logic_data() -> Dict[str, Any]:
+    """Tame/craft dependency graph (item recipes + dino tame reqs + engram aliases) for the
+    softlock-preventing access rules. Optional - empty disables the tame-logic rules silently."""
+    try:
+        return _load("tame_logic.json")
+    except FileNotFoundError:
+        return {}

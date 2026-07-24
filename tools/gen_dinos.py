@@ -25,6 +25,10 @@ KILL_LOC_BASE = 8755000  # per-dino "first kill of this species" CHECK locations
 NO_TAME = {"Ammonite", "Cnidaria", "Cow", "Dragonfly", "Euryp", "Trilobite", "Piranha", "Coel",
            "Leech", "Salmon", "Ant"}
 
+# tags that are NOT real ASE creatures (harvested from a modded/cross-version server by mistake) -
+# dropped entirely: no tame item, no kill check. "Acro" (Acrocanthosaurus) isn't in ASE.
+NOT_IN_ASE = {"Acro"}
+
 # untameable species we STILL want a first-kill CHECK for (kill-only: no tame item/loc/saddle).
 # (name, DinoNameTag[, explicit kill_loc]). kill_loc defaults to KILL_ONLY_LOC_BASE + index; use an
 # explicit id for late additions so existing shipped ids never shift. "Cow" omitted - no wild
@@ -106,7 +110,6 @@ FRIENDLY = {
     "Trike": "Triceratops",
     "Kentro": "Kentrosaurus",
     "Pela": "Pelagornis",
-    "Styra": "Styracosaurus",
     "Paracer": "Paraceratherium",
     "Archa": "Archaeopteryx",
     "Arthro": "Arthropleura",
@@ -153,7 +156,7 @@ NO_SADDLE = {
     "Cow", "Dilo", "Dimetro", "Dimorph", "Diplocaulus", "Direwolf", "Dodo", "Dragonfly", "Eel", "Euryp",
     "Hesperornis", "Ichthyornis", "Kairu", "Kentro", "Leedsichthys", "Liopleurodon", "Lystro",
     "Microraptor", "Monkey", "Moschops", "Otter", "Ovi", "Pegomastax", "Piranha", "Purlovia", "Sheep",
-    "Styra", "TitanBoa", "Trilobite", "Troodon",
+    "TitanBoa", "Trilobite", "Troodon",
 }
 
 ENGRAMS = os.path.normpath(os.path.join(HERE, "..", "data", "engrams.json"))
@@ -185,7 +188,7 @@ def main() -> None:
         with open(src, encoding="utf-8") as fh:
             for line in fh:
                 t = line.strip().strip('"')
-                if t and t not in seen:
+                if t and t not in seen and t not in NOT_IN_ASE:
                     seen.add(t)
                     tags.append(t)
     forced_tags = {t for _, t, _ in FORCED_TAMEABLE}

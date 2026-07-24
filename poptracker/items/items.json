@@ -21,27 +21,6 @@
   "disabled_img": "images/kill_off.png"
  },
  {
-  "name": "Acrocanthosaurus",
-  "type": "toggle",
-  "codes": "unlocked_acrocanthosaurus",
-  "img": "images/tame.png",
-  "disabled_img": "images/tame_off.png"
- },
- {
-  "name": "Acrocanthosaurus",
-  "type": "toggle",
-  "codes": "tame_acrocanthosaurus",
-  "img": "images/tame.png",
-  "disabled_img": "images/tame_off.png"
- },
- {
-  "name": "Acrocanthosaurus",
-  "type": "toggle",
-  "codes": "kill_acrocanthosaurus",
-  "img": "images/kill.png",
-  "disabled_img": "images/kill_off.png"
- },
- {
   "name": "Allosaurus",
   "type": "toggle",
   "codes": "unlocked_allosaurus",
@@ -1620,27 +1599,6 @@
   "name": "Stegosaurus",
   "type": "toggle",
   "codes": "kill_stegosaurus",
-  "img": "images/kill.png",
-  "disabled_img": "images/kill_off.png"
- },
- {
-  "name": "Styracosaurus",
-  "type": "toggle",
-  "codes": "unlocked_styracosaurus",
-  "img": "images/tame.png",
-  "disabled_img": "images/tame_off.png"
- },
- {
-  "name": "Styracosaurus",
-  "type": "toggle",
-  "codes": "tame_styracosaurus",
-  "img": "images/tame.png",
-  "disabled_img": "images/tame_off.png"
- },
- {
-  "name": "Styracosaurus",
-  "type": "toggle",
-  "codes": "kill_styracosaurus",
   "img": "images/kill.png",
   "disabled_img": "images/kill_off.png"
  },

@@ -56,7 +56,6 @@ using ApGuard = std::lock_guard<ApLock>;
 
 static const char* AP_GAME = "ARK Survival Evolved";
 static const int   AP_CLIENT_GOAL = 30;                 // AP ClientStatus.CLIENT_GOAL
-static const int   AP_BOSS_LOCS[4] = { 8750000, 8750001, 8750002, 8750003 };
 
 // ------------------------------------------------------------------ small helpers
 inline std::wstring ApWiden(const std::string& s) {
@@ -167,10 +166,19 @@ private:
         std::ofstream f(cfg_.mailbox / "msg_in.jsonl", std::ios::app);
         if (f) f << text << "\n";
     }
+    // Current connection state -> conn_status.txt (OVERWRITTEN, one line "<seq>\t<msg>"). The
+    // plugin's tick shows it whenever <seq> changes, incl. once after a server restart - so
+    // connect/disconnect is always surfaced in chat, unlike msg_in (whose boot backlog is
+    // swallowed so old item-flow chat isn't replayed).
+    void WriteConnStatus(const std::string& msg) {
+        std::ofstream f(cfg_.mailbox / "conn_status.txt", std::ios::trunc);
+        if (f) f << (++statusSeq_) << "\t" << msg << "\n";
+    }
 
     // ---------------- controller: connect loop with backoff ----------------
     void ControllerMain() {
         int delay = 5;
+        WriteConnStatus("AP: connecting '" + cfg_.slot + "' to " + cfg_.server + "...");
         while (!stop_) {
             bool connected = false;
             // C++ exceptions are caught HERE with their message (the SEH guard above only
@@ -180,6 +188,11 @@ private:
             catch (...) { SetStatus("unknown exception in connect cycle"); }
             if (stop_ || fatal_) break;
             if (connected) delay = 5;                     // had a real session -> reset backoff
+            // tell the player in chat that the room dropped (only when we HAD a live session -
+            // repeated connect failures stay in the debug log, not chat)
+            WriteConnStatus(connected
+                ? "AP: lost connection to the room ('" + cfg_.slot + "') - reconnecting..."
+                : "AP: still trying to reach " + cfg_.server + " ('" + cfg_.slot + "')...");
             SetStatus("reconnecting in " + std::to_string(delay) + "s");
             for (int i = 0; i < delay * 2 && !stop_; ++i)
                 std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -251,13 +264,17 @@ private:
         }
         WinHttpCloseHandle(hReq);
         if (!hWs_) { CloseSocket(); return false; }
-        // the 10s session receive timeout is right for the HTTP upgrade but wrong for the
-        // websocket: an idle AP room sends nothing for minutes - make receives wait forever
-        // (0 = infinite) instead of "timing out" into a spurious reconnect every 10s.
-        DWORD infinite = 0;
-        WinHttpSetOption(hWs_, WINHTTP_OPTION_RECEIVE_TIMEOUT, &infinite, sizeof(infinite));
+        // Receive timeout = the heartbeat interval. NOT infinite: an AP room that idle-times us
+        // out (or any half-open drop with no close frame) leaves an infinite-timeout receive
+        // blocked FOREVER - the session never notices, never reconnects, and the player has to
+        // re-type /connect (live-hit 2026-07-20). Instead time out every HEARTBEAT_MS and probe
+        // the socket with a no-op send (RecvMessage) - a dead socket surfaces as a send error and
+        // triggers reconnect; a live idle room just keeps waiting. No spurious reconnects.
+        DWORD rtimeout = HEARTBEAT_MS;
+        WinHttpSetOption(hWs_, WINHTTP_OPTION_RECEIVE_TIMEOUT, &rtimeout, sizeof(rtimeout));
         return true;
     }
+    static const DWORD HEARTBEAT_MS = 40000;      // idle socket liveness-probe interval
     // ask the peer to close (unblocks a blocked WinHttpWebSocketReceive) WITHOUT freeing
     // handles - safe to call from any thread while the controller may still be receiving.
     void Interrupt() {
@@ -295,7 +312,13 @@ private:
             HINTERNET ws = hWs_;                          // freed only on THIS thread (CloseSocket)
             if (!ws || stop_) return false;
             DWORD rc = WinHttpWebSocketReceive(ws, buf, sizeof(buf), &read, &type);
-            if (rc == ERROR_WINHTTP_TIMEOUT) continue;    // idle is not an error - keep waiting
+            if (rc == ERROR_WINHTTP_TIMEOUT) {
+                // idle heartbeat: probe the socket so a silently-dropped connection is detected
+                // instead of blocking forever. A no-target Bounce is a cheap AP no-op (server
+                // drops it, no echo); if the send fails the socket is dead -> reconnect.
+                if (!SendJson({ {"cmd", "Bounce"}, {"data", json::object()} })) return false;
+                continue;
+            }
             if (rc != NO_ERROR) return false;
             if (type == WINHTTP_WEB_SOCKET_CLOSE_BUFFER_TYPE) return false;
             out.append(buf, read);
@@ -340,12 +363,32 @@ private:
         if (cmd == "RoomInfo") {
             sawRoom = true;
             hintCostPct_ = msg.value("hint_cost", 10);
+            roomGames_.clear();                          // for the datapackage request below
+            for (auto& g : msg.value("games", json::array()))
+                if (g.is_string()) roomGames_.push_back(g.get<std::string>());
             ResetOnNewSeed(msg.value("seed_name", ""));
             SendJson({ {"cmd", "Connect"}, {"game", AP_GAME}, {"name", cfg_.slot},
                        {"password", cfg_.password}, {"uuid", "ark-embedded-client"},
                        {"version", { {"major",0},{"minor",6},{"build",7},{"class","Version"} }},
                        {"items_handling", 7}, {"tags", json::array({"DeathLink"})},
                        {"slot_data", true} });
+            // fetch every game's item/location name tables so we can name cross-game items in the
+            // "X sent <item> to Y" chat line (without this the item shows only as "an item").
+            SendJson({ {"cmd", "GetDataPackage"}, {"games", roomGames_} });
+        } else if (cmd == "DataPackage") {
+            // NOTE: call .items() only on NAMED json objects, never on a .value(...) TEMPORARY -
+            // nlohmann's iteration proxy holds a reference to it and the temporary dies before the
+            // loop runs (dangles -> iterates nothing). This bit both maps here + slot_info below.
+            auto data = msg.value("data", json::object());
+            auto games = data.value("games", json::object());
+            for (auto& [game, gd] : games.items()) {
+                auto& im = gameItems_[game];
+                auto items = gd.value("item_name_to_id", json::object());
+                for (auto& [name, id] : items.items()) im[id.get<long long>()] = name;
+                auto& lm = gameLocs_[game];
+                auto locs = gd.value("location_name_to_id", json::object());
+                for (auto& [name, id] : locs.items()) lm[id.get<long long>()] = name;
+            }
         } else if (cmd == "Connected") {
             OnConnected(msg);
         } else if (cmd == "ReceivedItems") {
@@ -379,32 +422,47 @@ private:
             fatal_ = true;
             std::string err = msg.value("errors", json::array()).dump();
             SetStatus("REFUSED " + err);
-            QueueMsg("AP refused '" + cfg_.slot + "': " + err + " - /disconnect then /connect again");
+            WriteConnStatus("AP refused '" + cfg_.slot + "': " + err +
+                            " - fix the slot/password and /connect again");
         } else if (cmd == "PrintJSON") {
             std::string type = msg.value("type", "");
             if (type == "ItemSend" || type == "ItemCheat") {
-                // our check released someone else's item -> show it in ARK chat
+                // our check released someone else's item -> show it (with its real name) in ARK chat
                 json item = msg.value("item", json::object());
                 int sender = item.value("player", -1);
                 int receiver = msg.value("receiving", -1);
                 if (mySlot_ >= 0 && sender == mySlot_ && receiver != mySlot_ && receiver >= 0) {
                     std::string rn = players_.count(receiver) ? players_[receiver]
                                                               : ("player " + std::to_string(receiver));
-                    QueueMsg(cfg_.slot + " sent an item to " + rn);
+                    QueueMsg(cfg_.slot + " sent " + ItemName(receiver, item.value("item", 0)) + " to " + rn);
                 }
             } else if (type == "Hint") {
                 json item = msg.value("item", json::object());
                 int recv = msg.value("receiving", -1), finder = item.value("player", -1);
                 if (mySlot_ >= 0 && (recv == mySlot_ || finder == mySlot_)) {
-                    std::string iname = (recv == mySlot_) ? cfg_.itemName(item.value("item", 0)) : std::string();
-                    if (iname.empty()) iname = "item " + std::to_string(item.value("item", 0));
+                    std::string iname = ItemName(recv, item.value("item", 0));
+                    std::string lname = LocName(finder, item.value("location", 0));
                     std::string fn = players_.count(finder) ? players_[finder]
                                                             : ("player " + std::to_string(finder));
-                    QueueMsg("Hint: " + iname + " is in " + fn + "'s world (" +
+                    QueueMsg("Hint: " + iname + " is at " + lname + " in " + fn + "'s world (" +
                              (msg.value("found", false) ? "already found" : "not found yet") + ")");
                 }
             }
         }
+    }
+
+    // name a slot's item/location from the fetched datapackage; fall back to our own ARK data
+    // (cfg_.itemName) for our slot, else a neutral placeholder.
+    std::string ItemName(int slot, long long id) {
+        auto gi = gameItems_.find(slotGame_.count(slot) ? slotGame_[slot] : "");
+        if (gi != gameItems_.end()) { auto it = gi->second.find(id); if (it != gi->second.end()) return it->second; }
+        if (slot == mySlot_) { std::string n = cfg_.itemName((int)id); if (!n.empty()) return n; }
+        return "an item";
+    }
+    std::string LocName(int slot, long long id) {
+        auto gl = gameLocs_.find(slotGame_.count(slot) ? slotGame_[slot] : "");
+        if (gl != gameLocs_.end()) { auto it = gl->second.find(id); if (it != gl->second.end()) return it->second; }
+        return "a location";
     }
 
     void OnConnected(const json& msg) {
@@ -412,24 +470,17 @@ private:
         for (auto& p : msg.value("players", json::array()))
             players_[p.value("slot", -1)] = p.value("alias", "").empty()
                 ? p.value("name", "") : p.value("alias", "");
+        auto slotInfo = msg.value("slot_info", json::object());   // named: .items() on a temporary dangles
+        for (auto& [s, info] : slotInfo.items())
+            try { slotGame_[std::stoi(s)] = info.value("game", ""); } catch (...) {}
         json sd = msg.value("slot_data", json::object());
         if (sd.is_null()) sd = json::object();
         deathLink_ = sd.value("death_link", deathLink_);
 
-        // goal: boss groups (any difficulty per boss) with legacy single-loc fallback
-        requiredGroups_.clear();
-        int gb = sd.value("goal_bosses", 0);
-        if (gb > 0 && sd.contains("boss_groups") && sd["boss_groups"].is_array()) {
-            int n = 0;
-            for (auto& g : sd["boss_groups"]) {
-                if (n++ >= gb) break;
-                std::vector<int> grp;
-                for (auto& l : g) grp.push_back(l.get<int>());
-                if (!grp.empty()) requiredGroups_.push_back(grp);
-            }
-        } else if (gb > 0) {
-            for (int i = 0; i < gb && i < 4; ++i) requiredGroups_.push_back({ AP_BOSS_LOCS[i] });
-        }
+        // goal: the required boss base-tags (defeats signalled to boss_out.jsonl by the plugin).
+        goalBossTags_.clear();
+        for (auto& t : sd.value("goal_boss_tags", json::array()))
+            if (t.is_string()) goalBossTags_.insert(t.get<std::string>());
 
         // relay plugin flags (same file/content as the Python connector)
         try { std::ofstream(cfg_.mailbox / "flags.json")
@@ -448,11 +499,11 @@ private:
             sentChecks_.insert(l.get<int>());
 
         connectedOk_ = true;
-        SetStatus("connected as '" + cfg_.slot + "' (" +
-                  std::to_string(msg.value("missing_locations", json::array()).size()) +
-                  " locations remaining)");
-        QueueMsg("AP: connected as '" + cfg_.slot + "'" +
-                 (cfg_.route.empty() ? "" : " for " + cfg_.route));
+        int remaining = (int)msg.value("missing_locations", json::array()).size();
+        SetStatus("connected as '" + cfg_.slot + "' (" + std::to_string(remaining) + " locations remaining)");
+        WriteConnStatus("AP: connected as '" + cfg_.slot + "'" +
+                        (cfg_.route.empty() ? "" : " for " + cfg_.route) +
+                        " (" + std::to_string(remaining) + " locations remaining)");
     }
 
     // ---------------- pump: mailbox files -> AP (every 500ms) ----------------
@@ -501,14 +552,17 @@ private:
               SendJson({ {"cmd", "Say"}, {"text", "!hint " + lines[hintsSent_]} });
               ++hintsSent_;
           } }
-        // goal: every required boss has ANY difficulty checked
-        if (!goaled_ && !requiredGroups_.empty()) {
+        // goal: every required boss base-tag has appeared in boss_out.jsonl (plugin-signalled).
+        if (!goaled_ && !goalBossTags_.empty()) {
+            std::set<std::string> defeated;
+            { std::ifstream f(cfg_.mailbox / "boss_out.jsonl");
+              std::string line;
+              while (std::getline(f, line)) {
+                  if (!line.empty() && line.back() == '\r') line.pop_back();
+                  if (!line.empty()) defeated.insert(line);
+              } }
             bool all = true;
-            for (auto& g : requiredGroups_) {
-                bool any = false;
-                for (int l : g) if (sentChecks_.count(l)) { any = true; break; }
-                if (!any) { all = false; break; }
-            }
+            for (auto& t : goalBossTags_) if (!defeated.count(t)) { all = false; break; }
             if (all) {
                 goaled_ = true;
                 QueueMsg("AP: goal reached for '" + cfg_.slot + "'!");
@@ -542,6 +596,7 @@ private:
         std::error_code ec;
         fs::remove(cfg_.mailbox / "items_in.jsonl", ec);
         fs::remove(cfg_.mailbox / "applied_index.json", ec);
+        fs::remove(cfg_.mailbox / "boss_out.jsonl", ec);      // boss defeats reset with the seed
         if (cfg_.route.empty()) fs::remove(cfg_.pluginDir / "applied_index.json", ec);
         receivedIdx_.clear();
         try { std::ofstream(sess) << json({ {"seed", seed} }).dump(); } catch (...) {}
@@ -572,8 +627,11 @@ private:
         std::ofstream f(frag);
         f << "[/script/shootergame.shootergamemode]\n";
         for (auto& l : lines) f << l << "\n";
-        QueueMsg("AP: spawn randomizer active - paste ipc\\game_ini_fragment.txt into Game.ini "
-                 "(or run the external connector once with game_ini set), then restart the server");
+        // NOTE: the "/confirm pending" prompt is NOT queued here. On a server start the resumed
+        // session writes this fragment before the plugin's first ApplyMessages tick, which marks
+        // everything already in msg_in.jsonl as seen ("don't replay old chat history") and ate the
+        // prompt every time. The plugin now derives it from state (ShowSpawnPrompt in the tick):
+        // fragment exists + not already in Game.ini + a player is online.
     }
 
     // ---------------- members ----------------
@@ -582,6 +640,8 @@ private:
     std::atomic<bool> stop_{ false };
     std::atomic<bool> fatal_{ false };
     DWORD faultCode_ = 0;                       // SEH code captured by the thread guards
+    std::atomic<long long> statusSeq_{ 0 };     // bumped on each conn_status.txt write
+    bool statusPrompted_ = false;               // (reserved)
 
     HINTERNET hSession_ = nullptr, hConnect_ = nullptr;
     HINTERNET hWs_ = nullptr;
@@ -600,8 +660,13 @@ private:
     int  hintCostPct_ = 10, hintPoints_ = 0, totalLocs_ = 0;
     std::set<int> receivedIdx_;                 // item indices written this connection
     std::set<int> sentChecks_;                  // persists across reconnects (AP reseeds it too)
-    std::vector<std::vector<int>> requiredGroups_;
+    std::set<std::string> goalBossTags_;        // required boss base-tags (goal via boss_out.jsonl)
     std::map<int, std::string> players_;
+    // cross-game naming (from GetDataPackage) so "X sent <item> to Y" / hints read properly
+    std::vector<std::string> roomGames_;
+    std::map<int, std::string> slotGame_;                                 // slot -> game name
+    std::map<std::string, std::map<long long, std::string>> gameItems_;   // game -> {item id -> name}
+    std::map<std::string, std::map<long long, std::string>> gameLocs_;    // game -> {loc id -> name}
     size_t deathsSent_ = 0, hintsSent_ = 0;
 };
 
@@ -622,7 +687,7 @@ public:
     std::string Connect(const std::string& route, const std::string& slot,
                         const std::string& server, const std::string& password) {
         if (!ApParseServer(server).valid)
-            return "bad server address - use host:port (e.g. archipelago.gg:38281)";
+            return "bad server address - use <host>:<port> (e.g. archipelago.gg:38281)";
         auto it = sessions_.find(route);
         if (it != sessions_.end()) { it->second->Stop(); sessions_.erase(it); }
         // also retire any session for the SAME SLOT under a different route (e.g. a first
@@ -653,7 +718,7 @@ public:
     }
 
     std::string StatusAll() const {
-        if (sessions_.empty()) return "no embedded AP connections (use /connect <slot> <host:port> [password])";
+        if (sessions_.empty()) return "no embedded AP connections (use /connect <host>:<port> <slot> [password])";
         std::string out;
         for (auto& [route, s] : sessions_) {
             if (!out.empty()) out += " | ";

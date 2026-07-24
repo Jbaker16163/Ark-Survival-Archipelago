@@ -18,10 +18,6 @@
         },
         {
          "type": "item",
-         "item": "unlocked_acrocanthosaurus"
-        },
-        {
-         "type": "item",
          "item": "unlocked_allosaurus"
         },
         {
@@ -59,6 +55,10 @@
         {
          "type": "item",
          "item": "unlocked_dung_beetle"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_gigantopithecus"
         }
        ]
       },
@@ -66,10 +66,6 @@
        "type": "array",
        "orientation": "horizontal",
        "content": [
-        {
-         "type": "item",
-         "item": "unlocked_gigantopithecus"
-        },
         {
          "type": "item",
          "item": "unlocked_bronto"
@@ -113,6 +109,10 @@
         {
          "type": "item",
          "item": "unlocked_direbear"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_direwolf"
         }
        ]
       },
@@ -120,10 +120,6 @@
        "type": "array",
        "orientation": "horizontal",
        "content": [
-        {
-         "type": "item",
-         "item": "unlocked_direwolf"
-        },
         {
          "type": "item",
          "item": "unlocked_dodo"
@@ -167,6 +163,10 @@
         {
          "type": "item",
          "item": "unlocked_ichthyornis"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_iguanodon"
         }
        ]
       },
@@ -174,10 +174,6 @@
        "type": "array",
        "orientation": "horizontal",
        "content": [
-        {
-         "type": "item",
-         "item": "unlocked_iguanodon"
-        },
         {
          "type": "item",
          "item": "unlocked_kairuku"
@@ -221,6 +217,10 @@
         {
          "type": "item",
          "item": "unlocked_megalosaurus"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_megatherium"
         }
        ]
       },
@@ -228,10 +228,6 @@
        "type": "array",
        "orientation": "horizontal",
        "content": [
-        {
-         "type": "item",
-         "item": "unlocked_megatherium"
-        },
         {
          "type": "item",
          "item": "unlocked_microraptor"
@@ -275,6 +271,10 @@
         {
          "type": "item",
          "item": "unlocked_pegomastax"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_pelagornis"
         }
        ]
       },
@@ -282,10 +282,6 @@
        "type": "array",
        "orientation": "horizontal",
        "content": [
-        {
-         "type": "item",
-         "item": "unlocked_pelagornis"
-        },
         {
          "type": "item",
          "item": "unlocked_phiomia"
@@ -329,6 +325,10 @@
         {
          "type": "item",
          "item": "unlocked_pulmonoscorpius"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_ovis"
         }
        ]
       },
@@ -336,10 +336,6 @@
        "type": "array",
        "orientation": "horizontal",
        "content": [
-        {
-         "type": "item",
-         "item": "unlocked_ovis"
-        },
         {
          "type": "item",
          "item": "unlocked_araneo"
@@ -355,10 +351,6 @@
         {
          "type": "item",
          "item": "unlocked_stegosaurus"
-        },
-        {
-         "type": "item",
-         "item": "unlocked_styracosaurus"
         },
         {
          "type": "item",
@@ -383,13 +375,7 @@
         {
          "type": "item",
          "item": "unlocked_titanoboa"
-        }
-       ]
-      },
-      {
-       "type": "array",
-       "orientation": "horizontal",
-       "content": [
+        },
         {
          "type": "item",
          "item": "unlocked_beelzebufo"
@@ -397,7 +383,13 @@
         {
          "type": "item",
          "item": "unlocked_triceratops"
-        },
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
         {
          "type": "item",
          "item": "unlocked_troodon"
@@ -455,10 +447,6 @@
         },
         {
          "type": "item",
-         "item": "tame_acrocanthosaurus"
-        },
-        {
-         "type": "item",
          "item": "tame_allosaurus"
         },
         {
@@ -496,6 +484,10 @@
         {
          "type": "item",
          "item": "tame_dung_beetle"
+        },
+        {
+         "type": "item",
+         "item": "tame_gigantopithecus"
         }
        ]
       },
@@ -503,10 +495,6 @@
        "type": "array",
        "orientation": "horizontal",
        "content": [
-        {
-         "type": "item",
-         "item": "tame_gigantopithecus"
-        },
         {
          "type": "item",
          "item": "tame_bronto"
@@ -550,6 +538,10 @@
         {
          "type": "item",
          "item": "tame_direbear"
+        },
+        {
+         "type": "item",
+         "item": "tame_direwolf"
         }
        ]
       },
@@ -557,10 +549,6 @@
        "type": "array",
        "orientation": "horizontal",
        "content": [
-        {
-         "type": "item",
-         "item": "tame_direwolf"
-        },
         {
          "type": "item",
          "item": "tame_dodo"
@@ -604,6 +592,10 @@
         {
          "type": "item",
          "item": "tame_ichthyornis"
+        },
+        {
+         "type": "item",
+         "item": "tame_iguanodon"
         }
        ]
       },
@@ -611,10 +603,6 @@
        "type": "array",
        "orientation": "horizontal",
        "content": [
-        {
-         "type": "item",
-         "item": "tame_iguanodon"
-        },
         {
          "type": "item",
          "item": "tame_kairuku"
@@ -658,6 +646,10 @@
         {
          "type": "item",
          "item": "tame_megalosaurus"
+        },
+        {
+         "type": "item",
+         "item": "tame_megatherium"
         }
        ]
       },
@@ -665,10 +657,6 @@
        "type": "array",
        "orientation": "horizontal",
        "content": [
-        {
-         "type": "item",
-         "item": "tame_megatherium"
-        },
         {
          "type": "item",
          "item": "tame_microraptor"
@@ -712,6 +700,10 @@
         {
          "type": "item",
          "item": "tame_pegomastax"
+        },
+        {
+         "type": "item",
+         "item": "tame_pelagornis"
         }
        ]
       },
@@ -719,10 +711,6 @@
        "type": "array",
        "orientation": "horizontal",
        "content": [
-        {
-         "type": "item",
-         "item": "tame_pelagornis"
-        },
         {
          "type": "item",
          "item": "tame_phiomia"
@@ -766,6 +754,10 @@
         {
          "type": "item",
          "item": "tame_pulmonoscorpius"
+        },
+        {
+         "type": "item",
+         "item": "tame_ovis"
         }
        ]
       },
@@ -773,10 +765,6 @@
        "type": "array",
        "orientation": "horizontal",
        "content": [
-        {
-         "type": "item",
-         "item": "tame_ovis"
-        },
         {
          "type": "item",
          "item": "tame_araneo"
@@ -792,10 +780,6 @@
         {
          "type": "item",
          "item": "tame_stegosaurus"
-        },
-        {
-         "type": "item",
-         "item": "tame_styracosaurus"
         },
         {
          "type": "item",
@@ -820,13 +804,7 @@
         {
          "type": "item",
          "item": "tame_titanoboa"
-        }
-       ]
-      },
-      {
-       "type": "array",
-       "orientation": "horizontal",
-       "content": [
+        },
         {
          "type": "item",
          "item": "tame_beelzebufo"
@@ -834,7 +812,13 @@
         {
          "type": "item",
          "item": "tame_triceratops"
-        },
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
         {
          "type": "item",
          "item": "tame_troodon"
@@ -892,10 +876,6 @@
         },
         {
          "type": "item",
-         "item": "kill_acrocanthosaurus"
-        },
-        {
-         "type": "item",
          "item": "kill_allosaurus"
         },
         {
@@ -933,6 +913,10 @@
         {
          "type": "item",
          "item": "kill_dung_beetle"
+        },
+        {
+         "type": "item",
+         "item": "kill_gigantopithecus"
         }
        ]
       },
@@ -940,10 +924,6 @@
        "type": "array",
        "orientation": "horizontal",
        "content": [
-        {
-         "type": "item",
-         "item": "kill_gigantopithecus"
-        },
         {
          "type": "item",
          "item": "kill_bronto"
@@ -987,6 +967,10 @@
         {
          "type": "item",
          "item": "kill_direbear"
+        },
+        {
+         "type": "item",
+         "item": "kill_direwolf"
         }
        ]
       },
@@ -994,10 +978,6 @@
        "type": "array",
        "orientation": "horizontal",
        "content": [
-        {
-         "type": "item",
-         "item": "kill_direwolf"
-        },
         {
          "type": "item",
          "item": "kill_dodo"
@@ -1041,6 +1021,10 @@
         {
          "type": "item",
          "item": "kill_ichthyornis"
+        },
+        {
+         "type": "item",
+         "item": "kill_iguanodon"
         }
        ]
       },
@@ -1048,10 +1032,6 @@
        "type": "array",
        "orientation": "horizontal",
        "content": [
-        {
-         "type": "item",
-         "item": "kill_iguanodon"
-        },
         {
          "type": "item",
          "item": "kill_kairuku"
@@ -1095,6 +1075,10 @@
         {
          "type": "item",
          "item": "kill_megalania"
+        },
+        {
+         "type": "item",
+         "item": "kill_megalosaurus"
         }
        ]
       },
@@ -1102,10 +1086,6 @@
        "type": "array",
        "orientation": "horizontal",
        "content": [
-        {
-         "type": "item",
-         "item": "kill_megalosaurus"
-        },
         {
          "type": "item",
          "item": "kill_megatherium"
@@ -1149,6 +1129,10 @@
         {
          "type": "item",
          "item": "kill_paraceratherium"
+        },
+        {
+         "type": "item",
+         "item": "kill_pegomastax"
         }
        ]
       },
@@ -1156,10 +1140,6 @@
        "type": "array",
        "orientation": "horizontal",
        "content": [
-        {
-         "type": "item",
-         "item": "kill_pegomastax"
-        },
         {
          "type": "item",
          "item": "kill_pelagornis"
@@ -1203,6 +1183,10 @@
         {
          "type": "item",
          "item": "kill_sarcosuchus"
+        },
+        {
+         "type": "item",
+         "item": "kill_pulmonoscorpius"
         }
        ]
       },
@@ -1210,10 +1194,6 @@
        "type": "array",
        "orientation": "horizontal",
        "content": [
-        {
-         "type": "item",
-         "item": "kill_pulmonoscorpius"
-        },
         {
          "type": "item",
          "item": "kill_ovis"
@@ -1236,10 +1216,6 @@
         },
         {
          "type": "item",
-         "item": "kill_styracosaurus"
-        },
-        {
-         "type": "item",
          "item": "kill_tapejara"
         },
         {
@@ -1257,13 +1233,7 @@
         {
          "type": "item",
          "item": "kill_titanosaur"
-        }
-       ]
-      },
-      {
-       "type": "array",
-       "orientation": "horizontal",
-       "content": [
+        },
         {
          "type": "item",
          "item": "kill_titanoboa"
@@ -1271,7 +1241,13 @@
         {
          "type": "item",
          "item": "kill_beelzebufo"
-        },
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
         {
          "type": "item",
          "item": "kill_triceratops"
@@ -1311,13 +1287,7 @@
         {
          "type": "item",
          "item": "kill_ammonite"
-        }
-       ]
-      },
-      {
-       "type": "array",
-       "orientation": "horizontal",
-       "content": [
+        },
         {
          "type": "item",
          "item": "kill_eurypterid"
@@ -1325,7 +1295,13 @@
         {
          "type": "item",
          "item": "kill_jellyfish"
-        },
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
         {
          "type": "item",
          "item": "kill_leech"
@@ -1365,13 +1341,7 @@
         {
          "type": "item",
          "item": "kill_alpha_raptor"
-        }
-       ]
-      },
-      {
-       "type": "array",
-       "orientation": "horizontal",
-       "content": [
+        },
         {
          "type": "item",
          "item": "kill_alpha_carno"
@@ -1379,7 +1349,13 @@
         {
          "type": "item",
          "item": "kill_alpha_rex"
-        },
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
         {
          "type": "item",
          "item": "kill_alpha_megalodon"

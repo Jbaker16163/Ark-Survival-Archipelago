@@ -17,7 +17,7 @@ several-players-on-one-server mode, and a PopTracker pack.
 | Part | What it is | Runs on |
 |------|-----------|---------|
 | **`ark_ase.apworld`** | the Archipelago world (items/locations/logic/options) | the AP generator/host |
-| **ArkAP plugin** | an [ArkServerApi (AseApi)](https://github.com/ArkServerApi/AseApi) C++ plugin that gates actions, reports checks, and connects to the AP room itself — type `/connect <slot> <host:port>` in game chat | the ARK dedicated **server PC** |
+| **ArkAP plugin** | an [ArkServerApi (AseApi)](https://github.com/ArkServerApi/AseApi) C++ plugin that gates actions, reports checks, and connects to the AP room itself — type `/connect <host:port> <slot>` in game chat | the ARK dedicated **server PC** |
 | **Connector** | optional external bridge (fallback for `/connect`; needed for the `randomize_dino_spawns` Game.ini auto-patch) | the server PC |
 | **PopTracker pack** | optional visual auto-tracker | any PC |
 
@@ -51,7 +51,7 @@ smoke test). Everything except the game client runs on the **Server PC**.
 ### 3. Connect — in game chat
 Join your server, spawn in, and type:
 ```
-/connect YourSlotName archipelago.gg:38281
+/connect archipelago.gg:38281 YourSlotName
 ```
 `/apstatus` to check, `/disconnect` to drop; reconnects automatically across server restarts.
 (Alternative: the external **`ArkConnector.zip`** bridge — see the guide; it's the fallback, and
