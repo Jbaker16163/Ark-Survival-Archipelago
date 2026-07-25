@@ -10,12 +10,13 @@ Install: drop the `ark_ase` folder into Archipelago `worlds/`, or zip its conten
 from typing import Dict
 
 from BaseClasses import Item, ItemClassification, LocationProgressType, Region, Tutorial
+from Options import OptionError
 from worlds.AutoWorld import World, WebWorld
 from worlds.generic.Rules import add_rule
 
 from .data import (load_engram_data, load_location_data, load_dino_data, load_crate_data,
                    load_filler_data, load_tek_data, load_spawn_class_data,
-                   load_spawn_container_data, load_tame_logic_data)
+                   load_spawn_container_data, load_tame_logic_data, load_mod_catalog)
 from .Items import (ArkItem, build_item_table, FILLER_NAME, FILLER_ID,
                     STRUCTURE_BUNDLES, structure_bundle_members)
 from .Locations import ArkLocation, build_location_table
@@ -99,13 +100,14 @@ class ArkASAWorld(World):
     _spawn_classes = load_spawn_class_data().get("spawn_classes", [])
     _spawn_containers = load_spawn_container_data().get("spawn_containers", [])
     _tame_logic_data = load_tame_logic_data()
+    _mod_catalog = load_mod_catalog()          # every SUPPORTED mod (datapackage); mod_ids picks active
     # Tek engrams: never in the AP pool - the plugin grants each boss's set on its first kill.
     _tek_names = {n for grants in load_tek_data().get("grants", {}).values() for n in grants}
     _filler_names = {f["ap_name"] for f in _filler.get("filler", [])} | {FILLER_NAME}
     _tame_item_names = {d["ap_name"] for d in _dinos.get("dinos", []) if d.get("ap_name")}
     _good_filler = [f["ap_name"] for f in _filler.get("filler", []) if not f.get("trap")]
-    item_name_to_id: Dict[str, int] = build_item_table(_engrams, _dinos, _crates, _filler)
-    location_name_to_id: Dict[str, int] = build_location_table(_locations, _dinos)
+    item_name_to_id: Dict[str, int] = build_item_table(_engrams, _dinos, _crates, _filler, _mod_catalog)
+    location_name_to_id: Dict[str, int] = build_location_table(_locations, _dinos, _mod_catalog)
 
     # classify: only items that actually GATE logic are progression.
     #   progression = station gates (tiers) + tame unlocks (they gate "Tamed: X" via lock_taming)
@@ -168,6 +170,13 @@ class ArkASAWorld(World):
                 used["Tamed: " + short] = d["tame_loc"]
             if d.get("kill_loc"):
                 used["Killed: " + short] = d["kill_loc"]
+        for mod in self._active_mods().values():         # creature checks from ACTIVE mods only
+            for d in mod.get("dinos", []):
+                short = d.get("name") or d.get("ap_name", "").replace("Tame: ", "")
+                if d.get("tame_loc"):
+                    used["Tamed: " + short] = d["tame_loc"]
+                if d.get("kill_loc"):
+                    used["Killed: " + short] = d["kill_loc"]
         for name in self._sanity_excluded():             # tame_sanity / food_sanity drops
             used.pop(name, None)
         return used
@@ -185,13 +194,144 @@ class ArkASAWorld(World):
             return set()
         return set(self._engrams.get("starter_engrams", []))
 
+    # ---- mod support -----------------------------------------------------------------------
+    # The catalog is ALWAYS in the datapackage (see the class-level tables); these helpers decide
+    # what this SLOT actually uses. Different players in one multiworld may run different mod_ids.
+    def _active_mods(self) -> Dict[str, dict]:
+        cache = getattr(self, "_active_mods_cache", None)
+        if cache is not None:
+            return cache
+        wanted = {str(m).strip() for m in self.options.mod_ids.value if str(m).strip()}
+        # A fork that kept the parent's /Game/Mods/<folder>/ ships identical class paths, so one
+        # catalog entry serves several workshop ids (Super Structures <- Structures Plus). Resolve
+        # any alias to its canonical entry, and dedupe so listing both ids isn't counted twice.
+        alias_to_canon = {a: m for m, d in self._mod_catalog.items() for a in d.get("aliases", [])}
+        resolved = {alias_to_canon.get(m, m) for m in wanted}
+        # Two ids that resolve to the SAME entry are alternative forks of one mod (Structures Plus
+        # vs Super Structures). A server can only load one of them - and listing both would defeat
+        # per-variant pooling, silently handing out the union incl. engrams the installed fork
+        # doesn't ship. Make the player pick.
+        for canon in sorted(resolved):
+            listed = sorted(m for m in wanted if alias_to_canon.get(m, m) == canon)
+            if len(listed) > 1:
+                d = self._mod_catalog[canon]
+                raise OptionError(
+                    f"ARK: mod_ids lists {' and '.join(listed)}, which are alternative versions of "
+                    f"the same mod ({d['name']}) - a server can only run one. Keep the id of the "
+                    f"one you actually have installed and remove the other, or their exclusive "
+                    f"engrams get mixed into your pool and won't exist in game.")
+        unknown = sorted(m for m in resolved if m not in self._mod_catalog)
+        if unknown:
+            known = ", ".join(
+                f"{m} ({d['name']})" + (f" [also {', '.join(d['aliases'])}]" if d.get("aliases") else "")
+                for m, d in sorted(self._mod_catalog.items())) or "(none bundled yet)"
+            raise OptionError(
+                f"ARK: mod_ids lists {', '.join(unknown)}, which this apworld doesn't know. A mod ID "
+                f"is just a number - the apworld can't know what engrams a mod adds unless its data "
+                f"is bundled. Supported: {known}.")
+        out = {m: self._mod_catalog[m] for m in resolved}
+        # DECLARED ids only - NOT the alias-resolved ones. Variant pooling must know which FORK the
+        # player actually runs; folding in the canonical id would match both variants and pool the
+        # union again, which is exactly what the filter exists to prevent.
+        self._declared_mod_ids = set(wanted)
+        # A building mod adds hundreds of engrams but NO locations, so it only fits once
+        # bundle_structures collapses the vanilla structure set (~190 slots freed).
+        if not self.options.bundle_structures.value:
+            big = [d for d in out.values() if d.get("kind") == "building"]
+            if big:
+                n = sum(len(d["engrams"]) for d in big)
+                raise OptionError(
+                    f"ARK: {', '.join(d['name'] for d in big)} adds {n} engrams, but with "
+                    f"bundle_structures off the item pool already nearly fills every location. Set "
+                    f"'bundle_structures: true' (it collapses ~197 structure engrams into bundle "
+                    f"items, freeing the room).")
+        self._active_mods_cache = out
+        return out
+
+    # Engrams that exist in the catalogue but which the player's actual mod does NOT ship. Two
+    # workshop ids can share one /Game/Mods/<folder>/ (Structures Plus vs its fork Super Structures)
+    # so the catalogue is their UNION; without this filter an SS player would receive 64 items whose
+    # blueprint classes don't exist on their server - inert "you got Engram: X" that unlocks nothing.
+    def _wrong_variant_names(self) -> set:
+        cache = getattr(self, "_wrong_variant_cache", None)
+        if cache is None:
+            self._active_mods()                          # populates _declared_mod_ids
+            declared = getattr(self, "_declared_mod_ids", set())
+            cache = set()
+            for mod in self._active_mods().values():
+                for e in mod.get("engrams", []):
+                    vs = e.get("variants")
+                    if vs and not (set(vs) & declared):
+                        cache.add(e["ap_name"])
+            self._wrong_variant_cache = cache
+        return cache
+
+    # ap_names contributed by mods that are NOT active for this slot -> excluded from the pool and
+    # from the used locations, exactly like unused dossiers.
+    def _inactive_mod_names(self) -> set:
+        cache = getattr(self, "_inactive_mod_cache", None)
+        if cache is None:
+            active = set(self._active_mods())
+            cache = set()
+            for mod_id, mod in self._mod_catalog.items():
+                if mod_id in active:
+                    continue
+                cache |= {e["ap_name"] for e in mod.get("engrams", [])}
+                cache |= {b["ap_name"] for b in mod.get("bundles", [])}
+                for d in mod.get("dinos", []):
+                    if d.get("ap_name"):
+                        cache.add(d["ap_name"])
+                    short = d.get("name") or (d.get("ap_name", "").replace("Tame: ", ""))
+                    if d.get("tame_loc"):
+                        cache.add("Tamed: " + short)
+                    if d.get("kill_loc"):
+                        cache.add("Killed: " + short)
+            self._inactive_mod_cache = cache
+        return cache
+
+    # engrams contributed by this slot's ACTIVE mods (bundling + pooling must see these)
+    def _active_mod_engrams(self) -> list:
+        out = []
+        for mod in self._active_mods().values():
+            out.extend(mod.get("engrams", []))
+        return out
+
+    # engrams a mod says to grant free at start (only names that are real items in this seed).
+    def _auto_grant_names(self) -> set:
+        cache = getattr(self, "_auto_grant_cache", None)
+        if cache is None:
+            cache = set()
+            for mod in self._active_mods().values():
+                for n in mod.get("auto_grant", []):
+                    if n in self.item_name_to_id:
+                        cache.add(n)
+            self._auto_grant_cache = cache
+        return cache
+
     def create_items(self) -> None:
         pool = []
-        skip = self._bundled_saddle_names() | self._free_starter_names() | self._tek_names
-        bundles = structure_bundle_members(self._engrams) if self.options.bundle_structures.value else {}
+        skip = (self._bundled_saddle_names() | self._free_starter_names() | self._tek_names
+                | self._inactive_mod_names()       # mods not in this slot's mod_ids
+                | self._wrong_variant_names()      # engrams the player's fork lacks
+                | self._auto_grant_names())        # mod QoL engrams granted free (precollected below)
+        # give the auto-grant engrams to the player up front (removed from the pool above); the AP
+        # server sends precollected items on connect, so the plugin grants them in-game.
+        for name in self._auto_grant_names():
+            self.multiworld.push_precollected(self.create_item(name))
+        bundles = (structure_bundle_members(self._engrams, self._active_mod_engrams())
+                   if self.options.bundle_structures.value else {})
         for members in bundles.values():                 # bundled structure engrams leave the pool
             skip |= members
-        skip_bundle_items = set() if bundles else set(STRUCTURE_BUNDLES)   # bundle items only when on
+        # curated per-mod groups (S+ wiring/turrets/automation/...): one item unlocks all members,
+        # so the members leave the pool. Always applied for an ACTIVE mod - unlike the material
+        # bundles this isn't optional, it's how that mod is modelled.
+        for mod in self._active_mods().values():
+            for b in mod.get("bundles", []):
+                skip |= set(b["members"])
+        # bundle items are pooled only when bundling is ON *and* the bundle actually has members -
+        # Adobe/Glass only exist in building mods, so a vanilla slot must not carry a dead item.
+        skip_bundle_items = ({b for b, m in bundles.items() if not m} if bundles
+                             else set(STRUCTURE_BUNDLES))
         # (player-picked starting items: use the standard start_inventory_from_pool yaml option -
         #  AP core precollects them + swaps filler into the pool.)
         # one of each progression item (skip every filler/trap entry + any bundled saddles)
@@ -201,11 +341,21 @@ class ArkASAWorld(World):
             pool.append(self.create_item(name))
         # pad to location count with a mix of traps and neutral filler (trap_percentage).
         n_locations = len(self._used_locations())
-        if len(pool) > n_locations:
+        # The real budget is NOT just pool <= locations. Every EXCLUDED location (holograms, alphas,
+        # big grind milestones, high levels, hard notes - see _regions_flat) can only hold
+        # non-progression, so the pool must leave that many FILLER slots or AP fails later with
+        # "Not enough filler items for excluded locations". Check it here, where we can name the
+        # cause and the fix, instead of surfacing as a bare FillError.
+        n_excluded = len(self._excluded_progression_names())
+        headroom = n_locations - n_excluded
+        if len(pool) > headroom:
+            mods = ", ".join(d["name"] for d in self._active_mods().values()) or "none"
             raise ValueError(
-                f"ARK: {len(pool)} items > {n_locations} locations. Raise dossier_checks / "
-                f"tame_sanity / food_sanity, or shrink the pool (bundle_structures, "
-                f"bundle_saddles, free_starter_engrams) in the yaml.")
+                f"ARK: {len(pool)} items but only {headroom} usable slots "
+                f"({n_locations} locations - {n_excluded} that must hold filler). "
+                f"Active mods: {mods}. Fix by shrinking the pool (bundle_structures: true, "
+                f"bundle_saddles: true, free_starter_engrams: true), dropping a large mod from "
+                f"mod_ids, or raising dossier_checks / tame_sanity / food_sanity.")
         traps = [f["ap_name"] for f in self._filler.get("filler", []) if f.get("trap")]
         goods = [f["ap_name"] for f in self._filler.get("filler", []) if not f.get("trap")] or [FILLER_NAME]
         pct = self.options.trap_percentage.value
@@ -260,7 +410,29 @@ class ArkASAWorld(World):
     def _tame(self):
         tl = getattr(self, "_tame_cache", "?")
         if tl == "?":
-            tl = TameLogic(self._tame_logic_data) if self._tame_logic_data.get("dino_tame_raw") else None
+            data = self._tame_logic_data
+            if data.get("dino_tame_raw"):
+                # Merge ACTIVE mods' engram prerequisites into the recipe graph, so anything that
+                # depends on a mod engram also demands its prereq (e.g. Note Tracker needs the GPS).
+                extra_alias, extra_recipes = {}, {}
+                for mod in self._active_mods().values():
+                    for e in mod.get("engrams", []):
+                        req = e.get("requires")
+                        if not req:
+                            continue
+                        short = e["ap_name"].replace("Engram: ", "")
+                        extra_alias[short] = short
+                        extra_recipes[short] = " + ".join(r.replace("Engram: ", "") for r in req)
+                        for r in req:
+                            extra_alias.setdefault(r.replace("Engram: ", ""),
+                                                   r.replace("Engram: ", ""))
+                if extra_alias:
+                    data = dict(data)
+                    data["alias"] = {**data.get("alias", {}), **extra_alias}
+                    data["item_recipes"] = {**data.get("item_recipes", {}), **extra_recipes}
+                tl = TameLogic(data)
+            else:
+                tl = None
             self._tame_cache = tl
         return tl
 
@@ -275,7 +447,8 @@ class ArkASAWorld(World):
         if m is None:
             m = {}
             if self.options.bundle_structures.value:
-                for bundle, members in structure_bundle_members(self._engrams).items():
+                for bundle, members in structure_bundle_members(
+                        self._engrams, self._active_mod_engrams()).items():
                     for mem in members:
                         m[mem] = bundle
             self._bundle_remap_cache = m
@@ -447,6 +620,8 @@ class ArkASAWorld(World):
     # Force the player's chosen extra_early_items into AP's early-item system. (The old
     # progression_tiers station-gate forcing is retired - tame rules order the fill now.)
     def generate_early(self) -> None:
+        self._active_mods()          # validate mod_ids HERE so a bad option fails fast and clearly,
+                                     # instead of surfacing as a stack trace mid-create_regions
         glob = self.options.station_placement.value == StationPlacement.option_global_early
         target = self.multiworld.early_items if glob else self.multiworld.local_early_items
         for name in self._extra_early_names():
@@ -518,13 +693,12 @@ class ArkASAWorld(World):
             ev.place_locked_item(ArkItem(ev_name, ItemClassification.progression, None, self.player))
             tiers[3].locations.append(ev)
 
-    # Single open region. Logical ordering + softlock-safety come from the tame/craft ACCESS RULES
-    # (set_rules), not region gating. early_dino_checks is RETIRED (its aggressive EXCLUDE overlay
-    # was built for the old tier model and starves the now progression-heavy pool of filler).
-    # Boss-defeat events live here; their reachability is gated in set_rules (Crossbow KO floor).
-    def _regions_flat(self, menu: Region, regions: list) -> None:
-        island = Region("The Island", self.player, self.multiworld)
-        regions.append(island)
+    # Locations that may hold ONLY filler/useful, never progression. Shared by _regions_flat
+    # (which marks them EXCLUDED) and create_items (which must leave enough filler for them).
+    def _excluded_progression_names(self) -> set:
+        cache = getattr(self, '_excl_prog_cache', None)
+        if cache is not None:
+            return cache
         # filler-only checks: NO_TAME_LOGIC tames (in-game still gated) + big note-collection
         # milestones (>= 50 notes) + high level-ups (> 70) - too grindy to sit progression behind.
         # Also tame/breed COUNT milestones: taming+breeding are locked behind Tame: items, but the
@@ -558,6 +732,16 @@ class ArkASAWorld(World):
         # dossiers earned only by taming a very-late-game creature - the dossier is as gated as the
         # tame, so don't strand key progression on it.
         excluded_progression |= {"Dossier: Rhyniognatha", "Dossier: Carcharodontosaurus"}
+        # ...and the TAME checks themselves: Carcharodontosaurus / Rhyniognatha are end-game tames
+        # (playtest: progression landed on Tamed: Carcharodontosaurus, which is an enormous ask).
+        # Same reasoning as the alpha kills - too hard to sit key progression behind. The Tame item
+        # + check still exist; the check just holds filler.
+        excluded_progression |= {"Tamed: Carcharodontosaurus", "Tamed: Rhyniognatha"}
+        # KILL checks for the giants that realistically need a bred combat MOUNT to kill - a weapon
+        # floor understates them (playtest: Killed: Carcharodontosaurus held progression at sphere 2,
+        # but you can't solo a Carcha with a crossbow). Filler-only, same as the alpha kills.
+        excluded_progression |= {"Killed: Carcharodontosaurus", "Killed: Giganotosaurus",
+                                 "Killed: Titanosaur", "Killed: Rhyniognatha"}
         for loc_name in self._used_locations():
             if loc_name.startswith("Reach Level "):
                 try:
@@ -567,6 +751,17 @@ class ArkASAWorld(World):
                     pass
             elif loc_name.startswith(HARD_NOTE_PREFIXES):
                 excluded_progression.add(loc_name)
+        self._excl_prog_cache = excluded_progression
+        return excluded_progression
+
+    # Single open region. Logical ordering + softlock-safety come from the tame/craft ACCESS RULES
+    # (set_rules), not region gating. early_dino_checks is RETIRED (its aggressive EXCLUDE overlay
+    # was built for the old tier model and starves the now progression-heavy pool of filler).
+    # Boss-defeat events live here; their reachability is gated in set_rules (Crossbow KO floor).
+    def _regions_flat(self, menu: Region, regions: list) -> None:
+        island = Region("The Island", self.player, self.multiworld)
+        regions.append(island)
+        excluded_progression = self._excluded_progression_names()
         for loc_name, loc_id in self._used_locations().items():
             loc = ArkLocation(self.player, loc_name, loc_id, island)
             if loc_name in excluded_progression:
@@ -775,6 +970,7 @@ class ArkASAWorld(World):
                 "bundle_saddles": bool(self.options.bundle_saddles.value),
                 "free_starter_engrams": bool(self.options.free_starter_engrams.value),
                 "death_link": bool(self.options.death_link.value),
+                "mod_ids": sorted(self._active_mods()),   # mods this slot enabled (plugin diagnostics)
                 "npc_replacements": [],           # legacy key (permutation design retired)
                 "spawn_additions": [],            # legacy key (additions design superseded)
                 "spawn_overrides": self._spawn_overrides()}

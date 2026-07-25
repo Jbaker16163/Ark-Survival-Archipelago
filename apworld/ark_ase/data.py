@@ -75,6 +75,51 @@ def load_filler_data() -> Dict[str, Any]:
                             "effect": {"kind": "none"}}]}
 
 
+# ---- mod support -------------------------------------------------------------------------------
+# Every supported mod's content is ALWAYS in the datapackage (item/location tables are class-level
+# and must be identical for every player in the multiworld); the yaml's mod_ids only chooses which
+# ones are ACTIVE for that slot - exactly like bundle_structures / dossier_checks subset today.
+MOD_ID_BASE = 8760000        # base game occupies 8730000-8756000
+MOD_ID_STRIDE = 10000        # reserved id block per mod
+
+
+def load_mod_index() -> Dict[str, Any]:
+    """The mod catalog index. Optional - empty means mod support is present but no mods shipped."""
+    try:
+        return _load("mods/index.json")
+    except FileNotFoundError:
+        return {"mods": []}
+
+
+def load_mod_catalog() -> Dict[str, Dict[str, Any]]:
+    """mod_id (str) -> {mod_id, name, kind, id_base, engrams: [...], dinos: [...]}.
+
+    Index-driven because pkgutil.get_data cannot enumerate a directory inside a zipped .apworld.
+    A listed-but-missing file is skipped rather than raising: a broken catalog entry must not stop
+    the base game from generating.
+    """
+    out: Dict[str, Dict[str, Any]] = {}
+    for entry in load_mod_index().get("mods", []):
+        mod_id = str(entry.get("mod_id", "")).strip()
+        if not mod_id:
+            continue
+        try:
+            body = _load("mods/" + entry["file"])
+        except (FileNotFoundError, KeyError):
+            continue
+        aliases = [str(a).strip() for a in entry.get("aliases", []) if str(a).strip()]
+        out[mod_id] = {"mod_id": mod_id,
+                       "aliases": aliases,
+                       "name": entry.get("name", mod_id),
+                       "kind": entry.get("kind", "utility"),
+                       "id_base": entry.get("id_base"),
+                       "auto_grant": body.get("auto_grant", []),
+                       "engrams": body.get("engrams", []),
+                       "bundles": body.get("bundles", []),   # curated group items
+                       "dinos": body.get("dinos", [])}
+    return out
+
+
 def load_tame_logic_data() -> Dict[str, Any]:
     """Tame/craft dependency graph (item recipes + dino tame reqs + engram aliases) for the
     softlock-preventing access rules. Optional - empty disables the tame-logic rules silently."""

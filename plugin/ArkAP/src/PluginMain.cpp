@@ -62,7 +62,9 @@ static bool  g_reassertFaulted = false;
 
 // engram registry, built once the server is ready
 static std::unordered_map<UClass*, int> g_engramClassToItem;          // item blueprint class -> AP item id
-static std::unordered_map<int, UClass*>  g_itemToEngram;              // AP item id -> engram item class (POD value)
+// AP item id -> its engram item class(es). A MOD item can own several classes that share one
+// display name (the apworld groups them), so this is a LIST; base-game items have exactly one.
+static std::unordered_map<int, std::vector<UClass*>> g_itemToEngram;
 static std::set<int> g_starterItemIds;  // free starter engram item ids (from engrams.json starter_engrams)
 static bool g_freeStarter = false;      // grant the starter engrams free (from flags.json)
 
@@ -74,6 +76,18 @@ static std::unordered_map<std::string, int> g_killTagToLoc;       // DinoNameTag
 // saddle bundling: tame item id -> its saddle ENGRAM item id; gated by g_bundleSaddles (from flags.json)
 static std::unordered_map<int, int> g_tameItemToSaddleItem;
 static bool g_bundleSaddles = false;
+// route -> mod ids that slot enabled (from flags.json / slot_data). The plugin loads the WHOLE mod
+// catalogue, so a structure bundle must skip engrams belonging to a mod this slot didn't take.
+static std::map<std::string, std::set<std::string>> g_routeMods;
+// Is this item allowed for this route? Base-game items ("" owner) always are; a mod item only if
+// that slot enabled the mod. Unknown route (no flags yet) -> allow, so nothing silently vanishes.
+static bool ItemAllowedForRoute(const std::string& route, int item_id) {
+    auto oit = g_tables.item_to_mod.find(item_id);
+    if (oit == g_tables.item_to_mod.end() || oit->second.empty()) return true;   // base game
+    auto rit = g_routeMods.find(route);
+    if (rit == g_routeMods.end() || rit->second.empty()) return true;            // unknown -> allow
+    return rit->second.count(oit->second) > 0;
+}
 
 // trap filler: item id -> dino spawn spec (effect = spawn wild dinos at <distance> in front)
 struct TrapSpawn { std::string blueprint; int count; int level; int distance; };
@@ -673,6 +687,7 @@ static void RetryPendingFx() {
 // Match = engram_class contains "PrimalItemStructure_" AND material appears as a word in ap_name.
 static const std::map<int, std::string> kStructureBundles = {
     {8738001, "Wood"}, {8738002, "Stone"}, {8738003, "Metal"}, {8738004, "Greenhouse"},
+    {8738005, "Tek"}, {8738006, "Thatch"},
 };
 static bool NameHasWord(const std::string& name, const std::string& word) {
     size_t pos = 0;
@@ -692,9 +707,11 @@ static void ApplyStructureBundle(const std::string& route, int bundle_id,
         if (cls.find("PrimalItemStructure_") == std::string::npos) continue;
         auto nit = g_tables.item_name.find(item_id);
         if (nit == g_tables.item_name.end() || !NameHasWord(nit->second, material)) continue;
+        if (!ItemAllowedForRoute(route, item_id)) continue;   // mod this slot didn't enable
         g_state->AddItem(route, item_id);                // persists -> gate + reassert keep it
         auto eit = g_itemToEngram.find(item_id);
-        if (eit != g_itemToEngram.end()) GrantEngramToPlayers(route, eit->second);
+        if (eit != g_itemToEngram.end())
+            for (UClass* c : eit->second) GrantEngramToPlayers(route, c);
         ++members;
     }
     std::wstring msg = L"Unlocked ALL " + ArkApi::Tools::Utf8Decode(material) +
@@ -702,6 +719,29 @@ static void ApplyStructureBundle(const std::string& route, int bundle_id,
     if (!from.empty()) msg += L" - by " + ArkApi::Tools::Utf8Decode(from);
     ArkApi::GetApiUtils().SendChatMessageToAll(FString(L"Archipelago"), msg.c_str());
     DebugLog("BUNDLE structures material=" + material + " members=" + std::to_string(members));
+}
+
+// A mod group item unlocks its member engrams. Unlike the structure bundles (which re-derive
+// members from a material word), the member ITEM IDS come straight from the apworld's mod json, so
+// the two sides can never drift.
+static void ApplyModBundle(const std::string& route, int bundle_id,
+                           const std::vector<int>& members, const std::string& from) {
+    int granted = 0;
+    for (int mid : members) {
+        g_state->AddItem(route, mid);                    // persists -> gate + reassert keep it
+        auto eit = g_itemToEngram.find(mid);
+        if (eit == g_itemToEngram.end()) continue;       // mod not installed on this server
+        for (UClass* c : eit->second) GrantEngramToPlayers(route, c);
+        ++granted;
+    }
+    auto nit = g_tables.item_name.find(bundle_id);
+    std::wstring label = nit != g_tables.item_name.end()
+                       ? ArkApi::Tools::Utf8Decode(nit->second) : L"mod bundle";
+    std::wstring msg = L"Unlocked " + label + L" (" + std::to_wstring(granted) + L" engrams)";
+    if (!from.empty()) msg += L" - by " + ArkApi::Tools::Utf8Decode(from);
+    ArkApi::GetApiUtils().SendChatMessageToAll(FString(L"Archipelago"), msg.c_str());
+    DebugLog("BUNDLE mod id=" + std::to_string(bundle_id) + " granted=" + std::to_string(granted) +
+             "/" + std::to_string(members.size()));
 }
 
 void ApplyItem(const std::string& route, int item_id, const std::string& from) {
@@ -715,6 +755,12 @@ void ApplyItem(const std::string& route, int item_id, const std::string& from) {
     auto bit = kStructureBundles.find(item_id);         // structure bundle -> unlock every member
     if (bit != kStructureBundles.end()) {
         if (is_new) ApplyStructureBundle(route, item_id, bit->second, from);
+        return;
+    }
+    // curated per-mod group (S+ Wiring / Turrets / Automation / ...) -> unlock every member engram
+    auto mbit = g_tables.mod_bundles.find(item_id);
+    if (mbit != g_tables.mod_bundles.end()) {
+        if (is_new) ApplyModBundle(route, item_id, mbit->second, from);
         return;
     }
     // the pool holds many COPIES of the same filler id; each copy (new index) re-fires its
@@ -738,7 +784,8 @@ void ApplyItem(const std::string& route, int item_id, const std::string& from) {
     }
 
     auto it = g_itemToEngram.find(item_id);       // engram item -> push the unlock now
-    if (it != g_itemToEngram.end()) GrantEngramToPlayers(route, it->second);
+    if (it != g_itemToEngram.end())
+        for (UClass* c : it->second) GrantEngramToPlayers(route, c);
     // taming / supply / boss / map items: gating reads State on demand, nothing to push.
 
     // filler effects; if the target player isn't in-world yet, queue a retry.
@@ -756,7 +803,8 @@ void ApplyItem(const std::string& route, int item_id, const std::string& from) {
         if (sit != g_tameItemToSaddleItem.end()) {
             g_state->AddItem(route, sit->second);     // record so the gate + reassert keep it
             auto eit = g_itemToEngram.find(sit->second);
-            if (eit != g_itemToEngram.end()) GrantEngramToPlayers(route, eit->second);
+            if (eit != g_itemToEngram.end())
+                for (UClass* c : eit->second) GrantEngramToPlayers(route, c);
             DebugLog("BUNDLE saddle item=" + std::to_string(sit->second) + " with tame=" + std::to_string(item_id));
         }
     }
@@ -772,7 +820,8 @@ static void GrantTekForBoss(const std::string& baseTag) {
     for (int item : it->second) {
         if (!g_state->AddItem("", item)) continue;     // already unlocked (earlier difficulty kill)
         auto eit = g_itemToEngram.find(item);
-        if (eit != g_itemToEngram.end()) GrantEngramToPlayers("", eit->second);
+        if (eit != g_itemToEngram.end())
+            for (UClass* c : eit->second) GrantEngramToPlayers("", c);
         ++granted;
     }
     if (granted > 0) {
@@ -786,9 +835,9 @@ static void GrantTekForBoss(const std::string& baseTag) {
 // known). Handles items that arrived before the player was in-world. Shared "" grants to all.
 static void DoReassert() {
     for (auto& route : g_state->Players())
-        for (auto& [item_id, cls] : g_itemToEngram)
+        for (auto& [item_id, classes] : g_itemToEngram)
             if (g_state->HasItem(route, item_id))
-                GrantEngramToPlayers(route, cls);
+                for (UClass* c : classes) GrantEngramToPlayers(route, c);
 }
 
 // free starter engrams: mark the configured starter engrams as owned (reassert then grants them
@@ -924,7 +973,8 @@ static void DoBuildRegistry() {
         auto it = g_tables.engram_class_to_item.find(name);
         if (it != g_tables.engram_class_to_item.end()) {
             g_engramClassToItem[cls] = it->second;
-            g_itemToEngram[it->second] = cls;
+            auto& v = g_itemToEngram[it->second];
+            if (std::find(v.begin(), v.end(), cls) == v.end()) v.push_back(cls);
         }
     }
 }
@@ -1882,6 +1932,10 @@ static void DoTick() {
             nlohmann::json j; std::ifstream(p) >> j;
             bundle  |= j.value("bundle_saddles", false);
             starter |= j.value("free_starter_engrams", false);
+            std::set<std::string> mods;
+            for (auto& m : j.value("mod_ids", nlohmann::json::array()))
+                if (m.is_string()) mods.insert(m.get<std::string>());
+            g_routeMods[route] = mods;
         }
         g_bundleSaddles = bundle;
         g_freeStarter = starter;
@@ -1893,7 +1947,7 @@ static void Tick() {
 }
 
 // ----------------------------------------------------------------- lifecycle
-static const char* ARKAP_BUILD = "v96-no-emoji-usage";
+static const char* ARKAP_BUILD = "v99-mod-bundle-scope";
 
 static void Load() {
     fs::path base = PluginDir();
@@ -1908,7 +1962,7 @@ static void Load() {
             g_gameIniOverride = j.value("game_ini_path", "");// /confirm target (blank = auto-derive)
         } catch (...) {}
     }
-    g_tables.Load(base / "engrams.json", base / "locations.json");
+    g_tables.Load(base / "engrams.json", base / "locations.json", base / "mods");
     g_state = std::make_unique<State>(base, g_mode);
     g_state->Load();
     g_ipc = std::make_unique<Ipc>(base / "ipc");

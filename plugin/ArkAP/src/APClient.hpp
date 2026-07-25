@@ -483,9 +483,12 @@ private:
             if (t.is_string()) goalBossTags_.insert(t.get<std::string>());
 
         // relay plugin flags (same file/content as the Python connector)
+        // mod_ids: which mods THIS slot enabled. The plugin loads every catalogued mod (it has no
+        // yaml), so without this a structure bundle would grant mod engrams the slot never took.
         try { std::ofstream(cfg_.mailbox / "flags.json")
                 << json({ {"bundle_saddles", sd.value("bundle_saddles", false)},
-                          {"free_starter_engrams", sd.value("free_starter_engrams", false)} }).dump(); }
+                          {"free_starter_engrams", sd.value("free_starter_engrams", false)},
+                          {"mod_ids", sd.value("mod_ids", json::array())} }).dump(); }
         catch (...) {}
 
         totalLocs_ = (int)msg.value("checked_locations", json::array()).size()

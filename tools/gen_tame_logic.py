@@ -57,12 +57,14 @@ ALIAS = {
 # ---- BOSS / CAVE / TRIBUTE logic (NOT from the tier-gates sheet; best-effort, review) ----
 # Extra gear engrams the cave requirements reference (token -> our engram ap_name).
 GEAR_ALIAS = {
-    "Gas Mask": "Gas Mask", "Ghillie": "Ghillie Shirt", "Fur": "Fur Shirt",
-    # "Scuba Tank" alias already in ALIAS above (-> Scuba Shirt Suit With Tank)
+    "Gas Mask": "Gas Mask", "Ghillie": "Ghillie Shirt", "Fur": "Fur Shirt", "Grenade": "Grenade",
+    # "Scuba Tank" alias already in ALIAS above (-> Scuba Shirt Suit With Tank);
+    # "Bug Repellent" already aliased in ALIAS above (-> Bug Repel)
 }
 # their crafting station chain (so "has the engram" also needs the station to make it - avoids a
 # softlock where you have the Gas Mask engram but no Fabricator to craft it).
-GEAR_RECIPES = {"Gas Mask": "Fabricator", "Ghillie": "Smithy", "Fur": "Smithy"}
+GEAR_RECIPES = {"Gas Mask": "Fabricator", "Ghillie": "Smithy", "Fur": "Smithy",
+                "Grenade": "Fabricator"}
 # metal tools are crafted from Metal Ingots (Forge) around the smithy/metal-age point - so requiring
 # one also requires the Forge, landing them at the right progression tier (not sphere 0).
 METAL_TOOL_RECIPES = {"Metal Pick": "Forge", "Metal Hatchet": "Forge"}
@@ -70,17 +72,26 @@ METAL_TOOL_RECIPES = {"Metal Pick": "Forge", "Metal Hatchet": "Forge"}
 # Each Island artifact's CAVE requirement (keyed by the "Artifact: X" short name). BEST-EFFORT
 # from general ARK Island knowledge - REVIEW: combat floor + environment gear. Swamp caves need a
 # gas mask (user-confirmed); the underwater cave needs scuba (a water mount is implied by it).
+# Playtested by Lurch (2026-07-25): most caves are RUN/GRAPPLE/PARACHUTE-through, not combat, so the
+# artifact only really needs environmental gear (cold / gas / water), not a KO weapon. Five caves
+# need nothing. "Fur Set | (Fur Torso + Otter)" collapses to just Fur: the Fur branch is always
+# obtainable, so it's the reachability floor and the Otter branch (a locked tame we intentionally
+# keep out of cave logic) never changes what's reachable.
 CAVE_REQS = {
-    "Hunter":   "Crossbow KO",                          # Lower South (easy land)
-    "Massive":  "Crossbow KO",                          # central land
-    "Clever":   "Crossbow KO + Scuba Tank",             # central cave has deep water
-    "Pack":     "Crossbow KO + Fur",                    # cold cave
-    "Brute":    "Rifle KO",                             # lava/tougher land
-    "Devourer": "Rifle KO + Gas Mask + Ghillie",        # Swamp Cave
-    "Immune":   "Rifle KO + Gas Mask + Ghillie",        # Swamp Cave (deep)
-    "Skylord":  "Rifle KO + Fur",                       # snow cave
-    "Strong":   "Rifle KO + Fur",                       # ice/snow cave
-    "Cunning":  "Rifle KO + Scuba Tank",                # underwater cave (water mount implied)
+    # Lurch's env-gear reqs for the caves that really need it...
+    "Brute":    "Scuba Tank",
+    "Cunning":  "Scuba Tank",
+    "Skylord":  "Fur",                                  # cold: full fur (or fur torso + Otter)
+    "Strong":   "Fur + Grenade",                        # cold + a way to aggro the purlovias
+    "Immune":   "(Gas Mask | Scuba Tank) + Bug Repellent",   # poison gas cave
+    # ...but keep the OLD combat floor on the ones he'd left free, so they aren't sphere-0 free
+    # artifacts (user request 2026-07-25). Combined = env gear where it matters + a weapon floor
+    # everywhere else.
+    "Hunter":   "Crossbow KO",
+    "Massive":  "Crossbow KO",
+    "Clever":   "Crossbow KO + Scuba Tank",
+    "Pack":     "Crossbow KO + Fur",
+    "Devourer": "Rifle KO + Gas Mask + Ghillie",
 }
 # artifacts each boss's summon needs (Gamma = artifacts only; goal is any-difficulty).
 BOSS_ARTIFACTS = {

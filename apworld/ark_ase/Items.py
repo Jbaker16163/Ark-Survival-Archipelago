@@ -17,14 +17,31 @@ STRUCTURE_BUNDLES = {
     "Bundle: Stone Structures": (8738002, "Stone"),
     "Bundle: Metal Structures": (8738003, "Metal"),
     "Bundle: Greenhouse Structures": (8738004, "Greenhouse"),
+    # Tek + Thatch were building tiers with no bundle: 47 Tek and 8 Thatch engrams stayed
+    # individual, wasting ~55 item slots. Bundling them also auto-captures a building MOD's
+    # Tek/Thatch pieces (same material-word rule), which is where the pool headroom comes from.
+    "Bundle: Tek Structures": (8738005, "Tek"),
+    "Bundle: Thatch Structures": (8738006, "Thatch"),
+    # Building-MOD material tiers with no vanilla equivalent (S+/Super Structures add Adobe and
+    # Glass building sets: 78 + 59 engrams in S+ alone). Empty for a vanilla-only slot, and an
+    # empty bundle is never pooled - see create_items.
+    "Bundle: Adobe Structures": (8738007, "Adobe"),
+    "Bundle: Glass Structures": (8738008, "Glass"),
 }
 
 
-def structure_bundle_members(engram_data: Dict[str, Any]) -> Dict[str, set]:
-    """bundle ap_name -> set of member engram ap_names."""
+def structure_bundle_members(engram_data: Dict[str, Any],
+                             mod_engrams: Any = None) -> Dict[str, set]:
+    """bundle ap_name -> set of member engram ap_names.
+
+    `mod_engrams` = engrams from the slot's ACTIVE mods. They must be included or a building mod's
+    structures never fold into the bundles, stay individual items, and blow the pool past the
+    location count (that is the whole reason bundling makes room for mod support).
+    """
+    engrams = list(engram_data["engrams"]) + list(mod_engrams or [])
     out: Dict[str, set] = {}
     for bundle, (_id, material) in STRUCTURE_BUNDLES.items():
-        out[bundle] = {e["ap_name"] for e in engram_data["engrams"]
+        out[bundle] = {e["ap_name"] for e in engrams
                        if "PrimalItemStructure_" in e["engram_class"]
                        and material in e["ap_name"].replace("Engram:", "").split()}
     return out
@@ -37,7 +54,8 @@ class ArkItem(Item):
 def build_item_table(engram_data: Dict[str, Any],
                      dino_data: Dict[str, Any] | None = None,
                      crate_data: Dict[str, Any] | None = None,
-                     filler_data: Dict[str, Any] | None = None) -> Dict[str, int]:
+                     filler_data: Dict[str, Any] | None = None,
+                     mod_catalog: Dict[str, Any] | None = None) -> Dict[str, int]:
     """name -> id for progression items: engrams + tame items + crate access + specials,
     plus the filler/trap items.
 
@@ -60,5 +78,15 @@ def build_item_table(engram_data: Dict[str, Any],
         table[f["ap_name"]] = f["id"]            # neutral filler + traps
     for b, (bid, _mat) in STRUCTURE_BUNDLES.items():
         table[b] = bid                           # structure bundles (pooled only if option on)
+    # EVERY supported mod's items, always - the datapackage must be identical for all players in
+    # the multiworld. The yaml's mod_ids only decides which are POOLED (see create_items).
+    for mod in (mod_catalog or {}).values():
+        for e in mod.get("engrams", []):
+            table[e["ap_name"]] = e["id"]
+        for b in mod.get("bundles", []):         # curated group items (one unlocks many engrams)
+            table[b["ap_name"]] = b["id"]
+        for d in mod.get("dinos", []):
+            if d.get("ap_name") and d.get("id") is not None:
+                table[d["ap_name"]] = d["id"]
     table.setdefault(FILLER_NAME, FILLER_ID)
     return table

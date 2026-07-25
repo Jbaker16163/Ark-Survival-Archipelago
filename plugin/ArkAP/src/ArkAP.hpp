@@ -28,7 +28,15 @@ struct Tables {
     // item_id -> human name; and the maps needed to apply/gate effects
     std::map<int, std::string>  item_name;          // any item id -> name
     std::map<std::string, int>  engram_class_to_item; // "EngramEntry_Bow_C" -> item id
-    std::map<int, std::string>  item_to_engram_class; // reverse
+    std::map<int, std::string>  item_to_engram_class; // reverse (PRIMARY class only)
+    // A MOD item can own several blueprint classes that share one display name (the apworld groups
+    // them, since ap_name is the item-table key). Base-game items have exactly one entry here.
+    std::map<int, std::vector<std::string>> item_to_engram_classes;
+    // Curated per-mod group item -> the member ITEM ids it unlocks (apworld mod "bundles").
+    std::map<int, std::vector<int>> mod_bundles;
+    // item id -> owning mod id ("" = base game). Lets a bundle skip engrams from a mod the
+    // player's slot never enabled (the plugin loads the whole catalogue; slots pick a subset).
+    std::map<int, std::string> item_to_mod;
     int taming_item = 0;
     int supply_item = 0;
     std::map<int, std::string>  boss_access;         // item id -> boss tag
@@ -41,7 +49,9 @@ struct Tables {
     std::map<int, int>          level_to_loc;        // player level -> "Reach Level N" loc id
     std::vector<int>            all_locations;
 
-    bool Load(const fs::path& engrams_json, const fs::path& locations_json);
+    // mods_dir = data/mods (index.json + <modid>.json). Optional: missing = no mod support.
+    bool Load(const fs::path& engrams_json, const fs::path& locations_json,
+              const fs::path& mods_dir = {});
 };
 
 // ------------------------------------------------------------------ Ipc

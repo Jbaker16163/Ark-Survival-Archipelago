@@ -10,7 +10,8 @@ class ArkLocation(Location):
 
 
 def build_location_table(location_data: Dict[str, Any],
-                         dino_data: Dict[str, Any] | None = None) -> Dict[str, int]:
+                         dino_data: Dict[str, Any] | None = None,
+                         mod_catalog: Dict[str, Any] | None = None) -> Dict[str, int]:
     """name -> id from locations.json (dossiers + bosses + milestones + level checks) plus
     per-dino tame checks from dinos.json.
 
@@ -32,4 +33,13 @@ def build_location_table(location_data: Dict[str, Any],
             table["Tamed: " + short] = d["tame_loc"]
         if d.get("kill_loc"):
             table["Killed: " + short] = d["kill_loc"]
+    # mod creature checks - ALWAYS in the datapackage (see build_item_table); mod_ids only decides
+    # which are actually used by a slot (_used_locations).
+    for mod in (mod_catalog or {}).values():
+        for d in mod.get("dinos", []):
+            short = d["name"] if d.get("name") else d["ap_name"].replace("Tame: ", "")
+            if d.get("tame_loc"):
+                table["Tamed: " + short] = d["tame_loc"]
+            if d.get("kill_loc"):
+                table["Killed: " + short] = d["kill_loc"]
     return table

@@ -152,6 +152,45 @@ class ExtraEarlyItems(OptionSet):
     display_name = "Extra Early Items"
 
 
+class ModIds(OptionSet):
+    """Steam Workshop mod IDs to include. Their engrams become AP items. ONLY the mods below are
+    supported (an unknown ID is a generation error - the apworld can't know an arbitrary mod's
+    engrams). Supported:
+        731604991 / 1999447172  Structures Plus / Super Structures  (building - needs bundle_structures: true)
+        1565015734              Kraken's Better Dinos
+        821530042               Upgrade Station
+        2594067220              Super Spyglass Plus
+        1609138312              Dino Storage v2
+        889745138               Awesome Teleporters
+        1631378184              Explorer Note Tracker
+        1404697612              Awesome SpyGlass
+    Structures Plus and Super Structures are forks of one mod - list whichever you run, not both.
+    Accepts a yaml list OR a comma-separated string, quotes optional:
+        mod_ids: 731604991, 1631378184, 2594067220, 821530042, 1609138312, 1565015734, 1404697612, 889745138
+        mod_ids: [1609138312, 889745138]"""
+    display_name = "Mod IDs"
+
+    # Accept every form people reach for:
+    #   - a yaml LIST, quoted or not:  mod_ids: ["123", 456]  /  - 123 \n - "456"
+    #   - a single COMMA STRING:       mod_ids: "123, 456"  (or bare 123, 456)
+    #   - one bare number:             mod_ids: 123
+    # Mod ids look numeric, so an unquoted entry arrives as int; AP's spoiler writer then does
+    # ", ".join(value) and dies with "expected str instance, int found" - but only at OUTPUT, after
+    # a full generation. Coercing to str on parse avoids that late crash for all shapes.
+    @classmethod
+    def _split(cls, v):
+        return [p.strip() for p in str(v).replace(",", " ").split() if p.strip()]
+
+    @classmethod
+    def from_any(cls, data) -> "ModIds":
+        if isinstance(data, (list, set, tuple, frozenset)):
+            out: set = set()
+            for v in data:
+                out.update(cls._split(v))          # each entry may itself be "123, 456"
+            return cls(out)
+        return cls(set(cls._split(data)))          # a lone int or a comma/space string
+
+
 class FoodSanity(Choice):
     """Percent of the food 'hold N in inventory' checks (Citronal, Cooked Meat, Jerky, Honey,
     Rare Flower, etc - 14 total) included as locations. Which ones are picked is random per seed.
@@ -240,3 +279,4 @@ class ArkASAOptions(PerGameCommonOptions):
     tame_sanity: TameSanity
     bundle_structures: BundleStructures
     randomize_dino_spawns: RandomizeDinoSpawns
+    mod_ids: ModIds

@@ -72,6 +72,7 @@
     "Gas Mask": "Fabricator",
     "Ghillie": "Smithy",
     "Fur": "Smithy",
+    "Grenade": "Fabricator",
     "Metal Pick": "Forge",
     "Metal Hatchet": "Forge"
   },
@@ -185,7 +186,8 @@
     "Vertical Electrical Cable": "Power Cable Vertical",
     "Gas Mask": "Gas Mask",
     "Ghillie": "Ghillie Shirt",
-    "Fur": "Fur Shirt"
+    "Fur": "Fur Shirt",
+    "Grenade": "Grenade"
   },
   "dino_alias": {
     "Compsognathus": "Compy",
@@ -208,16 +210,16 @@
     "Therizinosaurus": "Therizino"
   },
   "cave_reqs": {
+    "Brute": "Scuba Tank",
+    "Cunning": "Scuba Tank",
+    "Skylord": "Fur",
+    "Strong": "Fur + Grenade",
+    "Immune": "(Gas Mask | Scuba Tank) + Bug Repellent",
     "Hunter": "Crossbow KO",
     "Massive": "Crossbow KO",
     "Clever": "Crossbow KO + Scuba Tank",
     "Pack": "Crossbow KO + Fur",
-    "Brute": "Rifle KO",
-    "Devourer": "Rifle KO + Gas Mask + Ghillie",
-    "Immune": "Rifle KO + Gas Mask + Ghillie",
-    "Skylord": "Rifle KO + Fur",
-    "Strong": "Rifle KO + Fur",
-    "Cunning": "Rifle KO + Scuba Tank"
+    "Devourer": "Rifle KO + Gas Mask + Ghillie"
   },
   "boss_artifacts": {
     "Broodmother": [

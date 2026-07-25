@@ -367,7 +367,7 @@ Edit these in your `ark.yaml` before generating (full commented list is in the f
 | `dossier_checks` | `240` | How many explorer-note checks to include (max = all Island notes). |
 | `food_sanity` | `100` | % of the 14 food "hold N in inventory" checks included (0/25/50/75/100). |
 | `tame_sanity` | `100` | % of per-species "Tamed: X" checks required (25/50/75/100). Lower = fewer required tames; all Tame unlock items stay in the pool. |
-| `bundle_structures` | `false` | One item unlocks ALL structures of a material (Wood/Stone/Metal/Greenhouse). Tools stay individual. |
+| `bundle_structures` | `false` | One item unlocks ALL structures of a material (Wood/Stone/Metal/Greenhouse/Tek/Thatch) — 197 engrams become 6 items. Crafting stations and utility structures (Mortar And Pestle, Cooking Pot, Campfire, Crop Plots…) stay individual. Turn this ON if you plan to use mod support: it frees ~200 item slots, which is what makes room for a mod's engrams. |
 | `randomize_dino_spawns` | `off` | Fully randomize which species live in which biome — each zone's roster is replaced by a seeded hand, every species still spawns somewhere (`grouped` = habitat-appropriate, `chaos` = anything anywhere). Connector writes the Game.ini lines; one server start applies. |
 | `death_link` | `true` | Die together with linked players. |
 | `trap_percentage` | `25` | % of filler slots that are traps (surprise wild-dino spawns). |

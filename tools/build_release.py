@@ -83,6 +83,13 @@ def main():
              (os.path.join(ROOT, "tools", "install_plugin.bat"), "install_plugin.bat")]
     for name in ("engrams.json", "dinos.json", "locations.json", "crates.json", "filler.json"):
         pairs.append((os.path.join(data, name), f"ArkAP/{name}"))
+    # mod catalog: the plugin loads data/mods/index.json + each listed <modid>.json so it can grant
+    # and gate MOD engrams. Without these the apworld would hand out mod items the server ignores.
+    mods_dir = os.path.join(data, "mods")
+    if os.path.isdir(mods_dir):
+        for name in sorted(os.listdir(mods_dir)):
+            if name.endswith(".json"):
+                pairs.append((os.path.join(mods_dir, name), f"ArkAP/mods/{name}"))
     zip_files(pairs, os.path.join(DIST, "ArkAP_plugin.zip"))
 
     print("[5/7] Connector bundle...")

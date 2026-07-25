@@ -77,11 +77,6 @@ del /q "%PLUGIN%\ipc\session.json"      2>nul
 del /q "%PLUGIN%\ipc\game_ini_fragment.txt" 2>nul
 del /q "%PLUGIN%\ipc\conn_status.txt"   2>nul
 del /q "%PLUGIN%\ipc\boss_out.jsonl"    2>nul
-REM PER-PLAYER MAILBOXES: with /connect (or multiplayer), each survivor gets its own
-REM ipc\<CharacterName>\ folder - the root wipes above DON'T touch those. Leaving them behind
-REM keeps stale state across a reset; a stale game_ini_fragment.txt in there is why /confirm
-REM could still apply an OLD seed's randomized spawns. Mailboxes are recreated on connect.
-for /d %%D in ("%PLUGIN%\ipc\*") do rd /s /q "%%D" 2>nul
 del /q "%PLUGIN%\ap_wipe_wild.flag"     2>nul
 del /q "%PLUGIN%\applied_index.json"    2>nul
 del /q "%PLUGIN%\counters.json"         2>nul
@@ -95,6 +90,8 @@ del /q "%PLUGIN%\crate_queue.jsonl"     2>nul
 del /q "%PLUGIN%\ArkAP_debug.log"       2>nul
 del /q "%PLUGIN%\ap_connections.json"   2>nul
 REM multiplayer: each player's mailbox is an ipc\<CharacterName> subfolder - wipe them all.
+REM (The per-file dels above only touch the ROOT of ipc\, so this is what clears per-player state -
+REM incl. a stale game_ini_fragment.txt, which would make /confirm apply an OLD seed's spawns.)
 for /d %%D in ("%PLUGIN%\ipc\*") do rd /s /q "%%D" 2>nul
 
 REM ---- strip randomize_dino_spawns from Game.ini -------------------------------------------

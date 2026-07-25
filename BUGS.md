@@ -1,5 +1,362 @@
 # Known bugs / open items
 
+## Added 2026-07-25: cave requirements replaced with Lurch's playtested table
+
+- The old cave_reqs were a combat-floor heuristic (Crossbow/Rifle KO + gear). Lurch playtested the
+  actual caves - most are run/grapple/parachute-through, not fights - and gave a lighter table.
+  Implemented faithfully in gen_tame_logic.py CAVE_REQS:
+    Brute/Cunning = Scuba Tank
+    Skylord = Fur
+    Strong = Fur + Grenade
+    Immune = (Gas Mask | Scuba Tank) + Bug Repellent
+    Hunter/Massive = Crossbow KO ; Clever = Crossbow KO + Scuba Tank ;
+    Pack = Crossbow KO + Fur ; Devourer = Rifle KO + Gas Mask + Ghillie
+  UPDATE 2026-07-25: Lurch left five caves free; user asked to KEEP their old combat floor so they
+  aren't sphere-0 free artifacts. So the shipped table = his env-gear reqs on Brute/Cunning/Skylord/
+  Strong/Immune + the OLD Crossbow/Rifle KO reqs restored on Hunter/Massive/Clever/Pack/Devourer.
+  Added `Grenade` gear alias (-> Engram: Grenade, recipe Fabricator).
+- Two of the four questions I raised were resolved by logical equivalence, not a guess:
+  * "Fur Set | (Fur Torso + Otter)" -> just `Fur`. The Fur branch is always obtainable, so it's the
+    reachability floor; the Otter branch (a locked tame we keep out of cave logic) can't change what
+    is reachable. Modelling it would add a tame dependency for zero logical effect.
+  * "Fur Set" == our `Fur` (Fur Shirt); "Scuba Set" == `Scuba Tank`.
+- EFFECT: caves gate the artifact checks AND the bosses. With the combat floor restored on the five
+  caves, Broodmother (Clever+Hunter+Massive) again needs Crossbow KO - not sphere-0 free.
+- Verified 3-seed all_bosses gen: no accessibility failures; all four boss defeats appear in the
+  playthrough; beatable.
+
+
+## Added 2026-07-24: mount-required KILL checks excluded from progression
+
+- Playtest: `Killed: Carcharodontosaurus` held progression at sphere 2 (the apex weapon-floor gate
+  understates it - you can't solo a Carcha with a crossbow, it needs a bred combat mount).
+- Excluded the giants that realistically need a mount to kill: Carcharodontosaurus, Giganotosaurus,
+  Titanosaur, Rhyniognatha. Filler-only, same reasoning as the alpha kills (a kill that needs a
+  locked tame shouldn't gate progression). Verified 3-seed gen: none in any playthrough; beatable.
+
+
+## Added 2026-07-24: Explorer Note Tracker auto-grants its engram + GPS when enabled
+
+- The tracker is pure QoL with no checks behind it, and it can't be crafted without the GPS - so
+  hunting for either AP item is pointless. When mod 1631378184 is active, both are now granted for
+  free at start.
+- Mechanism: `MOD_AUTO_GRANT` in gen_mod.py -> `auto_grant` in the mod json. `_auto_grant_names()`
+  drops those from the item pool and `push_precollected`s them. The AP server sends precollected
+  items on connect, so the plugin grants them in-game via the normal item flow - NO plugin change.
+  Base-game engrams (GPS) are eligible too; GPS is only auto-granted while the mod is active,
+  otherwise it stays a normal pooled item.
+- Verified: mod ON -> both in Starting Items, neither placed, GPS out of the pool, beatable; mod OFF
+  -> GPS is a normal pool item again. General mechanism - any future QoL mod can list auto_grant.
+- Note: the earlier `requires` (Note Tracker needs GPS) is now moot for this mod since GPS is free,
+  but the mechanism stays for other mods.
+
+
+## Added 2026-07-24: Tamed: Carcharodontosaurus / Rhyniognatha excluded from progression
+
+- Playtest: progression landed on `Tamed: Carcharodontosaurus`. Taming a Carcha is an end-game feat
+  (needs a fabricated trap + top-tier tranqs); parking key progression behind it is as bad as an
+  alpha kill. Same for Rhyniognatha (already paired with Carcha in the dossier exclusions).
+- `_excluded_progression_names()` now excludes `Tamed: Carcharodontosaurus` and `Tamed: Rhyniognatha`
+  (the Tame item + check still exist; the check just holds filler). Verified 3-seed gen: neither
+  appears in any playthrough; both hold filler; still beatable.
+
+
+## Added 2026-07-24: FIXED - unquoted mod_ids crashed generation at output time
+
+- Report: generation ran to completion then died with
+  `TypeError: sequence item 0: expected str instance, int found`
+  (BaseClasses.write_option -> Options.get_option_name).
+- Cause: mod ids LOOK like numbers, so an unquoted yaml entry (`- 1609138312`) arrives as a Python
+  int. My code tolerated that (`str(m).strip()` everywhere), but AP's spoiler writer does
+  `", ".join(value)` on the OptionSet - which only fails at OUTPUT, after a full successful fill.
+  Nasty failure mode: everything looks fine until the very last step.
+- Fix: `ModIds.from_any` now accepts a yaml LIST (quoted or bare), a single COMMA/space string
+  (`"123, 456"` or bare `123, 456`), or a lone number - each entry is split + str-coerced on parse.
+  All resolve identically; quoting is optional.
+- Verified: unquoted generates AND the mods actually resolve (Soul Terminal/Traps/Gun DS + all 3
+  Awesome Teleporters items present); mixed quoted/unquoted works; unquoted S+/SS pair still hits
+  the alternative-versions error.
+- Audited the other OptionSets (Maps, Tier0Add/Remove, ExtraEarlyItems) - all take names, not
+  numbers, so mod_ids was the only one exposed.
+
+
+## Added 2026-07-24: curated per-mod item GROUPS - Structures Plus now FITS
+
+- User reviewed the 153 functional S+ items and chose to group: repetitive variants + automation/QoL
+  + dino care. Crafting stations, teleport/transfer and one-off gadgets stay INDIVIDUAL (they're
+  real, distinct unlocks worth finding).
+- `MOD_GROUPS` in tools/gen_mod.py defines them per mod (patterns: exact name or "prefix*"), emitted
+  into the mod json as `bundles: [{id, ap_name, members}]`. Ids = id_base + GROUP_ID_OFFSET (9000)
+  so they can never collide with the mod's engram ids. 15 groups covering 87 engrams -> pool -72.
+- Semantics differ from the material bundles ON PURPOSE: a curated group is ALWAYS applied when its
+  mod is active (it's how that mod is modelled), whereas material bundles follow bundle_structures.
+- RESULT: all 8 mods incl. Structures Plus now generate. Verified in the seed: 15 `Bundle: S+ ...`
+  items present, 0 individual Auto Turret / Internal Wire / Item Collector / Nanny / Platform Saddle,
+  and kept-individual stations (SPlus Crafting Station, Fabricator Plus, Teleporter Plus) still real
+  items. Regression-checked: 7-small-mods, vanilla multiworld, and S+ with bundle_structures off
+  (still the clear error).
+- BUG en route: `load_mod_catalog()` dropped the new `bundles` key, so grouping silently did nothing
+  (pool stayed 572). Loader now carries it.
+- NOTE: a few group members are ALSO material-bundle members (e.g. "Elevator Track Metal" matches
+  both Metal and the Elevators group). Harmless - the member is skipped once and either item grants
+  it - but if a future group looks oversized, that's why.
+
+## Added 2026-07-24: REAL mod catalog ingested (8 mods) + 2 datapackage bugs caught
+
+- Ingested the user's ArkAP_engrams_dump (1526 entries, 909 non-vanilla) -> 8 mods, 524 items:
+  Structures Plus 731604991 (472, building), Krakens Better Dinos 1565015734 (32),
+  Upgrade Station 821530042 (7), Super Spyglass Plus 2594067220 (4), Dino Storage v2 1609138312 (4),
+  Awesome Teleporters 889745138 (3), Explorer Note Tracker 1631378184 (1),
+  Awesome SpyGlass 1404697612 (1). No mod used a numeric folder, so all needed --map.
+- BUG 1 (datapackage corruption): S+ reports 857 engrams under only 472 DISPLAY NAMES, and 4 of
+  those names collide with BASE-GAME engrams (Elevator Platform Large/Medium/Small, Water Tank
+  Metal). item_name_to_id is keyed by NAME and is CLASS-LEVEL, so shipping them unchanged would
+  have silently overwritten those vanilla ids for EVERY player, mod active or not. gen_mod.py now
+  groups by display name (one item owns a LIST of classes, `engram_classes`) and suffixes any
+  base-game clash with a mod tag. Verified: 0 collisions with base, 0 duplicates across the catalog.
+  (The 385 S+ duplicates turned out to be pure dump duplicates - identical name AND class - so no
+  coverage was lost.)
+- BUG 2 (wrong budget): create_items only checked `pool <= locations`. The REAL constraint also
+  needs a filler item for every EXCLUDED location (85 of them: holograms, alphas, grind milestones,
+  high levels, hard notes), else AP dies later with a bare "Not enough filler items for excluded
+  locations" FillError. Now checked up front with a message naming the count and the fixes.
+  Extracted `_excluded_progression_names()` so create_items and _regions_flat share one definition.
+- Added `Bundle: Adobe Structures` (8738007) + `Bundle: Glass Structures` (8738008): S+ adds those
+  material tiers (78 + 59 engrams). Empty bundles are NOT pooled, so a vanilla slot gains no dead
+  item. gen_mod.py pretty() also fixed - dump names end `_C_0`, so items were "... C 0".
+- RESULT: the 7 small mods FIT and generate (verified, real mod items in the seed). STRUCTURES PLUS
+  DOES NOT FIT on The Island alone - 572 items vs 557 usable slots, over by 15 even with
+  bundle_structures + bundle_saddles + free_starter_engrams. It needs the extra locations from
+  future map support; the error now says so precisely instead of failing as a FillError.
+
+## Added 2026-07-24: mod engram prerequisites (`requires`) - Note Tracker needs the GPS
+
+- Mod engrams can declare `requires` (MOD_ENGRAM_REQUIRES in gen_mod.py -> `requires` in the mod
+  json). `_tame()` merges the ACTIVE mods' entries into the tame-logic alias + item_recipes, so
+  anything that depends on a mod engram also demands its prerequisite.
+- Wired: Explorer Note Tracker -> `Engram: GPS`.
+- HONEST LIMITATION: this only BITES when something depends on that engram. Nothing currently
+  gates on the Note Tracker (it's a QoL item with no checks behind it), so today the rule is inert -
+  it exists so the mechanism is correct and future mod engrams that DO gate something get their
+  prereqs for free. Making it actually restrict play would mean gating explorer-note CHECKS behind
+  the tracker, which would force every note check to depend on a mod - deliberately NOT done.
+
+## Added 2026-07-24: S+ vs Super Structures RESOLVED by dual dumps - per-variant pooling
+
+- User supplied two dumps (S+ only, SS only). `gen_mod.py --compare` verdict:
+  SAME folder `/Game/Mods/StructuresPlusMod/` (so the alias mechanism is right), but the CONTENT
+  DIFFERS - 385 classes shared, 64 only in S+, 23 only in SS. So "identical engrams" was half true:
+  same folder, overlapping-but-not-equal sets.
+- The shipped catalog turned out to be EXACTLY the union (472 classes, 0 missing, 0 extra), so
+  coverage was already complete - but a union catalog meant an SS player would receive 64 items
+  whose blueprint classes don't exist on their server (and an S+ player 23): inert "you got
+  Engram: X" that unlocks nothing. Not a softlock (all mod engrams are `useful`), but wrong.
+- Fix: `gen_mod.py --variant MODID=dump.json` (repeatable) tags every engram with the workshop ids
+  that actually ship it -> `variants` in the catalog. `_wrong_variant_names()` then drops engrams
+  the player's declared fork lacks. Tag counts match the diff exactly: 385 both / 64 S+ / 23 SS.
+- BUG caught in test: `_declared_mod_ids` initially included the ALIAS-RESOLVED id, so declaring SS
+  still matched S+-only engrams and pooled the union anyway - defeating the whole filter. Must be
+  the ids the player literally wrote. Verified after the fix:
+    mod_ids [731604991] -> Omni Tool + Splus Multi Tool present, Personal Teleporter + Transfer Tool absent
+    mod_ids [1999447172] -> the exact inverse
+- Regression: all 8 mods together and the vanilla multiworld both still generate.
+- FOLLOW-UP (user): listing BOTH ids is now a generation ERROR. Two ids resolving to the same
+  catalog entry are alternative forks of one mod - a server can only load one, and allowing both
+  would silently re-pool the union incl. engrams the installed fork doesn't ship (the exact bug
+  per-variant pooling exists to prevent). Message names both ids and the mod, and says to keep only
+  the installed one. Verified: [731604991, 1999447172] errors; either alone still generates, with
+  exclusive engrams split correctly and SHARED ones (Fabricator Plus) present in both.
+
+## Added 2026-07-24: mod ID ALIASES - Super Structures shares the S+ catalog entry
+
+- User (twice, and correct - I initially pushed back): Super Structures is a FORK of Structures Plus
+  and ships the same engrams. Evidence in the dump supports it: there is exactly ONE structure-mod
+  folder, `/Game/Mods/StructuresPlusMod/`, and no separate SuperStructures folder. A fork that keeps
+  the parent's content folder emits BYTE-IDENTICAL UClass paths - which is the only identity the
+  plugin matches on - so one catalog entry genuinely serves both.
+- `MOD_ALIASES` in gen_mod.py -> `aliases` in index.json. `_active_mods()` resolves an alias to its
+  canonical entry and DEDUPES, so listing 731604991, 1999447172, or both yields identical content
+  and is never counted twice against the pool.
+- slot_data sends the CANONICAL id, so the plugin's per-route mod scoping (v99) matches whichever id
+  the player wrote in their yaml.
+- The unknown-mod error now lists aliases too: "731604991 (Structures Plus / Super Structures)
+  [also 1999447172]".
+- Verified: mod_ids ["1999447172"] and ["731604991","1999447172"] both generate with the same 15 S+
+  bundles; a near-miss typo (1999447173) still errors clearly.
+- CAVEAT (TO CONFIRM): this assumes SS really does use the StructuresPlusMod folder. If a dump from
+  an SS-installed server shows a DIFFERENT folder, it needs its own catalog entry instead - the
+  alias would be wrong and SS engrams simply wouldn't be granted.
+  `tools/gen_mod.py <A.json> --compare <B.json>` settles it: dump once with ONLY S+ installed and
+  once with ONLY SS, then diff. It reports per-folder IDENTICAL / DIFFER / ONLY IN A|B and a verdict.
+  Self-tested against an identical copy (says alias is correct) and a mutated dump with a
+  SuperStructures folder (says separate entries needed).
+
+## Added 2026-07-24 (plugin v99): material bundles span mods, SCOPED to the slot's mod_ids
+
+- User ask: unlocking "Bundle: Stone Structures" should also grant the S+/Super Structures stone
+  pieces. VERIFIED this already worked on BOTH sides - the apworld feeds active mods' engrams to
+  `structure_bundle_members` (Stone 38 -> 86 members with S+), and the plugin's rule (class contains
+  PrimalItemStructure_ AND material is a word in the name) matches all 319 material-named S+
+  structures. No change was needed for the feature itself.
+- BUT verifying it exposed an OVER-GRANT: the plugin loads the WHOLE mod catalogue (it has no yaml),
+  so a structure bundle would have granted S+ engrams to a slot that never put S+ in its mod_ids -
+  free stuff the apworld never pooled. Fixed:
+  * slot_data `mod_ids` now relayed into flags.json by APClient.
+  * `Tables::item_to_mod` records each item's owning mod ("" = base game).
+  * `g_routeMods` holds each route's enabled mods; `ItemAllowedForRoute()` filters
+    ApplyStructureBundle. Base-game items always pass; an unknown route (no flags yet) passes too,
+    so nothing silently disappears while a slot is still connecting.
+- Per-ROUTE, not global: in multiplayer two survivors can legitimately run different mod_ids, so the
+  existing "any slot's flag turns it on" OR-ing would have been wrong here.
+- Verified: no `_Mtx_*` imports; packaged dll is v99 and the zip carries the 9 mod files.
+
+## Added 2026-07-24 (plugin v98): mod support in the PLUGIN - grants + gates mod engrams
+
+- Closes the gap: the apworld was handing out mod items the server knew nothing about.
+- `Tables::Load` takes a `mods_dir` and reads data/mods/index.json + each listed <modid>.json.
+  ALL catalogued mods are loaded (the plugin has no yaml): gating an engram whose mod the player's
+  slot didn't enable is harmless - that class simply never gets granted. Each mod file is parsed in
+  its own try/catch so one broken file can't stop base-game loading.
+- One item can now own SEVERAL blueprint classes (`engram_classes`), which is how the apworld
+  groups a mod's duplicate display names. `g_itemToEngram` became
+  `unordered_map<int, vector<UClass*>>`; all 5 grant sites + DoReassert iterate the list. Base-game
+  items simply have a 1-element list.
+- Curated mod groups: `Tables::mod_bundles` (bundle item id -> member ITEM ids, taken straight from
+  the mod json so the two sides can't drift - unlike the structure bundles, which re-derive members
+  from a material word). `ApplyItem` routes a group id to the new `ApplyModBundle`, which grants
+  every member's classes and announces "Unlocked <bundle> (N engrams)". Members whose mod isn't
+  installed are skipped silently.
+- build_release.py now packages data/mods/*.json into ArkAP_plugin.zip (9 files). Verified the
+  shipped json parses with the exact logic Tables::Load uses: 539 items, 524 classes mapped,
+  15 bundles, 87 members - no unresolved members, no engram without a class.
+
+## OPEN 2026-07-24: remaining mod work
+
+- Mod support is otherwise COMPLETE (apworld catalog + subsetting + groups, and plugin v98 grants /
+  gates them). Historical detail on the scaffolding + the bugs it caught is in the entries below.
+- REMAINING:
+  * MOD CREATURES are not supported yet. The schema has `dinos: []` and the apworld already subsets
+    mod creature checks, but nothing populates it - `ArkAP.DumpEngrams` only dumps ENGRAMS. A
+    creature mod would need a new `ArkAP.DumpDinos` console command (enumerate spawnable dino
+    classes + DinoNameTag) since tags are otherwise only harvested by actually taming each species.
+    None of the 8 catalogued mods add creatures, so this is not blocking today.
+  * Super Structures (1999447172) is not catalogued - the user runs S+ instead. Onboarding it is
+    just another dump + gen_mod run; MOD_GROUPS would need an SS section (its names differ).
+
+## Added 2026-07-24: curated per-mod item GROUPS - Structures Plus now FITS
+
+- User reviewed the 153 functional S+ items and chose to group: repetitive variants + automation/QoL
+  + dino care. Crafting stations, teleport/transfer and one-off gadgets stay INDIVIDUAL (they're
+  real, distinct unlocks worth finding).
+- `MOD_GROUPS` in tools/gen_mod.py defines them per mod (patterns: exact name or "prefix*"), emitted
+  into the mod json as `bundles: [{id, ap_name, members}]`. Ids = id_base + GROUP_ID_OFFSET (9000)
+  so they can never collide with the mod's engram ids. 15 groups covering 87 engrams -> pool -72.
+- Semantics differ from the material bundles ON PURPOSE: a curated group is ALWAYS applied when its
+  mod is active (it's how that mod is modelled), whereas material bundles follow bundle_structures.
+- RESULT: all 8 mods incl. Structures Plus now generate. Verified in the seed: 15 `Bundle: S+ ...`
+  items present, 0 individual Auto Turret / Internal Wire / Item Collector / Nanny / Platform Saddle,
+  and kept-individual stations (SPlus Crafting Station, Fabricator Plus, Teleporter Plus) still real
+  items. Regression-checked: 7-small-mods, vanilla multiworld, and S+ with bundle_structures off
+  (still the clear error).
+- BUG en route: `load_mod_catalog()` dropped the new `bundles` key, so grouping silently did nothing
+  (pool stayed 572). Loader now carries it.
+- NOTE: a few group members are ALSO material-bundle members (e.g. "Elevator Track Metal" matches
+  both Metal and the Elevators group). Harmless - the member is skipped once and either item grants
+  it - but if a future group looks oversized, that's why.
+
+## Added 2026-07-24: REAL mod catalog ingested (8 mods) + 2 datapackage bugs caught
+
+- Ingested the user's ArkAP_engrams_dump (1526 entries, 909 non-vanilla) -> 8 mods, 524 items:
+  Structures Plus 731604991 (472, building), Krakens Better Dinos 1565015734 (32),
+  Upgrade Station 821530042 (7), Super Spyglass Plus 2594067220 (4), Dino Storage v2 1609138312 (4),
+  Awesome Teleporters 889745138 (3), Explorer Note Tracker 1631378184 (1),
+  Awesome SpyGlass 1404697612 (1). No mod used a numeric folder, so all needed --map.
+- BUG 1 (datapackage corruption): S+ reports 857 engrams under only 472 DISPLAY NAMES, and 4 of
+  those names collide with BASE-GAME engrams (Elevator Platform Large/Medium/Small, Water Tank
+  Metal). item_name_to_id is keyed by NAME and is CLASS-LEVEL, so shipping them unchanged would
+  have silently overwritten those vanilla ids for EVERY player, mod active or not. gen_mod.py now
+  groups by display name (one item owns a LIST of classes, `engram_classes`) and suffixes any
+  base-game clash with a mod tag. Verified: 0 collisions with base, 0 duplicates across the catalog.
+  (The 385 S+ duplicates turned out to be pure dump duplicates - identical name AND class - so no
+  coverage was lost.)
+- BUG 2 (wrong budget): create_items only checked `pool <= locations`. The REAL constraint also
+  needs a filler item for every EXCLUDED location (85 of them: holograms, alphas, grind milestones,
+  high levels, hard notes), else AP dies later with a bare "Not enough filler items for excluded
+  locations" FillError. Now checked up front with a message naming the count and the fixes.
+  Extracted `_excluded_progression_names()` so create_items and _regions_flat share one definition.
+- Added `Bundle: Adobe Structures` (8738007) + `Bundle: Glass Structures` (8738008): S+ adds those
+  material tiers (78 + 59 engrams). Empty bundles are NOT pooled, so a vanilla slot gains no dead
+  item. gen_mod.py pretty() also fixed - dump names end `_C_0`, so items were "... C 0".
+- RESULT: the 7 small mods FIT and generate (verified, real mod items in the seed). STRUCTURES PLUS
+  DOES NOT FIT on The Island alone - 572 items vs 557 usable slots, over by 15 even with
+  bundle_structures + bundle_saddles + free_starter_engrams. It needs the extra locations from
+  future map support; the error now says so precisely instead of failing as a FillError.
+
+## Added 2026-07-24 (plugin v98): mod support in the PLUGIN - grants + gates mod engrams
+
+- Closes the gap: the apworld was handing out mod items the server knew nothing about.
+- `Tables::Load` takes a `mods_dir` and reads data/mods/index.json + each listed <modid>.json.
+  ALL catalogued mods are loaded (the plugin has no yaml): gating an engram whose mod the player's
+  slot didn't enable is harmless - that class simply never gets granted. Each mod file is parsed in
+  its own try/catch so one broken file can't stop base-game loading.
+- One item can now own SEVERAL blueprint classes (`engram_classes`), which is how the apworld
+  groups a mod's duplicate display names. `g_itemToEngram` became
+  `unordered_map<int, vector<UClass*>>`; all 5 grant sites + DoReassert iterate the list. Base-game
+  items simply have a 1-element list.
+- Curated mod groups: `Tables::mod_bundles` (bundle item id -> member ITEM ids, taken straight from
+  the mod json so the two sides can't drift - unlike the structure bundles, which re-derive members
+  from a material word). `ApplyItem` routes a group id to the new `ApplyModBundle`, which grants
+  every member's classes and announces "Unlocked <bundle> (N engrams)". Members whose mod isn't
+  installed are skipped silently.
+- build_release.py now packages data/mods/*.json into ArkAP_plugin.zip (9 files). Verified the
+  shipped json parses with the exact logic Tables::Load uses: 539 items, 524 classes mapped,
+  15 bundles, 87 members - no unresolved members, no engram without a class.
+
+## OPEN 2026-07-24: remaining mod work
+
+- Scaffolding is in and tested against a synthetic 400-engram building mod + 3-engram utility mod
+  (fixture deliberately NOT shipped; the catalog ships EMPTY until a real dump exists):
+  * `data/mods/index.json` + `data/mods/<modid>.json`. Index-driven because pkgutil CANNOT list a
+    directory inside a zipped .apworld. Id space 8760000 + 10000/mod.
+  * `load_mod_catalog()`; mod content merged into the CLASS-LEVEL item/location tables, i.e. every
+    supported mod is always in the datapackage (it must be identical for all players); the yaml's
+    `mod_ids` only chooses which are ACTIVE for a slot, like dossier_checks subsets today. Two
+    players in one multiworld may therefore run different mod_ids safely.
+  * Unknown mod id -> OptionError naming the supported ones. Validated in `generate_early` so it
+    fails fast instead of as a stack trace mid-create_regions.
+  * building-kind mod + bundle_structures off -> OptionError explaining the pool math.
+  * `tools/gen_mod.py`: dump -> catalog. `--report` shows attribution first. Vanilla = six known
+    /Game/<root>/ paths; mods live under /Game/Mods/<folder>/ (folder is often the workshop id;
+    otherwise `--map FOLDER=MODID`). Engram ids are STABLE across re-dumps (mod updates) and a
+    shipped id_base is never moved.
+- BUG found + fixed during the test: `structure_bundle_members()` only saw BASE engrams, so a
+  building mod's 400 structures never folded into the bundles and blew the pool
+  (772 items > 642 locations). It now takes the active mods' engrams too.
+- STILL TO DO (needs the real dump): the PLUGIN also needs mod engram data - `g_tables` loads
+  engrams.json, so mod engrams must reach it (merge into the shipped engrams.json, or teach the
+  plugin to load data/mods/*.json) or it cannot grant/gate them in game.
+
+
+## Added 2026-07-24 (apworld+plugin): Tek + Thatch structure bundles (v97) - groundwork for mod support
+
+- Measured for the mod-support plan: at DEFAULT options the item pool is 635 vs 655 locations, i.e.
+  only ~20 items of headroom before create_items raises ValueError. Defaults are already at MAX
+  locations (dossier_checks 240 = range_end, tame/food sanity 100), so that is the best case.
+  A structure/QoL mod adds engrams but NO creatures, so it adds items without adding locations ->
+  no mod of any size fits until the pool shrinks. `bundle_structures` is what creates the budget.
+- Found the existing bundles only captured 142 of 283 structures. The rest split into
+  (a) correctly-individual functional pieces (Mortar And Pestle, Cooking Pot, Campfire, Crop Plot,
+  Storage Box - progression-relevant, must stay items) and (b) two building tiers with NO bundle:
+  Tek (47) and Thatch (8).
+- Added `Bundle: Tek Structures` (8738005) and `Bundle: Thatch Structures` (8738006). Coverage
+  142 -> 197 of 283. Headroom with bundling ON: ~158 -> **211**. Also auto-captures a building
+  MOD's Tek/Thatch pieces later, since the match rule is material-word based.
+- Ids + match rule are mirrored in the plugin (`kStructureBundles`, PluginMain.cpp) - kept in sync.
+- Verified: bundles OFF still generates (multiworld) and ON generates with all 6 bundle items
+  present and ZERO individual Tek/Thatch engrams.
+- NOTE: a transient LNK1000 needed `/t:Rebuild` again (second time). If the dll seems stale after a
+  build, check the build marker before assuming the code is wrong.
+
 ## Added 2026-07-23 (apworld/data): cave_tames corrected - PASSIVE tames were gated as KO tames
 
 - Review by Lurch9229 (2026-07-23): several `cave_tames` entries are PASSIVE tames, so requiring a
@@ -245,15 +602,16 @@
   `PatchGameIniFromFragment` gained a `dryRun` param for the read-only probe. Removed the old
   QueueMsg prompt and the now-unused `spawnPrompted_` member from APClient.hpp.
 
-## Added 2026-07-23 (tools): reset_ark_test.bat never wiped PER-PLAYER mailboxes
+## CORRECTION 2026-07-24: reset_ark_test.bat ALREADY wiped per-player mailboxes
 
-- Report: "used reset_ark and still no /confirm prompt - is something not getting wiped?" YES.
-  The reset deleted `%PLUGIN%\ipc\<file>` only, but with /connect each survivor gets its own
-  `ipc\<CharacterName>\` folder (the connect line literally says "mailbox Ghios"). Those
-  subfolders survived every reset, so a stale `game_ini_fragment.txt` from an OLD seed persisted -
-  which is why `/confirm` still had something to apply even though the current seed has
-  randomize_dino_spawns off. Fix: `for /d %%D in ("%PLUGIN%\ipc\*") do rd /s /q "%%D"`.
-  Verified incl. mailbox names containing spaces ("Bob Smith"); root-level ipc files preserved.
+- An earlier entry here claimed the reset script never wiped `ipc\<CharacterName>\` subfolders.
+  THAT WAS WRONG - `for /d %%D in ("%PLUGIN%\ipc\*") do rd /s /q "%%D"` was already present in HEAD
+  (the mistake came from a truncated `grep | head -20` that cut the line off). A duplicate copy was
+  added on 07-23 and has now been removed; only the original remains, with the rationale comment
+  folded into it.
+- The missing `/confirm` prompt was NOT caused by stale mailboxes. Real causes, both fixed:
+  (1) the msg_in boot-swallow ate the prompt (-> state-based ShowSpawnPrompt), and (2) the local
+  test yaml simply had randomize_dino_spawns off.
 - NOT a bug (explains the missing prompt): the prompt (APClient.hpp ~631) only fires when slot_data
   actually carries `spawn_overrides` - i.e. `randomize_dino_spawns` is ON in that yaml - and only
   once per session (`spawnPrompted_`). The test yaml doesn't set the option at all -> default off
