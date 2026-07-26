@@ -37,6 +37,47 @@ its Archipelago client.
 
 ---
 
+## ⭐ Easiest setup: the community Launcher (recommended)
+
+Setting the server up by hand (the rest of this guide) is fiddly. **[aSoberAvocado](https://github.com/aSoberAvocado)**
+(one of the alpha testers) built a Windows GUI launcher that automates almost all of it:
+
+### 👉 **[ARK-Ipelago-Evolved-Launcher](https://github.com/aSoberAvocado/ARK-Ipelago-Evolved-Launcher)**
+
+Download it from that repo's Releases, run it, and it handles the whole server side for you:
+
+- **Installs everything** — the ARK dedicated server (SteamCMD, Pre-Aquatica), ArkServerApi, and the
+  latest **ArkAP plugin**, each with one button. Upgrades preserve your existing config.
+- **Finds your paths** — "Scan for paths" auto-detects `SERVER_ROOT`, the plugin folder, the `ipc`
+  dir, `Game.ini`, and cluster folders (Quick / Thorough / Exhaustive intensity).
+- **Verifies the setup** — a Setup Status tab with pass/fail checkmarks and update notifications, so
+  you know it's wired up *before* you launch.
+- **Configures + launches** — fills in the connector settings, gives you the `/connect` command to
+  paste in-game, and runs `start_ase_server` for you.
+- **Quick-launch utilities** — folder shortcuts, map switching (with backup), **Game.ini patch for
+  randomized creatures**, **AP data reset** (keeps your world), and **full reset for a new seed**.
+- **Debug + support** — live `ArkAP_debug.log` viewer with search, config profiles, and a one-click
+  "Export diagnostics" zip (passwords redacted) for bug reports.
+
+**You still do one thing yourself:** generate & host the Archipelago room (your `ark.yaml` + the
+`ark_ase.apworld`) — see [Step 4](#step-4--generate--host-the-archipelago-seed) below. The launcher
+covers server install, plugin install, config, and launch (Steps 1–3 and 5 here).
+
+Its prerequisites match this guide: ARK on the **Pre-Aquatica** branch, ~18 GB free, SteamCMD, and a
+generated AP yaml + apworld. The launcher's own README has its step-by-step.
+
+> The launcher is a **community project** maintained separately from this repo — report launcher
+> bugs on *its* issue tracker, and ArkAP/apworld bugs on this one. The manual steps below stay as the
+> reference (and for non-Windows generators, troubleshooting, and understanding what the launcher
+> automates).
+
+---
+
+## Manual setup
+
+Prefer to wire it up yourself, or the launcher doesn't fit your setup? The rest of this guide is the
+full manual walkthrough.
+
 ## What to download
 
 From the [Releases page](https://github.com/Jbaker16163/Ark-Survival-Archipelago/releases), grab:

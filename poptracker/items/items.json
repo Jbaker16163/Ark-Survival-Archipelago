@@ -3374,6 +3374,286 @@
   "disabled_img": "images/apex_off.png"
  },
  {
+  "name": "Collect 300 Wood",
+  "type": "toggle",
+  "codes": "inv_collect_300_wood",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 300 Stone",
+  "type": "toggle",
+  "codes": "inv_collect_300_stone",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 300 Thatch",
+  "type": "toggle",
+  "codes": "inv_collect_300_thatch",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 300 Fiber",
+  "type": "toggle",
+  "codes": "inv_collect_300_fiber",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 100 Flint",
+  "type": "toggle",
+  "codes": "inv_collect_100_flint",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 100 Charcoal",
+  "type": "toggle",
+  "codes": "inv_collect_100_charcoal",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 200 Mejoberries",
+  "type": "toggle",
+  "codes": "inv_collect_200_mejoberries",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 100 Raw Meat",
+  "type": "toggle",
+  "codes": "inv_collect_100_raw_meat",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 600 Wood",
+  "type": "toggle",
+  "codes": "inv_collect_600_wood",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 600 Stone",
+  "type": "toggle",
+  "codes": "inv_collect_600_stone",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 500 Thatch",
+  "type": "toggle",
+  "codes": "inv_collect_500_thatch",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 500 Fiber",
+  "type": "toggle",
+  "codes": "inv_collect_500_fiber",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 500 Hide",
+  "type": "toggle",
+  "codes": "inv_collect_500_hide",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 200 Metal Ore",
+  "type": "toggle",
+  "codes": "inv_collect_200_metal_ore",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 200 Chitin",
+  "type": "toggle",
+  "codes": "inv_collect_200_chitin",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 100 Keratin",
+  "type": "toggle",
+  "codes": "inv_collect_100_keratin",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 100 Pelt",
+  "type": "toggle",
+  "codes": "inv_collect_100_pelt",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 50 Sap",
+  "type": "toggle",
+  "codes": "inv_collect_50_sap",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 100 Cementing Paste",
+  "type": "toggle",
+  "codes": "inv_collect_100_cementing_paste",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 100 Sparkpowder",
+  "type": "toggle",
+  "codes": "inv_collect_100_sparkpowder",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 100 Gunpowder",
+  "type": "toggle",
+  "codes": "inv_collect_100_gunpowder",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 100 Narcotic",
+  "type": "toggle",
+  "codes": "inv_collect_100_narcotic",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 100 Stimulant",
+  "type": "toggle",
+  "codes": "inv_collect_100_stimulant",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 30 Leech Blood",
+  "type": "toggle",
+  "codes": "inv_collect_30_leech_blood",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 30 Achatina Paste",
+  "type": "toggle",
+  "codes": "inv_collect_30_achatina_paste",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 50 Raw Prime Meat",
+  "type": "toggle",
+  "codes": "inv_collect_50_raw_prime_meat",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 400 Metal Ore",
+  "type": "toggle",
+  "codes": "inv_collect_400_metal_ore",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 100 Metal Ingot",
+  "type": "toggle",
+  "codes": "inv_collect_100_metal_ingot",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 400 Chitin",
+  "type": "toggle",
+  "codes": "inv_collect_400_chitin",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 200 Cementing Paste",
+  "type": "toggle",
+  "codes": "inv_collect_200_cementing_paste",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 50 Electronics",
+  "type": "toggle",
+  "codes": "inv_collect_50_electronics",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 100 Organic Polymer",
+  "type": "toggle",
+  "codes": "inv_collect_100_organic_polymer",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 50 Black Pearl",
+  "type": "toggle",
+  "codes": "inv_collect_50_black_pearl",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 50 Angler Gel",
+  "type": "toggle",
+  "codes": "inv_collect_50_angler_gel",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 50 Bio Toxin",
+  "type": "toggle",
+  "codes": "inv_collect_50_bio_toxin",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 30 Absorbent Substrate",
+  "type": "toggle",
+  "codes": "inv_collect_30_absorbent_substrate",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 50 Gasoline",
+  "type": "toggle",
+  "codes": "inv_collect_50_gasoline",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 200 Metal Ingot",
+  "type": "toggle",
+  "codes": "inv_collect_200_metal_ingot",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 10 Element",
+  "type": "toggle",
+  "codes": "inv_collect_10_element",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 100 Element Dust",
+  "type": "toggle",
+  "codes": "inv_collect_100_element_dust",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
   "name": "Citronal x10",
   "type": "toggle",
   "codes": "inv_citronal_x10",
@@ -5218,62 +5498,6 @@
   "name": "??? Note #5 (idx 520)",
   "type": "toggle",
   "codes": "dossier_note_5_idx_520",
-  "img": "images/dossier.png",
-  "disabled_img": "images/dossier_off.png"
- },
- {
-  "name": "HLN-A Discovery #1",
-  "type": "toggle",
-  "codes": "dossier_hln_a_discovery_1",
-  "img": "images/dossier.png",
-  "disabled_img": "images/dossier_off.png"
- },
- {
-  "name": "HLN-A Discovery #2",
-  "type": "toggle",
-  "codes": "dossier_hln_a_discovery_2",
-  "img": "images/dossier.png",
-  "disabled_img": "images/dossier_off.png"
- },
- {
-  "name": "HLN-A Discovery #3",
-  "type": "toggle",
-  "codes": "dossier_hln_a_discovery_3",
-  "img": "images/dossier.png",
-  "disabled_img": "images/dossier_off.png"
- },
- {
-  "name": "Genesis Chronicles #1",
-  "type": "toggle",
-  "codes": "dossier_genesis_chronicles_1",
-  "img": "images/dossier.png",
-  "disabled_img": "images/dossier_off.png"
- },
- {
-  "name": "Genesis Chronicles #2",
-  "type": "toggle",
-  "codes": "dossier_genesis_chronicles_2",
-  "img": "images/dossier.png",
-  "disabled_img": "images/dossier_off.png"
- },
- {
-  "name": "Genesis Chronicles #3",
-  "type": "toggle",
-  "codes": "dossier_genesis_chronicles_3",
-  "img": "images/dossier.png",
-  "disabled_img": "images/dossier_off.png"
- },
- {
-  "name": "Genesis Chronicles #4",
-  "type": "toggle",
-  "codes": "dossier_genesis_chronicles_4",
-  "img": "images/dossier.png",
-  "disabled_img": "images/dossier_off.png"
- },
- {
-  "name": "Genesis Chronicles #5",
-  "type": "toggle",
-  "codes": "dossier_genesis_chronicles_5",
   "img": "images/dossier.png",
   "disabled_img": "images/dossier_off.png"
  },

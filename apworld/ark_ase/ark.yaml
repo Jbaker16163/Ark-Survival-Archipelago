@@ -43,7 +43,7 @@ ARK Survival Evolved:
   tier0_add: []
   tier0_remove: []
   # Explorer-note checks to include (max 240, The Island's collectible notes). Keep at max.
-  dossier_checks: 240
+  dossier_checks: 232
   # Percent of the 14 food "hold N in inventory" checks included (0/25/50/75/100).
   food_sanity: 100
   # Percent of per-species "Tamed: X" checks required (25/50/75/100). Lower = fewer required
@@ -59,6 +59,12 @@ ARK Survival Evolved:
   # 197 engrams collapse into 6 items. Crafting stations + utility structures (Mortar And Pestle,
   # Cooking Pot, Campfire, Crop Plots...) stay individual. Shrinks the item pool by ~190.
   bundle_structures: false
+  # Group unlocks so ONE item unlocks several at once (1 = off; 2-4 = fold that many together).
+  # engrams_per_item groups engrams in progression order; tames_per_item groups tames within a
+  # progression tier. Shrinks the item pool a lot (freed slots become filler); logic + the plugin
+  # follow automatically. 'Tame N Species' milestones become filler-only when tames_per_item > 1.
+  engrams_per_item: 1
+  tames_per_item: 1
   # FULLY randomize which species live where: each biome's spawn roster is replaced by a seeded
   # hand of species; every species still spawns somewhere (checks stay obtainable).
   # off | grouped (habitat-appropriate + predators kept rare) | chaos (anything anywhere, equal

@@ -31,6 +31,16 @@ ARK dedicated server ── ArkAP plugin ──(websocket, via in-game /connect)
 
 ## Install (players)
 
+> ### ⭐ Easiest: use the community Launcher
+> [aSoberAvocado](https://github.com/aSoberAvocado) built a Windows GUI that automates the whole
+> server side — installing the ARK server (SteamCMD, Pre-Aquatica), ArkServerApi, and the ArkAP
+> plugin; scanning your paths; verifying the setup; and launching it, plus map-switch / reset /
+> Game.ini-patch utilities and a debug-log viewer:
+> ### 👉 **[ARK-Ipelago-Evolved-Launcher](https://github.com/aSoberAvocado/ARK-Ipelago-Evolved-Launcher)**
+> You still generate & host the AP room yourself (yaml + apworld). It's a **separate community
+> project** — launcher issues go on its tracker. The manual steps below (and the full guide) remain
+> the reference.
+
 The short version is below; **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)** is the full
 walkthrough (getting ASE onto the Pre-Aquatica branch via SteamCMD, ArkServerApi, LAN join, and a
 smoke test). Everything except the game client runs on the **Server PC**.
@@ -115,3 +125,10 @@ default config), connector (exe + ini), and tracker zips into `dist/` ready to a
 release. The apworld, plugin, and PopTracker all read the same `data/*.json`, so after any data
 change rebuild all of them (build_release does this) and **regenerate the seed** — a running room
 has its datapackage frozen at generation time.
+
+---
+
+## Credits
+
+Thank you to a drunk Avocado, Beeno, Lurch9229, and Wizard_Brandon for helping test and put the
+entire ARK archipelago together.

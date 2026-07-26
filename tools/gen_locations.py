@@ -65,9 +65,9 @@ MISC = {  # ??? notes, boss holograms, HLN-A, Genesis chronicles present on The 
     517: "??? Note #4 (idx 517)", 520: "??? Note #5 (idx 520)",
     87: "Hologram: Broodmother", 88: "Hologram: Megapithecus", 89: "Hologram: Dragon",
     353: "Hologram: Overseer",
-    688: "HLN-A Discovery #1", 689: "HLN-A Discovery #2", 690: "HLN-A Discovery #3",
-    853: "Genesis Chronicles #1", 854: "Genesis Chronicles #2", 855: "Genesis Chronicles #3",
-    856: "Genesis Chronicles #4", 857: "Genesis Chronicles #5",
+    # HLN-A Discovery (688-690) + Genesis Chronicles (853-857) REMOVED: collecting them needs the
+    # HLN-A skin, only granted when the Genesis DLC is owned - a DLC-less player can never get the
+    # skin (tested), so these checks would strand items. (Lurch, 2026-07-25.)
 }
 
 # ---------------- other categories ----------------
@@ -126,6 +126,10 @@ KILL_SPECIES = [(5, 0), (10, 1), (20, 1), (50, 2), (100, 3)]
 NOTE_COUNTS = list(range(25, 251, 25))       # Collect 25..250 notes
 
 # additional "collect N of resource" inventory checks (name, class-substring, qty, tier).
+# item_class is SUBSTRING-matched against GetFullName; a few use the "_C" class-end anchor to avoid
+# cross-matching a longer sibling (Metal vs MetalIngot, RawMeat vs RawMeat_Fish, Element vs
+# ElementDust). Island-harvestable resources only. APPEND new entries - never reorder, ids are
+# INV_ID_BASE+200+index and must not move for already-shipped checks.
 RESOURCE_INV = [
     ("Collect 1000 Hide", "PrimalItemResource_Hide", 1000, 1),
     ("Collect 5 Woolly Rhino Horn", "PrimalItemResource_Horn", 5, 2),
@@ -133,6 +137,51 @@ RESOURCE_INV = [
     ("Collect 250 Oil", "PrimalItemResource_Oil", 250, 2),
     ("Collect 100 Obsidian", "PrimalItemResource_Obsidian", 100, 2),
     ("Collect 100 Crystal", "PrimalItemResource_Crystal", 100, 2),
+    # --- added 2026-07-25: more raw-gather checks (raise the location count) ---
+    # tier 0: early hand-gather
+    ("Collect 300 Wood", "PrimalItemResource_Wood", 300, 0),
+    ("Collect 300 Stone", "PrimalItemResource_Stone", 300, 0),
+    ("Collect 300 Thatch", "PrimalItemResource_Thatch", 300, 0),
+    ("Collect 300 Fiber", "PrimalItemResource_Fibers", 300, 0),
+    ("Collect 100 Flint", "PrimalItemResource_Flint", 100, 0),
+    ("Collect 100 Charcoal", "PrimalItemResource_Charcoal", 100, 0),
+    ("Collect 200 Mejoberries", "PrimalItemConsumable_Berry_Mejoberry", 200, 0),
+    ("Collect 100 Raw Meat", "PrimalItemConsumable_RawMeat_C", 100, 0),
+    # tier 1: early-mid tools / mortar+forge
+    ("Collect 600 Wood", "PrimalItemResource_Wood", 600, 1),
+    ("Collect 600 Stone", "PrimalItemResource_Stone", 600, 1),
+    ("Collect 500 Thatch", "PrimalItemResource_Thatch", 500, 1),
+    ("Collect 500 Fiber", "PrimalItemResource_Fibers", 500, 1),
+    ("Collect 500 Hide", "PrimalItemResource_Hide", 500, 1),
+    ("Collect 200 Metal Ore", "PrimalItemResource_Metal_C", 200, 1),
+    ("Collect 200 Chitin", "PrimalItemResource_Chitin", 200, 1),
+    ("Collect 100 Keratin", "PrimalItemResource_Keratin", 100, 1),
+    ("Collect 100 Pelt", "PrimalItemResource_Pelt", 100, 1),
+    ("Collect 50 Sap", "PrimalItemResource_Sap", 50, 1),
+    ("Collect 100 Cementing Paste", "PrimalItemResource_ChitinPaste", 100, 1),
+    ("Collect 100 Sparkpowder", "PrimalItemResource_Sparkpowder", 100, 1),
+    ("Collect 100 Gunpowder", "PrimalItemResource_Gunpowder", 100, 1),
+    ("Collect 100 Narcotic", "PrimalItemConsumable_Narcotic", 100, 1),
+    ("Collect 100 Stimulant", "PrimalItemConsumable_Stimulant", 100, 1),
+    ("Collect 30 Leech Blood", "PrimalItemConsumable_LeechBlood", 30, 1),
+    ("Collect 30 Achatina Paste", "PrimalItemResource_SnailPaste", 30, 1),
+    ("Collect 50 Raw Prime Meat", "PrimalItemConsumable_RawPrimeMeat_C", 50, 1),
+    # tier 2: metal age
+    ("Collect 400 Metal Ore", "PrimalItemResource_Metal_C", 400, 2),
+    ("Collect 100 Metal Ingot", "PrimalItemResource_MetalIngot", 100, 2),
+    ("Collect 400 Chitin", "PrimalItemResource_Chitin", 400, 2),
+    ("Collect 200 Cementing Paste", "PrimalItemResource_ChitinPaste", 200, 2),
+    ("Collect 50 Electronics", "PrimalItemResource_Electronics", 50, 2),
+    ("Collect 100 Organic Polymer", "PrimalItemResource_Polymer_Organic", 100, 2),
+    ("Collect 50 Black Pearl", "PrimalItemResource_BlackPearl", 50, 2),
+    ("Collect 50 Angler Gel", "PrimalItemResource_AnglerGel", 50, 2),
+    ("Collect 50 Bio Toxin", "PrimalItemConsumable_JellyVenom", 50, 2),
+    ("Collect 30 Absorbent Substrate", "PrimalItemResource_SubstrateAbsorbent", 30, 2),
+    ("Collect 50 Gasoline", "PrimalItemResource_Gasoline", 50, 2),
+    # tier 3: endgame / tek
+    ("Collect 200 Metal Ingot", "PrimalItemResource_MetalIngot", 200, 3),
+    ("Collect 10 Element", "PrimalItemResource_Element_C", 10, 3),
+    ("Collect 100 Element Dust", "PrimalItemResource_ElementDust", 100, 3),
 ]
 
 # food "hold N" inventory checks (ark.wiki.gg/wiki/Food). The food_sanity yaml option includes a

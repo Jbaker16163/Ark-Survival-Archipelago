@@ -1,5 +1,190 @@
 # Known bugs / open items
 
+## Added 2026-07-26: FIXED - group members not granted (nlohmann temporary-lifetime bug)
+
+- ROOT CAUSE (found via v106 diag "item_groups_key=1 parsed=0"): the flags-refresh parsed item_groups
+  with `for (auto& [k,v] : j.value("item_groups", json::object()).items())`. `.items()` on the
+  value() TEMPORARY holds a reference to a json that's destroyed before the loop runs (range-for does
+  NOT lifetime-extend that inner temporary), so it iterated a dead object -> ZERO entries, even though
+  the file was perfect (5702 bytes, key present, 290 groups). g_routeItemGroups stayed empty -> no
+  inline expansion, no reconcile. (mod_ids worked because it iterates the temporary DIRECTLY, which
+  IS lifetime-extended.)
+- Fix (v107-group-parse-fix): iterate the real member `j["item_groups"].items()` (guarded by
+  contains + is_object), not a value() temporary.
+- The reconcile (v104) + inline expansion (v100) were correct all along - they just never had data.
+  With the parse fixed, both work; reconcile retroactively grants every already-stuck member.
+- Lesson: never call `.items()` on a `j.value(key, default)` result - bind to a reference/named var
+  or use `j[key]`. Audit for other `.value(...).items()` uses (only item_groups had it).
+
+## Added 2026-07-26: group members not granted in-game (reconcile fix)
+
+- Report: with engrams_per_item/tames_per_item, receiving a representative granted ONLY the rep, not
+  the folded member (Stone Hatchet without Stone Club). Plugin was v102 (has the inline expansion).
+- Confirmed apworld side is CORRECT: decoded the multidata slot_data of a fresh engrams_per_item:2
+  seed - item_groups present, 243 groups, string keys, right rep->member ids. So delivery/timing on
+  the plugin side is the fault.
+- Root causes the inline ApplyItem expansion misses: (1) DoTick runs PollIncoming (applies items)
+  BEFORE the flags refresh that loads g_routeItemGroups - a rep in the connect backlog expands
+  against an empty map; (2) a rep received before the plugin was updated never retroactively grants
+  its member; (3) flags could load under a different route than items apply on.
+- Fix (v104-group-reconcile): a per-tick RECONCILE sweep after the flags refresh. Unions all routes'
+  item_groups (identical per seed), then for every player route (+ "") that OWNS a rep but not a
+  member, grants the member (AddItem + engram class). Idempotent, route-agnostic, cheap. Fixes
+  timing, mid-game updates, AND retroactively grants already-stuck members. Inline expansion kept for
+  same-tick immediacy.
+- STILL depends on g_routeItemGroups being populated from flags.json. If a server's flags.json lacks
+  "item_groups" (very old APClient), reconcile has nothing to do - verify the route's flags.json.
+
+## Added 2026-07-25: alias Kraken's Better Dinos (BD-prefixed) dinos to vanilla kill/tame checks
+
+- Mod 1565015734 REPLACES vanilla dinos with classes whose DinoNameTag is prefixed BD / BD_ /
+  BDBionic (log: "KILL tag=BD_Dilo mapped=0" - never fired; vanilla "Dilo" mapped=1). So kill/tame
+  checks (and lock_taming gating) silently failed for every replaced species.
+- Fix in DinoTag (PluginMain.cpp): CanonDinoTag() strips BDBionic/BD_/BD but ONLY when the stripped
+  form is a real vanilla tag (KnownDinoTag = in g_killTagToLoc / g_tameTagToItem / g_tameTagToTameLoc).
+  So BD_Dilo->Dilo, BDBionicAnkylo->Ankylo, BDCoel->Coel map to vanilla; genuinely-new mod creatures
+  keep their raw tag (still mapped=0, still log-visible for harvesting). No vanilla tag starts with
+  "BD", so nothing is shadowed. One fix covers kill + tame + breed + tame-gate (all route DinoTag).
+- Plugin v101 -> v102 -> v103-bd-alias-bionic+tagdump. Data-only mods (dinos.json/apworld) unchanged.
+- v103: prefix list now BDBionic / BD_ / BD / Bionic (Bionic catches Kraken's Tek variants
+  BionicRaptor/Stego/Para). NOT Mega - MegaRaptor/MegaRex are the VANILLA alphas (own checks).
+- v103: /dumpdinos (ArkAP_dino_classes.jsonl) now emits {"class","tag","canon","mapped"} - tag is the
+  real DinoNameTag, canon = CanonDinoTag(tag), mapped = does it hit a kill/tame check. So a re-dump
+  shows exactly which modded creatures still fall through (mapped:false). Delete the old jsonl first
+  (dedup is in-memory; the old file has class-only lines).
+- CLASS != TAG: Kraken keeps vanilla CLASS names (Dilo_Character_BP_C) but overrides DinoNameTag to
+  BD_Dilo - the alias keys on the TAG, which is why a class dump alone can't confirm coverage.
+- NOT live-tested: needs a server with Kraken's active - kill a BD_Dilo, confirm "mapped=1" + the
+  Killed: Dilophosaur check fires; tame a BD_ dino, confirm lock_taming gates + Tamed check fires.
+
+## Added 2026-07-25: removed HLN-A Discovery + Genesis Chronicles notes (DLC-gated)
+
+- Collecting these 8 notes needs the HLN-A skin, which is ONLY granted when Genesis DLC is owned
+  (Lurch tested: no skin without the DLC), so DLC-less players could never get them -> stranded
+  items. REMOVED as locations entirely (not just excluded from progression).
+- gen_locations.py MISC: dropped note indices 688-690 (HLN-A Discovery #1-3) + 853-857 (Genesis
+  Chronicles #1-5). Kept ??? notes (508-520, real Island notes) and boss holograms. Notes 240 -> 232.
+- __init__.py HARD_NOTE_PREFIXES trimmed to ("Hologram: ", "??? Note") - the two removed prefixes
+  had nothing left to exclude.
+- Headroom NEUTRAL: the 8 were HARD_NOTE-excluded (filler-only), so removing them drops n_locations
+  AND n_excluded by 8 each - no change to usable slots (Lurch was right; no "replace" needed).
+- DossierChecks: default 240 -> 232 (the true note count), but range_end kept at 240 so existing
+  yamls with dossier_checks 233-240 don't error - values above 232 just slice to the 232 available.
+  Verified generate clean at 232 / 239 / 240.
+
+## Added 2026-07-25: /hint is free (no in-game resource cost) + shows location
+
+- /hint now reveals DIRECTLY and FREE - no ARK resource charge, no /buyhint two-step. DoHint writes
+  the item name to hint_out.jsonl; the connector/APClient run AP's !hint. Removed ResCost/HintCost/
+  CostLabel/RemoveResource/DoHintQuote/DoHintBuy. /buyhint kept as a legacy alias -> same free reveal.
+  (Kept CountResource - it also powers the "Collect N X" inventory-check detection, not just hints.)
+- Plugin v100 -> v101-free-hint.
+- LOCATION IN HINT: already correct in current code - both the connector (ark_ap_connector.py:408)
+  and embedded APClient (APClient.hpp:447) print "<item> is at <location> in <finder>'s world". The
+  reported screenshot ("... is in <player>'s world", no location) was an OLDER build; updating the
+  plugin+connector fixes it. No code change needed for that half.
+- AP's own hint-point economy still applies server-side; set the room hint_cost to 0 to make hints
+  fully free there too (that's a host.yaml / room setting, not something the plugin controls).
+
+## Added 2026-07-25: +40 resource "Collect N" inventory checks (raise location count)
+
+- gen_locations.py RESOURCE_INV grew 6 -> 46 (inventory_checks 60 -> 100). All Island-harvestable
+  raw resources across tiers 0-3 (Wood/Stone/Thatch/Fiber/Flint/Charcoal/Mejoberry/RawMeat ...
+  Metal/Chitin/Keratin/Pelt/Sap/Paste/powders/Narcotic/Stimulant/LeechBlood/SnailPaste ...
+  MetalIngot/Electronics/OrganicPolymer/BlackPearl/AnglerGel/BioToxin/Substrate/Gasoline ...
+  Element/ElementDust). item_class is SUBSTRING-matched vs GetFullName; Metal/RawMeat/Element use the
+  "_C" class-end anchor so they don't cross-match MetalIngot/RawMeat_Fish/ElementDust.
+- These are ALWAYS-ON (no sanity gate), so every seed gains +40 non-excluded locations -> more pool
+  headroom (the fix for "N items but only M usable slots"). Default solo: 643 -> 683 locations.
+- IDs appended (INV_ID_BASE+200+i); existing 6 keep ids 8757200-8757205, new ones 8757206+. Never
+  reorder RESOURCE_INV or shipped ids move.
+- Plugin detects them automatically off the packaged locations.json (same inventory scan as the old
+  checks - no plugin change). CAUTION: class substrings are canonical-from-memory, not dump-verified;
+  a wrong substring just means that one check never fires. Smoke-test the odd ones in-game.
+- NOTE: heavily slashing dossier_checks/tame_sanity/food_sanity still removes locations faster than
+  +40 adds - such configs still need engrams_per_item/bundle_structures to shrink the pool.
+
+## Added 2026-07-25: engrams_per_item / tames_per_item (count-grouping)
+
+- Two Range(1-4, default 1) options. N>1 folds N engrams/tames into ONE unlock item:
+    engrams_per_item - loose engrams chunked in ID order (= dump/tech/progression order).
+    tames_per_item   - tame items chunked WITHIN each DINO_TIER bucket (never cross a tier).
+  Representative = lowest-id in each chunk; the others are folded (skipped from the pool).
+- Datapackage-SAFE: item names/ids never change (they must be identical for all players). The
+  option only changes (1) which items are POOLED, (2) the per-slot logic remap, (3) per-slot
+  slot_data `item_groups` {rep id -> [member ids]}. Different players can pick different N.
+- apworld (__init__.py): _engram_groups / _tame_groups / _nonpool_names / _engram_group_members /
+  _tame_group_members / _group_forced_progression / _tame_rep_of / _item_groups_slotdata.
+  _bundle_remap folds member engram -> rep. create_items skips members. lock_taming rule requires
+  _tame_rep_of(item). tame-count milestones already filler-only (GRIND_TAGS) so their has_from_list
+  rule is skipped when grouping.
+- BUG fixed during build: a tame rep that is a NO_TAME_LOGIC dino (Electrophorus was Kaprosuchus's
+  T2 rep) is normally 'useful', but as a rep it GATES Tamed: Kaprosuchus -> accessibility check
+  (progression-only state) couldn't reach it. Fix: _group_forced_progression also marks a tame rep
+  progression when it/any member is a real (non-NO_TAME_LOGIC) tame under lock_taming.
+- Delivery: item_groups rides in flags.json (both the python connector AND the embedded APClient.hpp
+  write it). Plugin (PluginMain.cpp v100-count-grouping): g_routeItemGroups loaded per route; in
+  ApplyItem a representative also AddItem()s every member + grants its engram class (identical to the
+  bundle_saddles path - reuses the gate + reassert, no new gating). Members are never pooled so AP
+  never sends them; the rep expands them locally.
+- Verified: generate beatable at 1/2, 3/2, 4/4; 4/4 drops engram item placements ~500 -> 120,
+  tames ~90 -> 26 (backfilled with filler). Plugin compiled clean; connector exe rebuilt; release
+  packaged (dll in zip carries v100). Example ark.yaml documents both options (default 1 = off).
+- NOT live-tested in-game yet (same caveat as the mod path): the rep->member unlock is unverified on
+  a real server. Smoke test: set engrams_per_item: 2, receive a rep, confirm both engrams learn.
+- SPOILER VISIBILITY: the per-location line can only show the ONE representative name (item names are
+  the static datapackage - can't rename per-N/seed). Added World.write_spoiler() -> appends an "ARK
+  grouped unlocks (<player>)" section listing "rep + member(s)" for every engram/tame group, so both
+  items are visible in the spoiler text. Only emitted when grouping is on (empty groups -> no section).
+
+## Added 2026-07-25: resource "Pack" filler + weighted filler selection
+
+- Added 9 multi-item good-filler "Packs" (ids 8739560-8739568) to filler.json (both copies):
+  Basic(w5), Geode(w4), Food(w5), Kibble(w2), DLC(w3), Special Drops(w2), Basic Drops(w5),
+  Mortar(w4), Misc(w3). Each is one `give` with a `gives[]` array (plugin already supports it,
+  PluginMain.cpp:2048). The spec's "Resource (Egg)" (w2) had NO item list - skipped, flag to user.
+- New optional `"weight"` field (default 1) on filler entries. `_filler_weight` map in __init__.py;
+  `get_filler_item_name` + create_items now use `random.choices(..., weights=w)` instead of flat
+  `random.choice`, so the weighted Packs show up more than one-off buffs/single-resource gives.
+  Weights only bias GOOD vs GOOD (and trap vs trap); trap_percentage still splits good/trap.
+- Verified: 5-player generate beatable; 43 packs placed, w5 types dominate (Basic Drops 11, Basic 8,
+  Food 6) vs w2 (Kibble 2, Special Drops 1). Both filler.json copies parse, no dup ids.
+- CAUTION: raw-resource GFI paths (esp. DLC roots - Scorched Sand/Sulfur/Salt/Silk/Propellant/
+  CactusSap, Aberration Gems/Gas/FungalWood, PrimalEarth/Test veggies, JellyVenom=Bio Toxin,
+  SnailPaste=Achatina Paste) are canonical-from-memory, NOT verified against a live dump. A wrong
+  path = that one line silently gives nothing (GiveItem no-op). Smoke-test in-game and patch any miss.
+
+## Added 2026-07-25: Campfire hard-placed on an early kill (replaces free-at-start)
+
+- Superseded the precollect below. Campfire is no longer free/auto-granted; it's LOCKED onto a
+  seeded weak-dino kill so it's trivially early but earned in-world. HARD_PLACED = {"Engram:
+  Campfire"}, EARLY_KILL_HOSTS = Dodo/Compy/Dilo/Lystro/Moschops (all sphere-0 kills, all present).
+- CORE_AUTO_GRANT now empty (mods can still auto_grant). HARD_PLACED added to _nonpool_names so
+  Campfire is out of the pool AND out of engram grouping. pre_fill place_locked_item()s it on a
+  random available host (distinct per item; same pattern as the retired tier-gate placement).
+- No plugin change: Campfire is an ordinary engram item now (id 8730001) - the kill sends it, the
+  plugin grants it. Verified: placed on Killed: {Dodo/Moschops...}, never in Starting Items,
+  beatable with grouping on/off across seeds.
+- FIX: EARLY_KILL_HOSTS first used dino_tags (Compy/Dilo/Lystro) but _used_locations keys kill
+  checks by d["name"] || ap_name-derived short -> only "Killed: Dodo"/"Killed: Moschops" matched, so
+  the pick was silently limited to 2 of 5 hosts. Corrected to the LOCATION-name shorts
+  (Compsognathus/Dilophosaur/Lystrosaurus). Now all 5 hosts appear uniformly.
+- Large test (10 solo + 10 multi x3 = 40 ARK slots, option matrix: engrams/tames_per_item 1-4,
+  bundle_structures, bundle/starter off, lock_taming off, progression_tiers, early_dino_checks,
+  S+ mods): 20/20 generations clean, every slot's Campfire on a Killed: early host, no fill/
+  accessibility errors. Harness: scratchpad/camp_test.py.
+
+## Added 2026-07-25: Campfire always granted at start (sphere 0)  [SUPERSEDED above]
+
+- With free_starter_engrams OFF (shipped default) Campfire was a pooled progression item - it landed
+  on Tamed: Triceratops (~sphere 1-2). It's a fundamental starter engram AND a deep dependency
+  (cooked meat -> gunpowder -> Rifle KO all need it), so a late placement strands a whole chain.
+- `CORE_AUTO_GRANT = {"Engram: Campfire"}` - merged into `_auto_grant_names`, so it's removed from
+  the pool and push_precollected UNCONDITIONALLY (reuses the mod auto-grant path; no plugin change,
+  AP delivers precollected items on connect). Verified: Campfire is in Starting Items with
+  free_starter both on and off; never placed; beatable. Add more fundamentals to the set if needed.
+
+
 ## Added 2026-07-25: cave requirements replaced with Lurch's playtested table
 
 - The old cave_reqs were a combat-floor heuristic (Crossbow/Rifle KO + gear). Lurch playtested the

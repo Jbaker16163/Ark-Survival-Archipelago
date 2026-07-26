@@ -351,7 +351,11 @@ class Bridge:
             # relay plugin-side flags (the plugin reads ipc/flags.json)
             with open(os.path.join(self.ipc_dir, "flags.json"), "w", encoding="utf-8") as fh:
                 json.dump({"bundle_saddles": bool(sd.get("bundle_saddles", False)),
-                           "free_starter_engrams": bool(sd.get("free_starter_engrams", False))}, fh)
+                           "free_starter_engrams": bool(sd.get("free_starter_engrams", False)),
+                           "mod_ids": sd.get("mod_ids", []),
+                           # engrams_per_item / tames_per_item: {rep item id -> [folded member ids]}.
+                           # The plugin unlocks a group's members when the representative arrives.
+                           "item_groups": sd.get("item_groups", {})}, fh)
             self._total_locs = len(msg.get("checked_locations", [])) + len(msg.get("missing_locations", []))
             self._hint_points = msg.get("hint_points", 0)
             self._write_hint_status()

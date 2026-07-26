@@ -2233,11 +2233,11 @@
         },
         {
          "type": "item",
-         "item": "inv_citronal_x10"
+         "item": "inv_collect_300_wood"
         },
         {
          "type": "item",
-         "item": "inv_longrass_x10"
+         "item": "inv_collect_300_stone"
         }
        ]
       },
@@ -2245,6 +2245,184 @@
        "type": "array",
        "orientation": "horizontal",
        "content": [
+        {
+         "type": "item",
+         "item": "inv_collect_300_thatch"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_300_fiber"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_100_flint"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_100_charcoal"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_200_mejoberries"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_100_raw_meat"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_600_wood"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_600_stone"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_500_thatch"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_500_fiber"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_500_hide"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_200_metal_ore"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "inv_collect_200_chitin"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_100_keratin"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_100_pelt"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_50_sap"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_100_cementing_paste"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_100_sparkpowder"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_100_gunpowder"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_100_narcotic"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_100_stimulant"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_30_leech_blood"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_30_achatina_paste"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_50_raw_prime_meat"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "inv_collect_400_metal_ore"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_100_metal_ingot"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_400_chitin"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_200_cementing_paste"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_50_electronics"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_100_organic_polymer"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_50_black_pearl"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_50_angler_gel"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_50_bio_toxin"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_30_absorbent_substrate"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_50_gasoline"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_200_metal_ingot"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "inv_collect_10_element"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_100_element_dust"
+        },
+        {
+         "type": "item",
+         "item": "inv_citronal_x10"
+        },
+        {
+         "type": "item",
+         "item": "inv_longrass_x10"
+        },
         {
          "type": "item",
          "item": "inv_rockarrot_x10"
@@ -2276,7 +2454,13 @@
         {
          "type": "item",
          "item": "inv_cooked_prime_fish_meat_x20"
-        },
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
         {
          "type": "item",
          "item": "inv_giant_bee_honey_x3"
@@ -2405,7 +2589,7 @@
      "type": "tabbed",
      "tabs": [
       {
-       "title": "1-240",
+       "title": "1-232",
        "content": {
         "type": "array",
         "orientation": "vertical",
@@ -3375,38 +3559,6 @@
            {
             "type": "item",
             "item": "dossier_note_5_idx_520"
-           },
-           {
-            "type": "item",
-            "item": "dossier_hln_a_discovery_1"
-           },
-           {
-            "type": "item",
-            "item": "dossier_hln_a_discovery_2"
-           },
-           {
-            "type": "item",
-            "item": "dossier_hln_a_discovery_3"
-           },
-           {
-            "type": "item",
-            "item": "dossier_genesis_chronicles_1"
-           },
-           {
-            "type": "item",
-            "item": "dossier_genesis_chronicles_2"
-           },
-           {
-            "type": "item",
-            "item": "dossier_genesis_chronicles_3"
-           },
-           {
-            "type": "item",
-            "item": "dossier_genesis_chronicles_4"
-           },
-           {
-            "type": "item",
-            "item": "dossier_genesis_chronicles_5"
            },
            {
             "type": "item",

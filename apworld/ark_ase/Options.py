@@ -226,6 +226,35 @@ class BundleStructures(Toggle):
     default = 0
 
 
+class EngramsPerItem(Range):
+    """Group engram unlocks so one AP item unlocks SEVERAL engrams at once.
+      1 = off (one item = one engram, the classic behavior)
+      2-4 = fold engrams into groups of that size, in PROGRESSION order (early engrams grouped
+            with early, late with late), so the pool carries far fewer engram items (the freed
+            slots become filler). The tame-logic access rules follow automatically, and the plugin
+            unlocks every engram in a received group. Handy for shrinking a huge engram pool so it
+            fits the location count. Structure-bundled / starter / auto-granted engrams are never
+            grouped (they're already handled)."""
+    display_name = "Engrams Per Item"
+    range_start = 1
+    range_end = 4
+    default = 1
+
+
+class TamesPerItem(Range):
+    """Group taming unlocks so one AP item unlocks SEVERAL 'Tame: X' at once.
+      1 = off
+      2-4 = fold tames into groups of that size WITHIN each progression tier (never mixing an
+            early creature with an endgame one), so receiving one item unlocks the ability to tame
+            several species. Shrinks the item pool; with lock_taming the group item gates every
+            species it covers. 'Tame N Species' milestones become filler-only when this is above 1
+            (you still tame the species in-game; they just stop hosting progression)."""
+    display_name = "Tames Per Item"
+    range_start = 1
+    range_end = 4
+    default = 1
+
+
 class RandomizeDinoSpawns(Choice):
     """FULLY randomize which species live in which biome: every species is dealt across the
     map's spawn zones, and each biome's spawn roster is completely REPLACED by its seeded hand
@@ -246,13 +275,14 @@ class RandomizeDinoSpawns(Choice):
 
 
 class DossierChecks(Range):
-    """How many explorer-note locations (The Island's 240 collectible notes) to include as checks.
-    Keep at the maximum unless you know what you're doing: ARK's ~634 pool items need ~400
-    non-note locations + most of the notes to fit (generation errors if too low)."""
+    """How many explorer-note locations to include as checks. The Island has 232 real collectible
+    notes; values above that harmlessly cap there (the range top stays 240 so older yamls don't
+    error). Keep near the maximum unless you know what you're doing: ARK's big pool needs most of
+    the notes plus the other locations to fit (generation errors if too low)."""
     display_name = "Dossier Checks"
     range_start = 0
     range_end = 240
-    default = 240
+    default = 232
 
 
 @dataclass
@@ -278,5 +308,7 @@ class ArkASAOptions(PerGameCommonOptions):
     food_sanity: FoodSanity
     tame_sanity: TameSanity
     bundle_structures: BundleStructures
+    engrams_per_item: EngramsPerItem
+    tames_per_item: TamesPerItem
     randomize_dino_spawns: RandomizeDinoSpawns
     mod_ids: ModIds

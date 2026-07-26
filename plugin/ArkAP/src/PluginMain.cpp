@@ -79,6 +79,10 @@ static bool g_bundleSaddles = false;
 // route -> mod ids that slot enabled (from flags.json / slot_data). The plugin loads the WHOLE mod
 // catalogue, so a structure bundle must skip engrams belonging to a mod this slot didn't take.
 static std::map<std::string, std::set<std::string>> g_routeMods;
+// route -> {representative item id -> folded member item ids} (from flags.json / slot_data's
+// item_groups; set by engrams_per_item / tames_per_item). When a representative arrives, the
+// members were never pooled by AP, so the plugin unlocks them here off the representative.
+static std::map<std::string, std::map<int, std::vector<int>>> g_routeItemGroups;
 // Is this item allowed for this route? Base-game items ("" owner) always are; a mod item only if
 // that slot enabled the mod. Unknown route (no flags yet) -> allow, so nothing silently vanishes.
 static bool ItemAllowedForRoute(const std::string& route, int item_id) {
@@ -238,10 +242,33 @@ DECLARE_HOOK(AShooterGameMode_Logout, void, AShooterGameMode*, AController*);
 void ForgetGreeted(void* pc);                                    // defined with the greeter below
 
 // dino name tag as std::string ("" on fault). Has FString objects -> kept out of any __try.
+// Is this DinoNameTag one our kill/tame checks actually key on?
+static bool KnownDinoTag(const std::string& t) {
+    return g_killTagToLoc.count(t) || g_tameTagToItem.count(t) || g_tameTagToTameLoc.count(t);
+}
+// Kraken's Better Dinos (+ similar mods) REPLACE vanilla dinos with classes whose DinoNameTag is
+// prefixed BD / BD_ / BDBionic (e.g. "BD_Dilo", "BDBionicAnkylo") - so a mod dino's kill/tame logs
+// "mapped=0" and the check never fires (and lock_taming wouldn't gate it). If the raw tag isn't a
+// known check tag but the prefix-stripped form IS a real vanilla tag, use that. Only remaps when it
+// resolves to an existing vanilla tag, so genuinely-new mod creatures keep their own tag (and stay
+// visible in the logs for harvesting). No vanilla ARK tag starts with "BD", so this shadows nothing.
+static std::string CanonDinoTag(const std::string& raw) {
+    if (raw.empty() || KnownDinoTag(raw)) return raw;
+    // longest first. "Bionic" catches Kraken's Tek variants (BionicRaptor/BionicStego/...). NOT
+    // "Mega" - MegaRaptor/MegaRex are the VANILLA alphas, handled by their own checks.
+    static const std::string prefixes[] = { "BDBionic", "BD_", "BD", "Bionic" };
+    for (const std::string& p : prefixes) {
+        if (raw.size() > p.size() && raw.compare(0, p.size(), p) == 0) {
+            std::string s = raw.substr(p.size());
+            if (KnownDinoTag(s)) return s;
+        }
+    }
+    return raw;
+}
 static std::string DinoTag(APrimalDinoCharacter* dino) {
     FString fs;
     dino->DinoNameTagField().ToString(&fs);
-    return fs.ToString();
+    return CanonDinoTag(fs.ToString());
 }
 
 // gate worker (objects live here, not in the __try-bearing hook). Returns true if the tame must be BLOCKED.
@@ -372,11 +399,19 @@ static void GrantTekForBoss(const std::string& baseTag);   // defined below (aft
 // randomize_dino_spawns spawn_classes.json). Every distinct class seen dying is logged once to
 // ArkAP_dino_classes.jsonl - run 'cheat DestroyWildDinos' near spawn zones to harvest en masse.
 static std::set<std::string> g_seenDinoClasses;
-static void HarvestDinoClass(const std::string& name) {
+static std::string RawDinoTag(APrimalDinoCharacter* dino) {          // DinoNameTag, NOT canonicalized
+    FString fs; dino->DinoNameTagField().ToString(&fs); return fs.ToString();
+}
+// name = class short; rawTag = the creature's DinoNameTag (may be modded, e.g. "BD_Dilo"). Records
+// the tag + what CanonDinoTag resolves it to + whether that lands on a real kill/tame check, so a
+// dump tells us at a glance which modded creatures still need a prefix/alias.
+static void HarvestDinoClass(const std::string& name, const std::string& rawTag) {
     if (name.find("_Character_BP") == std::string::npos) return;   // only real dino BP classes
     if (!g_seenDinoClasses.insert(name).second) return;            // once each
+    std::string canon = CanonDinoTag(rawTag);
     std::ofstream f(PluginDir() / "ArkAP_dino_classes.jsonl", std::ios::app);
-    if (f) f << "{\"class\": \"" << name << "\"}\n";
+    if (f) f << "{\"class\": \"" << name << "\", \"tag\": \"" << rawTag << "\", \"canon\": \""
+             << canon << "\", \"mapped\": " << (KnownDinoTag(canon) ? "true" : "false") << "}\n";
 }
 
 static void DoBossDeath(APrimalDinoCharacter* dino, AActor* damageCauser) {
@@ -384,7 +419,7 @@ static void DoBossDeath(APrimalDinoCharacter* dino, AActor* damageCauser) {
     std::string full = fn.ToString();
     std::string name = full.substr(0, full.find(' '));          // class name prefix
     if (name.empty()) return;
-    HarvestDinoClass(name);                                     // ground-truth spawn class names
+    HarvestDinoClass(name, RawDinoTag(dino));                   // ground-truth spawn class + tag
     for (auto& b : g_bosses) {
         if (name.find(b.frag) != std::string::npos) {
             // Boss kills are the GOAL, not AP check locations (nothing gets stranded behind a hard
@@ -808,6 +843,22 @@ void ApplyItem(const std::string& route, int item_id, const std::string& from) {
             DebugLog("BUNDLE saddle item=" + std::to_string(sit->second) + " with tame=" + std::to_string(item_id));
         }
     }
+
+    // count-grouping (engrams_per_item / tames_per_item): a representative unlock also grants every
+    // FOLDED member. Members were never pooled, so AP never sends them - we mark them owned (so the
+    // engram/tame gate + reassert keep them) and push any engram unlock now. Same pattern as saddles.
+    auto grit = g_routeItemGroups.find(route);
+    if (grit != g_routeItemGroups.end()) {
+        auto mit = grit->second.find(item_id);
+        if (mit != grit->second.end())
+            for (int member : mit->second) {
+                g_state->AddItem(route, member);
+                auto eit = g_itemToEngram.find(member);          // engram member -> unlock its class
+                if (eit != g_itemToEngram.end())
+                    for (UClass* c : eit->second) GrantEngramToPlayers(route, c);
+                DebugLog("GROUP member=" + std::to_string(member) + " via rep=" + std::to_string(item_id));
+            }
+    }
 }
 
 // tek engrams are never AP pool items: each boss's set unlocks locally on its first kill
@@ -1041,7 +1092,7 @@ static void DoDumpDinos(AShooterPlayerController* pc) {
         if (!d) continue;
         FString fn; d->GetFullName(&fn, nullptr);
         std::string full = fn.ToString();
-        HarvestDinoClass(full.substr(0, full.find(' ')));
+        HarvestDinoClass(full.substr(0, full.find(' ')), RawDinoTag(d));
     }
     int total = (int)g_seenDinoClasses.size();
     std::wstring m = L"Harvested " + std::to_wstring(total - before) + L" new dino classes (" +
@@ -1402,21 +1453,12 @@ static void ApConfirmChat(AShooterPlayerController* pc, FString*, EChatSendMode:
     __try { DoApConfirm(pc); } __except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
-// --- /hint : quote the resource cost ; /buyhint : pay resources + reveal (connector runs AP !hint) ---
-struct ResCost { std::string cls; std::string label; int qty; };
-static std::vector<ResCost> HintCost(int id) {
-    const ResCost pearl{ "PrimalItemResource_BlackPearl", "Black Pearl", 1 };
-    if (id >= 8730000 && id < 8731000) return { {"PrimalItemResource_Wood","Wood",375},{"PrimalItemResource_Stone","Stone",188},{"PrimalItemResource_Thatch","Thatch",188}, pearl };       // engram
-    if (id >= 8732000 && id < 8733000) return { {"PrimalItemResource_Wood","Wood",750},{"PrimalItemResource_Stone","Stone",375},{"PrimalItemResource_Fibers","Fiber",750},{"PrimalItemResource_Thatch","Thatch",375}, pearl }; // tame
-    if (id >= 8733000 && id < 8734000) return { {"PrimalItemResource_Wood","Wood",1500},{"PrimalItemResource_Stone","Stone",750},{"PrimalItemResource_Oil_Base","Oil",375}, pearl };       // crate access
-    if (id >= 8739000) return { {"PrimalItemResource_Wood","Wood",188},{"PrimalItemResource_Thatch","Thatch",188}, pearl };                                                                // filler
-    return { {"PrimalItemResource_Wood","Wood",375},{"PrimalItemResource_Stone","Stone",188}, pearl };
-}
-static std::string CostLabel(const std::vector<ResCost>& c) {
-    std::string s; for (size_t i = 0; i < c.size(); ++i) { if (i) s += ", "; s += std::to_string(c[i].qty) + " " + c[i].label; }
-    return s;
-}
-// count a resource the player holds, by class-name substring (UNVERIFIED inventory API).
+// --- /hint <item> : reveal WHERE an item is, FREE (no in-game resource cost). Writes the item name
+// to hint_out.jsonl; the connector / embedded client runs AP's !hint and relays the result (which
+// reads "<item> is at <location> in <finder>'s world"). AP's own hint-point economy still applies
+// server-side (set the room's hint_cost to 0 to make hints fully free there too). ---
+// count a resource the player holds, by class-name substring. Used by the inventory "Collect N X"
+// location checks (g_invChecks) - NOT by hints anymore.
 static int CountResource(UPrimalInventoryComponent* inv, const std::string& cls) {
     int total = 0;
     for (UPrimalItem* it : inv->InventoryItemsField()) {
@@ -1425,23 +1467,6 @@ static int CountResource(UPrimalInventoryComponent* inv, const std::string& cls)
         if (fn.ToString().find(cls) != std::string::npos) total += it->ItemQuantityField();
     }
     return total;
-}
-static void RemoveResource(UPrimalInventoryComponent* inv, const std::string& cls, int amount) {
-    // collect matches first (RemoveItemFromInventory mutates the array -> don't iterate it live)
-    std::vector<UPrimalItem*> matches;
-    for (UPrimalItem* it : inv->InventoryItemsField()) {
-        if (!it) continue;
-        FString fn; it->GetFullName(&fn, nullptr);
-        if (fn.ToString().find(cls) != std::string::npos) matches.push_back(it);
-    }
-    for (UPrimalItem* it : matches) {
-        if (amount <= 0) break;
-        int q = it->ItemQuantityField();
-        int take = q < amount ? q : amount;
-        if (take >= q) it->RemoveItemFromInventory(true, false);        // whole stack gone (no lingering 0-qty)
-        else           it->SetQuantity(q - take, false);                // partial: set remaining
-        amount -= take;
-    }
 }
 // fuzzy-match a query against the AP item names. returns id (0 = none) + fills name.
 static int MatchItem(const std::string& query, std::string& name) {
@@ -1461,52 +1486,16 @@ static std::string HintQuery(FString* message) {     // text after the command w
     while (!q.empty() && (unsigned char)q.front() <= ' ') q.erase(q.begin());
     return q;
 }
-static void DoHintQuote(FString* message) {
+static void DoHint(AShooterPlayerController* pc, FString* message) {
     std::string q = HintQuery(message);
     if (q.empty()) { ChatNotify(L"Usage: /hint <item name>"); return; }
     std::string name; int id = MatchItem(q, name);
     if (!id) { ChatNotify((L"No item matches '" + ArkApi::Tools::Utf8Decode(q) + L"'").c_str()); return; }
-    std::wstring m = L"Hint for " + ArkApi::Tools::Utf8Decode(name) + L" costs " +
-                     ArkApi::Tools::Utf8Decode(CostLabel(HintCost(id))) + L". Type /buyhint " +
-                     ArkApi::Tools::Utf8Decode(name) + L" to pay + reveal.";
-    ChatNotify(m.c_str());
-}
-static void DoHintBuy(AShooterPlayerController* pc, FString* message) {
-    std::string q = HintQuery(message);
-    if (q.empty()) { ChatNotify(L"Usage: /buyhint <item name>"); return; }
-    std::string name; int id = MatchItem(q, name);
-    if (!id) { ChatNotify((L"No item matches '" + ArkApi::Tools::Utf8Decode(q) + L"'").c_str()); return; }
-    std::string route = RouteFor(pc);              // the buyer's own slot pays + receives the hint
-    // don't spend resources if AP would reject the hint for lack of hint points.
-    try { fs::path hs = g_ipc->DirFor(route) / "hint_status.json";
-        if (fs::exists(hs)) { nlohmann::json j; std::ifstream(hs) >> j;
-            int pts = j.value("hint_points", 0), cost = j.value("hint_cost", 0);
-            if (pts < cost) {
-                std::wstring m = L"Not enough AP hint points (have " + std::to_wstring(pts) +
-                                 L", need " + std::to_wstring(cost) + L"). No resources taken.";
-                ChatNotify(m.c_str()); return;
-            }
-        }
-    } catch (...) {}
-    UPrimalInventoryComponent* inv = pc ? (pc->GetPlayerCharacter() ? pc->GetPlayerCharacter()->MyInventoryComponentField() : nullptr) : nullptr;
-    if (!inv) { ChatNotify(L"Can't read your inventory."); return; }
-    auto cost = HintCost(id);
-    for (auto& c : cost) {                          // verify the player has everything first
-        int have = CountResource(inv, c.cls);
-        if (have < c.qty) {
-            std::wstring m = L"Need " + std::to_wstring(c.qty) + L" " + ArkApi::Tools::Utf8Decode(c.label) +
-                             L" (you have " + std::to_wstring(have) + L"). Cost: " + ArkApi::Tools::Utf8Decode(CostLabel(cost));
-            ChatNotify(m.c_str());
-            return;
-        }
-    }
-    for (auto& c : cost) RemoveResource(inv, c.cls, c.qty);   // charge
+    std::string route = RouteFor(pc);              // the asker's own slot receives the hint
     { std::ofstream f(g_ipc->DirFor(route) / "hint_out.jsonl", std::ios::app); if (f) f << name << "\n"; }
-    ChatNotify((L"Paid " + ArkApi::Tools::Utf8Decode(CostLabel(cost)) + L". Revealing hint for " +
-                ArkApi::Tools::Utf8Decode(name) + L"...").c_str());
+    ChatNotify((L"Revealing hint for " + ArkApi::Tools::Utf8Decode(name) + L"...").c_str());
 }
-static void HintQuoteChat(AShooterPlayerController*, FString* m, EChatSendMode::Type) { __try { DoHintQuote(m); } __except (EXCEPTION_EXECUTE_HANDLER) {} }
-static void HintBuyChat(AShooterPlayerController* pc, FString* m, EChatSendMode::Type) { __try { DoHintBuy(pc, m); } __except (EXCEPTION_EXECUTE_HANDLER) {} }
+static void HintChat(AShooterPlayerController* pc, FString* m, EChatSendMode::Type) { __try { DoHint(pc, m); } __except (EXCEPTION_EXECUTE_HANDLER) {} }
 
 // In-game chat versions (the dedicated-server console window isn't interactive here).
 // Type "/dumpengrams", "/dumpnotes", or "/buildregistry" in chat.
@@ -1926,19 +1915,82 @@ static void DoTick() {
     // flag splits are rare; revisit if a mixed lobby needs per-player bundle_saddles).
     try {
         bool bundle = false, starter = false;
+        static std::map<std::string, size_t> s_lastGroupsN;   // diagnostics: log on change only
         for (auto& route : MailboxRoutes()) {
             fs::path p = g_ipc->DirFor(route) / "flags.json";
-            if (!fs::exists(p)) continue;
-            nlohmann::json j; std::ifstream(p) >> j;
+            if (!fs::exists(p)) {
+                if (s_lastGroupsN.find(route) == s_lastGroupsN.end()) {   // log the miss once
+                    s_lastGroupsN[route] = 0;
+                    DebugLog("FLAGS route=[" + route + "] NO flags.json at " + p.string());
+                }
+                continue;
+            }
+            nlohmann::json j;
+            try { std::ifstream(p) >> j; }
+            catch (const std::exception& e) { DebugLog("FLAGS route=[" + route + "] parse FAIL: " + e.what()); continue; }
             bundle  |= j.value("bundle_saddles", false);
             starter |= j.value("free_starter_engrams", false);
             std::set<std::string> mods;
             for (auto& m : j.value("mod_ids", nlohmann::json::array()))
                 if (m.is_string()) mods.insert(m.get<std::string>());
             g_routeMods[route] = mods;
+            // count-grouping: {rep id (string) -> [member ids]}. NOTE: iterate the real member
+            // (j["item_groups"]), NOT j.value(...).items() - .items() on the value() TEMPORARY
+            // references a destroyed object (its lifetime isn't extended by the range-for), which
+            // silently yields ZERO entries even when the key is present (v106 diag: key=1 parsed=0).
+            std::map<int, std::vector<int>> groups;
+            if (j.contains("item_groups") && j["item_groups"].is_object()) {
+                for (auto& [k, v] : j["item_groups"].items()) {
+                    int rep = 0; try { rep = std::stoi(k); } catch (...) { continue; }
+                    for (auto& mid : v) if (mid.is_number_integer()) groups[rep].push_back(mid.get<int>());
+                }
+            }
+            g_routeItemGroups[route] = groups;
+            if (s_lastGroupsN[route] != groups.size() || tn <= 3 || tn % 60 == 0) {   // periodic + on change
+                s_lastGroupsN[route] = groups.size();
+                std::error_code ec; auto sz = fs::file_size(p, ec);
+                DebugLog("FLAGS route=[" + route + "] exists size=" + std::to_string((unsigned long long)sz) +
+                         " item_groups_key=" + (j.contains("item_groups") ? "1" : "0") +
+                         " parsed=" + std::to_string(groups.size()) + " (from " + p.string() + ")");
+            }
         }
         g_bundleSaddles = bundle;
         g_freeStarter = starter;
+    } catch (...) {}
+
+    // RECONCILE count-groups every tick: if a route owns a representative but not one of its folded
+    // members, grant the member now. Idempotent + route-agnostic (unions all routes' item_groups,
+    // since the map is identical per seed). Catches the cases the inline ApplyItem expansion can miss:
+    // a rep that arrived in the connect backlog BEFORE flags.json loaded, a plugin updated mid-game,
+    // or flags delivered under a different route than the items applied on. Cheap (map lookups).
+    try {
+        std::map<int, std::vector<int>> allGroups;
+        for (auto& [r, g] : g_routeItemGroups)
+            for (auto& [rep, mem] : g) allGroups[rep] = mem;
+        static size_t s_lastAll = SIZE_MAX;
+        if (s_lastAll != allGroups.size()) {                  // diagnostics: union size on change
+            s_lastAll = allGroups.size();
+            DebugLog("RECONCILE allGroups=" + std::to_string(allGroups.size()) +
+                     " routeMaps=" + std::to_string(g_routeItemGroups.size()));
+        }
+        if (!allGroups.empty()) {
+            std::set<std::string> routes;
+            for (auto& r : g_state->Players()) routes.insert(r);
+            routes.insert("");                              // the shared/root route too
+            for (const std::string& route : routes)
+                for (auto& [rep, members] : allGroups) {
+                    if (!g_state->HasItem(route, rep)) continue;
+                    for (int member : members) {
+                        if (g_state->HasItem(route, member)) continue;
+                        g_state->AddItem(route, member);
+                        auto eit = g_itemToEngram.find(member);
+                        if (eit != g_itemToEngram.end())
+                            for (UClass* c : eit->second) GrantEngramToPlayers(route, c);
+                        DebugLog("GROUP reconcile member=" + std::to_string(member) +
+                                 " via rep=" + std::to_string(rep) + (route.empty() ? "" : " [" + route + "]"));
+                    }
+                }
+        }
     } catch (...) {}
 }
 static void Tick() {
@@ -1947,7 +1999,7 @@ static void Tick() {
 }
 
 // ----------------------------------------------------------------- lifecycle
-static const char* ARKAP_BUILD = "v99-mod-bundle-scope";
+static const char* ARKAP_BUILD = "v107-group-parse-fix";
 
 static void Load() {
     fs::path base = PluginDir();
@@ -2141,8 +2193,8 @@ static void Load() {
     ArkApi::GetCommands().AddChatCommand("/dumpdinos", &DumpDinosChat);
     ArkApi::GetCommands().AddChatCommand("/whoami", &WhoAmIChat);
     ArkApi::GetCommands().AddChatCommand("/buildregistry", &BuildRegistryChat);
-    ArkApi::GetCommands().AddChatCommand("/hint", &HintQuoteChat);
-    ArkApi::GetCommands().AddChatCommand("/buyhint", &HintBuyChat);
+    ArkApi::GetCommands().AddChatCommand("/hint", &HintChat);
+    ArkApi::GetCommands().AddChatCommand("/buyhint", &HintChat);   // legacy alias -> now the same free reveal
     ArkApi::GetCommands().AddChatCommand("/connect", &ApConnectChat);
     ArkApi::GetCommands().AddChatCommand("/disconnect", &ApDisconnectChat);
     ArkApi::GetCommands().AddChatCommand("/apstatus", &ApStatusChat);

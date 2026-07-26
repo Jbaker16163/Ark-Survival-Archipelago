@@ -41,6 +41,18 @@ EARLY_DINO_SHORTS = (
 #                   given a bogus "Crossbow KO + Gas Mask" cave floor.
 NO_TAME_LOGIC = {"Electrophorus", "Titanoboa"}
 
+# Core engrams that are HARD-PLACED (locked) onto an easy early-dino KILL instead of pooled or given
+# free. Sphere-0 in practice (Killed: X on a weak dino has no gate), so deep recipes that need them
+# (Campfire feeds cooked meat -> gunpowder -> Rifle KO) are available from the start - but you still
+# earn it in-world by killing something trivial, not for free. See pre_fill.
+HARD_PLACED = {"Engram: Campfire"}
+# weak early dinos whose "Killed: X" check may host a HARD_PLACED engram (seeded pick among those
+# actually present in the seed). All sphere-0 kills. NOTE: these are the LOCATION-name shorts
+# (ap_name-derived), not the dino_tags - "Killed: Compsognathus", not "Killed: Compy".
+EARLY_KILL_HOSTS = ("Dodo", "Compsognathus", "Dilophosaur", "Lystrosaurus", "Moschops")
+# (nothing is auto-granted free by the base game now; mods can still list auto_grant engrams.)
+CORE_AUTO_GRANT: set = set()
+
 # progression_tiers: station engrams gate 4 tiers. Tier i -> i+1 needs ALL of TIER_GATES[i].
 # T1 = Smithy (Anvil Bench) + Mortar And Pestle (narcotics/paste = the real early-craft spine).
 TIER_GATES = (
@@ -106,6 +118,9 @@ class ArkASAWorld(World):
     _filler_names = {f["ap_name"] for f in _filler.get("filler", [])} | {FILLER_NAME}
     _tame_item_names = {d["ap_name"] for d in _dinos.get("dinos", []) if d.get("ap_name")}
     _good_filler = [f["ap_name"] for f in _filler.get("filler", []) if not f.get("trap")]
+    # optional per-entry "weight" (default 1) biases which good/trap filler fills a slot - the
+    # resource Packs ship weights 2-5 so they show up more than one-off buffs/single-resource gives.
+    _filler_weight = {f["ap_name"]: f.get("weight", 1) for f in _filler.get("filler", [])}
     item_name_to_id: Dict[str, int] = build_item_table(_engrams, _dinos, _crates, _filler, _mod_catalog)
     location_name_to_id: Dict[str, int] = build_location_table(_locations, _dinos, _mod_catalog)
 
@@ -117,8 +132,8 @@ class ArkASAWorld(World):
         no_logic = {"Tame: " + d for d in NO_TAME_LOGIC}
         if name in self._filler_names:
             cls = ItemClassification.filler
-        elif name in self._tame_required_items():      # engrams that GATE a tame -> must be progression
-            cls = ItemClassification.progression
+        elif name in self._tame_required_items() or name in self._group_forced_progression():
+            cls = ItemClassification.progression      # engram (or a folded group rep) that GATES a tame
         elif self.options.lock_taming.value and name in self._tame_item_names and name not in no_logic:
             cls = ItemClassification.progression
         else:                                          # useful: saddles, non-gating engrams, NO_TAME_LOGIC tames
@@ -126,7 +141,10 @@ class ArkASAWorld(World):
         return ArkItem(name, cls, self.item_name_to_id[name], self.player)
 
     def get_filler_item_name(self) -> str:
-        return self.random.choice(self._good_filler) if self._good_filler else FILLER_NAME
+        if not self._good_filler:
+            return FILLER_NAME
+        w = [self._filler_weight.get(n, 1) for n in self._good_filler]
+        return self.random.choices(self._good_filler, weights=w, k=1)[0]
 
     # tame_sanity / food_sanity: deterministic per-seed sample of location NAMES to drop.
     # Cached so every _used_locations() call sees the same roll.
@@ -300,7 +318,7 @@ class ArkASAWorld(World):
     def _auto_grant_names(self) -> set:
         cache = getattr(self, "_auto_grant_cache", None)
         if cache is None:
-            cache = set()
+            cache = {n for n in CORE_AUTO_GRANT if n in self.item_name_to_id}
             for mod in self._active_mods().values():
                 for n in mod.get("auto_grant", []):
                     if n in self.item_name_to_id:
@@ -310,24 +328,18 @@ class ArkASAWorld(World):
 
     def create_items(self) -> None:
         pool = []
-        skip = (self._bundled_saddle_names() | self._free_starter_names() | self._tek_names
-                | self._inactive_mod_names()       # mods not in this slot's mod_ids
-                | self._wrong_variant_names()      # engrams the player's fork lacks
-                | self._auto_grant_names())        # mod QoL engrams granted free (precollected below)
+        # _nonpool_names() = saddles / starters / tek / inactive-mod / wrong-variant / auto-grant /
+        # structure-bundle / curated-mod-group members. Plus count-grouping folds every engram/tame
+        # GROUP MEMBER out of the pool (its representative unlocks it - see _engram_groups).
+        skip = (self._nonpool_names()
+                | self._engram_group_members()
+                | self._tame_group_members())
         # give the auto-grant engrams to the player up front (removed from the pool above); the AP
         # server sends precollected items on connect, so the plugin grants them in-game.
         for name in self._auto_grant_names():
             self.multiworld.push_precollected(self.create_item(name))
         bundles = (structure_bundle_members(self._engrams, self._active_mod_engrams())
                    if self.options.bundle_structures.value else {})
-        for members in bundles.values():                 # bundled structure engrams leave the pool
-            skip |= members
-        # curated per-mod groups (S+ wiring/turrets/automation/...): one item unlocks all members,
-        # so the members leave the pool. Always applied for an ACTIVE mod - unlike the material
-        # bundles this isn't optional, it's how that mod is modelled.
-        for mod in self._active_mods().values():
-            for b in mod.get("bundles", []):
-                skip |= set(b["members"])
         # bundle items are pooled only when bundling is ON *and* the bundle actually has members -
         # Adobe/Glass only exist in building mods, so a vanilla slot must not carry a dead item.
         skip_bundle_items = ({b for b, m in bundles.items() if not m} if bundles
@@ -353,15 +365,18 @@ class ArkASAWorld(World):
             raise ValueError(
                 f"ARK: {len(pool)} items but only {headroom} usable slots "
                 f"({n_locations} locations - {n_excluded} that must hold filler). "
-                f"Active mods: {mods}. Fix by shrinking the pool (bundle_structures: true, "
-                f"bundle_saddles: true, free_starter_engrams: true), dropping a large mod from "
-                f"mod_ids, or raising dossier_checks / tame_sanity / food_sanity.")
+                f"Active mods: {mods}. Fix by shrinking the pool (engrams_per_item: 2 frees the most, "
+                f"then bundle_structures: true, bundle_saddles: true, free_starter_engrams: true, "
+                f"tames_per_item: 2), dropping a large mod from mod_ids, or ADDING locations "
+                f"(raise dossier_checks / tame_sanity / food_sanity).")
         traps = [f["ap_name"] for f in self._filler.get("filler", []) if f.get("trap")]
         goods = [f["ap_name"] for f in self._filler.get("filler", []) if not f.get("trap")] or [FILLER_NAME]
         pct = self.options.trap_percentage.value
         while len(pool) < n_locations:
             use_trap = traps and self.random.randint(1, 100) <= pct
-            pool.append(self.create_item(self.random.choice(traps if use_trap else goods)))
+            bag = traps if use_trap else goods
+            w = [self._filler_weight.get(n, 1) for n in bag]
+            pool.append(self.create_item(self.random.choices(bag, weights=w, k=1)[0]))
         self.multiworld.itempool += pool
 
     # boss-defeat goal: "Broodmother Defeated" etc, derived from the boss location names.
@@ -441,7 +456,8 @@ class ArkASAWorld(World):
         return d["name"] if d.get("name") else d["ap_name"].replace("Tame: ", "")
 
     # engram ap_name -> its bundle item name when bundle_structures removes it from the pool
-    # (else the rule's has(<engram>) would be unsatisfiable). Cached per world.
+    # (else the rule's has(<engram>) would be unsatisfiable). Cached per world. Also folds in the
+    # count-grouping (engrams_per_item): a folded member engram maps to its group representative.
     def _bundle_remap(self):
         m = getattr(self, "_bundle_remap_cache", None)
         if m is None:
@@ -451,8 +467,130 @@ class ArkASAWorld(World):
                         self._engrams, self._active_mod_engrams()).items():
                     for mem in members:
                         m[mem] = bundle
+            for rep, members in self._engram_groups().items():   # member engram -> its group rep
+                for mem in members:
+                    m[mem] = rep
             self._bundle_remap_cache = m
         return lambda short: m.get("Engram: " + short, "Engram: " + short)
+
+    # ---- count-grouping (engrams_per_item / tames_per_item) ----------------------------------
+    # Every item name is STATIC in the datapackage; the options only change which get pooled, the
+    # per-slot logic remap, and the per-slot slot_data the plugin uses to unlock a group's members.
+    # So different players can pick different group sizes without breaking the shared datapackage.
+
+    # item names create_items removes from the pool BEFORE count-grouping (so grouping only ever
+    # touches engrams that would actually be pooled as individual unlocks).
+    def _nonpool_names(self) -> set:
+        skip = (self._bundled_saddle_names() | self._free_starter_names() | self._tek_names
+                | self._inactive_mod_names() | self._wrong_variant_names() | self._auto_grant_names()
+                | {n for n in HARD_PLACED if n in self.item_name_to_id})   # locked onto early kills
+        if self.options.bundle_structures.value:
+            for members in structure_bundle_members(
+                    self._engrams, self._active_mod_engrams()).values():
+                skip |= members
+        for mod in self._active_mods().values():
+            for b in mod.get("bundles", []):
+                skip |= set(b["members"])
+        return skip
+
+    def _engram_ap_names(self) -> set:
+        names = {e["ap_name"] for e in self._engrams["engrams"]}
+        names |= {e["ap_name"] for e in self._active_mod_engrams()}
+        return names
+
+    # rep ap_name -> [folded member ap_names]. Engrams chunked in id order (= dump / tech-tree /
+    # progression order), so a group holds progression-adjacent engrams.
+    def _engram_groups(self) -> dict:
+        cache = getattr(self, "_engram_groups_cache", None)
+        if cache is None:
+            n = self.options.engrams_per_item.value
+            cache = {}
+            if n > 1:
+                skip = self._nonpool_names()
+                loose = [nm for nm in self._engram_ap_names()
+                         if nm in self.item_name_to_id and nm not in skip]
+                loose.sort(key=lambda nm: self.item_name_to_id[nm])
+                for i in range(0, len(loose), n):
+                    chunk = loose[i:i + n]
+                    if len(chunk) > 1:
+                        cache[chunk[0]] = chunk[1:]
+            self._engram_groups_cache = cache
+        return cache
+
+    # rep ap_name -> [folded member ap_names]. Tames chunked WITHIN a progression tier (DINO_TIER),
+    # so a group never mixes a start creature with an endgame one.
+    def _tame_groups(self) -> dict:
+        cache = getattr(self, "_tame_groups_cache", None)
+        if cache is None:
+            n = self.options.tames_per_item.value
+            cache = {}
+            if n > 1:
+                buckets: Dict[int, list] = {}
+                for nm in self._tame_item_names:
+                    if nm not in self.item_name_to_id:
+                        continue
+                    short = nm[len("Tame: "):] if nm.startswith("Tame: ") else nm
+                    buckets.setdefault(self._dino_tier(short), []).append(nm)
+                for tier in sorted(buckets):
+                    items = sorted(buckets[tier], key=lambda nm: self.item_name_to_id[nm])
+                    for i in range(0, len(items), n):
+                        chunk = items[i:i + n]
+                        if len(chunk) > 1:
+                            cache[chunk[0]] = chunk[1:]
+            self._tame_groups_cache = cache
+        return cache
+
+    def _engram_group_members(self) -> set:
+        out: set = set()
+        for members in self._engram_groups().values():
+            out.update(members)
+        return out
+
+    def _tame_group_members(self) -> set:
+        out: set = set()
+        for members in self._tame_groups().values():
+            out.update(members)
+        return out
+
+    # group reps that must be progression:
+    #   engram rep - a FOLDED member gates a tame/kill/cave (has(member) remaps to has(rep)).
+    #   tame rep   - with lock_taming, the rep gates a "Tamed: X" for itself or a folded member; a
+    #                rep that happens to be a NO_TAME_LOGIC tame (normally 'useful') would otherwise
+    #                leave that Tamed location unreachable in the accessibility check.
+    def _group_forced_progression(self) -> set:
+        cache = getattr(self, "_group_forced_prog_cache", None)
+        if cache is None:
+            req = self._tame_required_items()
+            cache = {rep for rep, members in self._engram_groups().items()
+                     if any(m in req for m in members)}
+            if self.options.lock_taming.value:
+                no_logic = {"Tame: " + d for d in NO_TAME_LOGIC}
+                for rep, members in self._tame_groups().items():
+                    if any(t not in no_logic for t in [rep] + members):
+                        cache.add(rep)
+            self._group_forced_prog_cache = cache
+        return cache
+
+    # a tame item name -> its group representative (itself if ungrouped / a rep).
+    def _tame_rep_of(self, item: str) -> str:
+        m = getattr(self, "_tame_rep_cache", None)
+        if m is None:
+            m = {}
+            for rep, members in self._tame_groups().items():
+                for mem in members:
+                    m[mem] = rep
+            self._tame_rep_cache = m
+        return m.get(item, item)
+
+    # {rep_item_id(str): [member_item_ids]} for slot_data - the plugin unlocks a group's members
+    # when the representative arrives (they are never pooled, so AP never sends them directly).
+    def _item_groups_slotdata(self) -> dict:
+        out: Dict[str, list] = {}
+        for rep, members in self._engram_groups().items():
+            out[str(self.item_name_to_id[rep])] = [self.item_name_to_id[m] for m in members]
+        for rep, members in self._tame_groups().items():
+            out[str(self.item_name_to_id[rep])] = [self.item_name_to_id[m] for m in members]
+        return out
 
     # ap_item_names that are auto-granted (never in the pool) -> tame logic treats has(x) as always
     # true for them, else a requirement on a start engram (e.g. Waterskin) would strand the location.
@@ -633,6 +771,21 @@ class ArkASAWorld(World):
     # notes are tedious to hunt, and TAMES are locked behind a Tame: X item (lock_taming), so a gate
     # on a tame wouldn't be reachable early.
     def pre_fill(self) -> None:
+        # HARD_PLACED core engrams (Campfire): not free, not a random-pool item - lock each onto an
+        # easy early-dino KILL so it's trivially early but still earned in-world. Killed: X on a weak
+        # dino is sphere-0 (no gate), so the chains that need it are available from the start.
+        used = self._used_locations()
+        taken: set = set()
+        for name in sorted(HARD_PLACED):
+            if name not in self.item_name_to_id:
+                continue
+            hosts = [f"Killed: {h}" for h in EARLY_KILL_HOSTS
+                     if f"Killed: {h}" in used and f"Killed: {h}" not in taken]
+            if not hosts:
+                continue
+            pick = self.random.choice(hosts)
+            taken.add(pick)
+            self.multiworld.get_location(pick, self.player).place_locked_item(self.create_item(name))
         return                                              # tiered gate placement retired (tame rules order the fill now)
         used = self._used_locations()                       # noqa: unreachable (kept for reference)
         for i, gates in enumerate(TIER_GATES):
@@ -721,7 +874,9 @@ class ArkASAWorld(World):
         # "??? Note" is a real in-game note name) - keep progression off them so it's never stranded
         # on a note a player may never find. (Ordinary character notes stay eligible; cave/water ones
         # are gated by note_caves in set_rules.)
-        HARD_NOTE_PREFIXES = ("Hologram: ", "Genesis Chronicles", "HLN-A Discovery", "??? Note")
+        # (HLN-A Discovery / Genesis Chronicles were REMOVED as locations entirely - they need the
+        # Genesis-DLC-only HLN-A skin to collect - so they no longer need excluding here.)
+        HARD_NOTE_PREFIXES = ("Hologram: ", "??? Note")
         # ALL alpha kills are filler-only. An alpha realistically needs a good TAME to kill, and
         # tames are themselves locked behind Tame: items - so progression here can strand a
         # foundational engram behind a fight the player can't take yet (playtest: Mortar And Pestle
@@ -800,14 +955,20 @@ class ArkASAWorld(World):
                 if "Tamed: " + short in excluded or short in NO_TAME_LOGIC:
                     continue
                 loc = self.multiworld.get_location("Tamed: " + short, self.player)
-                add_rule(loc, lambda state, it=item: state.has(it, self.player))
-            # "Tame N Species" (distinct) milestones honestly require N tame unlocks.
-            tame_items = sorted(self._tame_item_names)
-            for m in self._locations["location_categories"].get("milestones", {}).get("entries", []):
-                if m.get("tag", "").startswith("milestone_tames_"):
-                    n = int(m["tag"].rsplit("_", 1)[1])
-                    loc = self.multiworld.get_location(m["name"], self.player)
-                    add_rule(loc, lambda state, k=n: state.has_from_list(tame_items, self.player, k))
+                # tames_per_item folds "Tame: X" into a representative; require whichever unlock
+                # actually grants X (itself when ungrouped).
+                add_rule(loc, lambda state, it=self._tame_rep_of(item): state.has(it, self.player))
+            # "Tame N Species" (distinct) milestones honestly require N tame unlocks. With
+            # tames_per_item a single unlock covers several species, so counting individual tame
+            # items no longer maps cleanly - those milestones become filler-only instead (see
+            # _excluded_progression_names); skip their item rule here.
+            if self.options.tames_per_item.value <= 1:
+                tame_items = sorted(self._tame_item_names)
+                for m in self._locations["location_categories"].get("milestones", {}).get("entries", []):
+                    if m.get("tag", "").startswith("milestone_tames_"):
+                        n = int(m["tag"].rsplit("_", 1)[1])
+                        loc = self.multiworld.get_location(m["name"], self.player)
+                        add_rule(loc, lambda state, k=n: state.has_from_list(tame_items, self.player, k))
             # (collective "Tame N Creatures" milestones need no item rule - same species can be
             #  tamed repeatedly; they're placed by their data "tier" field.)
         tl = self._tame()
@@ -951,6 +1112,22 @@ class ArkASAWorld(World):
         return [[c, sorted([cls, weight[cls]] for cls in classes)]
                 for c, classes in sorted(assign.items())]
 
+    # spoiler: the per-location line can only show the ONE representative item name (item names are
+    # the static datapackage), so with engrams_per_item / tames_per_item on, append a section that
+    # spells out what each representative ALSO unlocks - the "second item" made visible.
+    def write_spoiler(self, spoiler_handle) -> None:
+        eg = self._engram_groups()
+        tg = self._tame_groups()
+        if not eg and not tg:
+            return
+        name = self.multiworld.player_name[self.player]
+        spoiler_handle.write(
+            f"\n\nARK grouped unlocks ({name}) - ONE received item unlocks EVERY engram/tame listed:\n")
+        for rep, members in eg.items():
+            spoiler_handle.write("  " + " + ".join([rep] + list(members)) + "\n")
+        for rep, members in tg.items():
+            spoiler_handle.write("  " + " + ".join([rep] + list(members)) + "\n")
+
     # tell the connector which bosses count for the goal + whether saddles are bundled (it relays
     # bundle_saddles to the plugin so the plugin grants the saddle on tame unlock).
     def fill_slot_data(self) -> dict:
@@ -971,6 +1148,9 @@ class ArkASAWorld(World):
                 "free_starter_engrams": bool(self.options.free_starter_engrams.value),
                 "death_link": bool(self.options.death_link.value),
                 "mod_ids": sorted(self._active_mods()),   # mods this slot enabled (plugin diagnostics)
+                "item_groups": self._item_groups_slotdata(),  # rep item id -> folded member ids
+                "engrams_per_item": self.options.engrams_per_item.value,
+                "tames_per_item": self.options.tames_per_item.value,
                 "npc_replacements": [],           # legacy key (permutation design retired)
                 "spawn_additions": [],            # legacy key (additions design superseded)
                 "spawn_overrides": self._spawn_overrides()}

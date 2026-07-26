@@ -488,7 +488,10 @@ private:
         try { std::ofstream(cfg_.mailbox / "flags.json")
                 << json({ {"bundle_saddles", sd.value("bundle_saddles", false)},
                           {"free_starter_engrams", sd.value("free_starter_engrams", false)},
-                          {"mod_ids", sd.value("mod_ids", json::array())} }).dump(); }
+                          {"mod_ids", sd.value("mod_ids", json::array())},
+                          // engrams_per_item / tames_per_item: {rep id -> [folded member ids]}; the
+                          // plugin unlocks a group's members when the representative arrives.
+                          {"item_groups", sd.value("item_groups", json::object())} }).dump(); }
         catch (...) {}
 
         totalLocs_ = (int)msg.value("checked_locations", json::array()).size()
