@@ -14,6 +14,12 @@ set "QUERYPORT=27015"
 set "RCONPORT=27020"
 set "ADMINPASS=changeme_admin"
 set "SERVERPASS="
+REM Steam Workshop mod IDs (comma-separated), loaded in the order listed. -automanagedmods (below)
+REM makes the server auto-download/update them. These MUST MATCH the mod_ids in your ARK yaml, or
+REM the AP mod items won't line up with what the server actually has. Leave BLANK for a vanilla run.
+REM Supported set (Structures Plus, Explorer Note Tracker, Super Spyglass Plus, Upgrade Station,
+REM Dino Storage v2, Kraken's Better Dinos, Awesome SpyGlass, Awesome Teleporters):
+set "MODS=731604991, 1631378184, 2594067220, 821530042, 1609138312, 1565015734, 1404697612, 889745138"
 REM Cluster: same ClusterId + ClusterDirOverride on EVERY map's launch = uploads/downloads
 REM (via Obelisk/transfer terminal) carry over between maps. Leave ClusterId blank to
 REM disable clustering entirely.
@@ -45,12 +51,20 @@ REM Per-map save dir: real folder in SAVESROOT, junction inside Saved so ARK can
 set "MAPSAVEDIR=%SAVESROOT%\%MAP%"
 set "JUNCTION=%SERVER_ROOT%\ShooterGame\Saved\Cluster-%MAP%"
 if not exist "%SERVER_ROOT%\ShooterGame\Saved" mkdir "%SERVER_ROOT%\ShooterGame\Saved"
+if not exist "%SAVESROOT%" mkdir "%SAVESROOT%"
 if not exist "%MAPSAVEDIR%" mkdir "%MAPSAVEDIR%"
-if not exist "%JUNCTION%" mklink /J "%JUNCTION%" "%MAPSAVEDIR%" >nul
+if not exist "%JUNCTION%" (
+    mklink /J "%JUNCTION%" "%MAPSAVEDIR%" >nul
+    if errorlevel 1 (
+        echo ERROR: couldn't create the save-directory junction. Run this .bat as Administrator once.
+        goto end
+    )
+)
 
 REM Build the ? option string. ServerPassword line is added only if set.
 set "OPTS=%MAP%?listen?SessionName=%SESSION%?Port=%GAMEPORT%?QueryPort=%QUERYPORT%?MaxPlayers=%MAXPLAYERS%?AltSaveDirectoryName=Cluster-%MAP%?RCONEnabled=True?RCONPort=%RCONPORT%?ServerAdminPassword=%ADMINPASS%"
 if not "%SERVERPASS%"=="" set "OPTS=%OPTS%?ServerPassword=%SERVERPASS%"
+if not "%MODS%"=="" set "OPTS=%OPTS%?GameModIds=%MODS%"
 set "OPTS=%OPTS%?TributeItemExpirationSeconds=%TRIBUTEEXP%?TributeDinoExpirationSeconds=%TRIBUTEEXP%?TributeCharacterExpirationSeconds=%TRIBUTEEXP%"
 
 REM Cluster flags (only if CLUSTERID is set).
@@ -73,8 +87,10 @@ if not "%ARKAP_FORCE_RESPAWN%"=="" (
 echo Launching: %SESSION% on %MAP%  (game %GAMEPORT% / query %QUERYPORT% / rcon %RCONPORT%)
 echo Save dir: %MAPSAVEDIR%
 if not "%CLUSTERID%"=="" echo Cluster: %CLUSTERID%  (%CLUSTERDIR%)
+if not "%MODS%"=="" echo Mods: %MODS%
 echo.
-"%EXE%" "%OPTS%" -server -log -NoBattlEye %CLUSTERARGS% %FORCERESPAWN%
+REM -automanagedmods lets the server download/update the GameModIds list from the Steam Workshop.
+"%EXE%" "%OPTS%" -server -log -NoBattlEye -automanagedmods %CLUSTERARGS% %FORCERESPAWN%
 
 :end
 endlocal
