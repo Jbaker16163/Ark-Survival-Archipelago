@@ -128,7 +128,13 @@ has its datapackage frozen at generation time.
 
 ---
 
+## AI DISCLAIMER
+
+Claude Code was used to assist in making this. 
+
 ## Credits
 
 Thank you to a drunk Avocado, Beeno, Lurch9229, and Wizard_Brandon for helping test and put the
 entire ARK archipelago together.
+
+
