@@ -1,5 +1,203 @@
 # Known bugs / open items
 
+## Added 2026-07-26: S+ variant pairing widened (26 -> 91 engrams)
+
+- The first pass only stripped " Plus" / " Tek", so it paired 26 of S+'s 472 engrams. Audit of the
+  leftovers found three more naming patterns the mod uses:
+    * " SS" suffix  (Cryo Fridge SS, Egg Incubator SS, Hover Skiff SS, Jump Pad SS,
+                     Pressure Plate SS, Trophy Base SS, Trophy Wall SS)
+    * " SP" suffix  (Dedicated Storage SP, Wire Flex SP)
+    * INFIX " Plus " (Crop Plot Plus Large -> Crop Plot Large)
+    * outright RENAMES, which no rule can derive -> curated VARIANT_ALIAS table (14 entries):
+      Smithy Plus->Anvil Bench, Mortar Pestle Plus->Mortar And Pestle, Bed Plus->Simple Bed,
+      Bunk Bed Plus->Modern Bed, Cloning Chamber Plus->Tek Cloning Chamber, Replicator/Transmitter/
+      Teleporter Plus->the Tek versions, Incubator Plus->Egg Incubator, Industrial Grill Plus->Grill,
+      Loadout Dummy Plus->Training Dummy, Taxidermy Plus <size>->Taxidermy Base <size>.
+- Every derived/aliased name is still checked against the real vanilla engram list, so a wrong guess
+  just fails to pair instead of creating a bogus item link. Audited: 14/14 aliases resolve on BOTH
+  sides. Dropped two that have no vanilla counterpart in our engram set (Fridge Plus, Bee Hive Plus)
+  - those correctly remain separate unlocks.
+- Coverage now: 319 S+ structures fold via bundle_structures (material sets: S+ Wood Wall and vanilla
+  Wood Wall both live in Bundle: Wood Structures) + 91 via variant pairing = the S+-exclusive
+  remainder (Auto Turrets, Alarm Plate, ...) correctly stays separate since it has no vanilla twin.
+- Verified: S+ generates at 91 folded (bundle_structures on) and 110 with count-grouping on; vanilla
+  seeds fold 0. NOTE bundle_structures:false + S+ is still rejected by the existing pool-size
+  validation, so the material-set pairing is always active when S+ is enabled.
+- FOLLOW-UP (same day): ran a CLASS-BASED sweep (compare PrimalItem*_<stem> instead of display
+  names) to catch pairs the display names hide. Found 2 real ones and 93 links total:
+    * Fridge Plus -> "Engram: Ice Box". Vanilla's Refrigerator is internally
+      PrimalItemStructure_IceBox, so its generated ap_name is "Ice Box" while the game DISPLAYS
+      "Refrigerator" - a name search for "fridge"/"refrigerator" finds nothing.
+    * Loadout Dummy Plus was MIS-ALIASED to "Training Dummy". Vanilla "Loadout Mannequin" is
+      internally PrimalItemStructure_LoadoutDummy and Training Dummy is a DIFFERENT structure
+      (PrimalItemStructure_TrainingDummy). Corrected, and added Loadout Dummy SS -> the same.
+  Bee Hive Plus stays unpaired on purpose: vanilla has no bee-hive ENGRAM at all (the hive comes
+  from taming a Giant Queen Bee). Crop Plot Plus Seamless Square/Triangle are S+-exclusive shapes.
+  LESSON: when pairing mod content, match on the blueprint CLASS stem, not the display name.
+
+## Added 2026-07-26: external connector retired (no longer released)
+
+- The plugin's built-in AP client (/connect in game chat) fully replaced the external Python
+  connector, including the last thing it was still needed for - the randomize_dino_spawns Game.ini
+  patch, now done in-game by /confirm (which also restarts the server with a forced wild-dino wipe).
+- build_release.py: dropped the connector bundle step -> dist/ArkConnector.zip is NO LONGER BUILT
+  (steps renumbered 7 -> 6). connector/build_exe.bat (ArkConnector.exe) is therefore not part of a
+  release either; it stays as a dev tool. The connector/ SOURCE is kept in the repo for reference
+  and debugging - it still receives slot_data relay updates (flags.json/item_groups/hint_redirect).
+- Docs updated: README components table + "alternative connector" line removed; GETTING_STARTED
+  drops the ArkConnector.zip download row, the components bullet, the whole "Alternative - external
+  connector" section (replaced with a short retirement note), the per-player connector.ini
+  multiplayer instructions, the connector.ini path entry, and the stale connector-based
+  randomize_dino_spawns chain (rewritten around /confirm). Also corrected dossier_checks 240 -> 232.
+- NOTE: a stale dist/ArkConnector.zip from an earlier build may still exist - delete it so it isn't
+  attached to a release by mistake.
+
+## Added 2026-07-26: /hint works for ANY bundled item (v110)
+
+- v109 only redirected count-group members. Same "item appears to not exist in multiworld" bug hit
+  every OTHER fold: structure-bundle members (bundle_structures), curated mod-group members, S+
+  variant engrams, and saddles bundled with their tame - none are placed AP items.
+- Fix: the apworld builds `hint_redirect` = {unpooled item id -> the POOLED item that unlocks it},
+  covering ALL folds (count-groups, variants, structure bundles, mod groups, saddles). Chains are
+  resolved (saddle -> Tame: X -> that tame's count-group rep) so the target is always something AP
+  actually placed. Shipped in slot_data -> flags.json (both the connector and embedded APClient).
+- Plugin v110: g_routeHintRedirect; DoHint redirects via it (falls back to the old item_groups scan
+  for seeds generated before this). Chat now also lists what the hinted unlock grants:
+  "Revealing hint for Engram: Wood Shield (the unlock that grants Engram: Bola)
+   [also unlocks Engram: Compass]".
+- Verified on a seed with everything folded at once (engrams 3 / tames 2 / bundle_structures /
+  bundle_saddles / S+): 927 redirect entries, 0 unresolved chains, 60/60 bundled saddles point at a
+  Tame: item, Engram: Wood Wall -> Bundle: Wood Structures.
+
+## Added 2026-07-26: crafted "Collect N" checks GATED by their engram (self-circular softlock fix)
+
+- Avocado spoiler: "Collect 100 Sparkpowder: Engram: Sparkpowder" - you need the Sparkpowder engram
+  to make sparkpowder, but it was locked behind collecting sparkpowder. Self-circular = softlock.
+  progression_tiers ordered the LOCATION by tier but added no "needs the engram" rule, so fill could
+  still self-gate.
+- Fix: CRAFTED_COLLECT_ENGRAM maps each crafted resource -> its crafting engram/station (Sparkpowder/
+  Gunpowder/Narcotic/Stimulant/Electronics -> own engram; Metal Ingot/Gasoline -> Forge; Cementing
+  Paste -> Mortar And Pestle; Absorbent Substrate/Element Dust -> Fabricator; Charcoal -> Campfire).
+  set_rules adds "Collect N <res>" -> state.has(<engram or its group rep>). Fill can't self-gate
+  (location requiring the item it holds = unreachable). Engrams forced PROGRESSION
+  (_crafted_collect_engrams, remapped for count-grouping).
+- REPLACES the old tiers-off "exclude crafted collects" workaround (removed). Now they HOLD
+  progression (gated) in BOTH tiers on/off -> also RESTORES headroom: the all-off heavy pool that
+  was ~8 over now fits. Verified: no self-circular + beatable at tiersON/OFF, +grouping, +heavy-off.
+
+## Added 2026-07-26: Titanosaur -> kill-only (temp-tame only in ASE)
+
+- Removed the Tamed: Titanosaur check + Tame: Titanosaur item (Titanosaur only TEMP-tames in ASE, so
+  a permanent-tame check is impractical). Now kill-only like Yeti/Leedsichthys: Killed: Titanosaur
+  kept (still EXCLUDED from progression via the giants list). gen_dinos.py KILL_ONLY_OVERRIDE +=
+  "Titan"; dinos.json (both copies) entry converted to {name, dino_tag, kill_loc, tameable:false}.
+  id 8732085 (Tame item) + tame_loc 8753084 dropped; every other dino id stays stable (same slot).
+  Verified: Tamed/Tame:Titanosaur gone, Killed:Titanosaur present, generates clean.
+
+## Added 2026-07-26: Avocado single-player bug batch
+
+- FIXED Food pack gave nothing: veggie GFI paths were /Game/PrimalEarth/Test/... (wrong). Real path
+  is /Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Veggie_X (ark.wiki/dododex).
+- FIXED DLC pack gave nothing (Cactus Sap): path had an extra Items/ - real is
+  /Game/ScorchedEarth/CoreBlueprints/Consumables/PrimalItemConsumable_CactusSap.
+- FIXED "item appears to not exist in multiworld" when hinting a FOLDED group member (engrams/tames
+  _per_item): the member is never a placed AP item. Plugin /hint (v109-hint-group-redirect) now
+  reverse-maps member -> representative and hints the rep, chat notes "(unlocks <member>)".
+- FIXED note-count milestones ignoring dossier_checks: "Collect N Explorer Notes" with N >
+  dossier_checks are dropped from _used_locations (dossier_checks=0 drops them all). A player who
+  turns notes off no longer has impossible note-count milestones. Verified.
+- STILL OPEN:
+  * Dodo taming locked despite obtaining the tame - LIKELY the same group-member-not-granted bug
+    fixed in v107 (folded Tame: Dodo never marked owned -> DoTameGate blocks). Should be fixed on
+    v108/v109 via the reconcile. Needs a re-test on v109; if still locked, capture the "TAME tag=Dodo"
+    + APPLY log lines. DoTameGate: g_tameTagToItem[tag] + HasItem(route,item).
+  * FIXED (variant pairing): with a building mod active, its "<Name> Plus" / "<Name> Tek" engram
+    now folds into the matching vanilla engram (Campfire Plus -> Campfire, 26 pairs) via item_groups
+    - ONE unlock grants BOTH variants. _variant_pairs(); mod variant added to _nonpool_names (out of
+    pool + out of count-grouping); _item_groups_slotdata merges engram/tame groups + variant pairs,
+    following member->rep so it survives count-grouping nesting. No plugin change (item_groups
+    expansion grants the variant class). Verified: Campfire->Campfire Plus, generates with S+ +
+    engrams_per_item 2/4. Material-bundle structures already pair via bundle_structures.
+  * Stone Club IS progression already (alias "Club": "Stone Club" -> club-tames require the engram),
+    so it's placed reachably; the "Club at Titanosaur" sighting was a pre-fix/grouping artifact.
+    Simple Bed is NOT a tame/craft requirement (no logic gate) so it stays 'useful' - can be added
+    to extra_early_items if a tester wants it early.
+  * Some buff/debuff TRAPS may use wrong ForceGiveBuff names (e.g. Buff_SquidInk). Needs a 1-by-1
+    audit of filler.json buff commands against the live ForceGiveBuff list.
+  * Basic engrams (Stone Club, Bed) can land on a late check (Tamed: Titanosaur). Not a softlock -
+    they're 'useful', not required, so fill may place them anywhere. progression_tiers puts the
+    LOCATION in its tier but doesn't tier the ITEM; forcing basics early would need them classified
+    progression (they aren't). Feel issue - revisit if it bugs testers.
+
+
+## Added 2026-07-26: progression_tiers REVIVED as DS3-style region chain (playthrough/sphere fix)
+
+- Problem: playthrough collapsed into sphere 1-2 - create_regions was a single flat region, so every
+  note/level/collect/easy-kill was start-reachable and fill scattered progression anywhere.
+- Studied the DS3 apworld (user-provided): its correct spheres come from a REGION GRAPH mirroring
+  the world's topology + entrance rules (item AND boss-event) on every connection; location rules
+  layer on top. Sphere depth is structural.
+- ARK equivalent = TECH topology: Menu -> Tier 0 -> Tier 1 -> Tier 2 -> Tier 3, gated by TIER_GATES
+  (Anvil Bench + Mortar And Pestle -> Forge -> Fabricator); Explorer Notes region behind Tier 2.
+  Revived/upgraded the retired _regions_tiered:
+    * EXCLUDED marking now uses the full shared _excluded_progression_names (was Boss/holograms only).
+    * NEW _gate_items(): entrance requirements are remapped for count-grouping (a gate folded into an
+      engrams_per_item group requires its REPRESENTATIVE) and dropped when free (starter/auto-grant/
+      HARD_PLACED) - so gates never demand an item AP can't deliver.
+    * NEW _tier_gate_items() + create_item clause: gate items (or their reps) are forced PROGRESSION
+      when tiers are on, else the accessibility sweep could never open T1+.
+    * Existing tame/kill/cave location rules still apply ON TOP (DS3's location-rule layering).
+- create_regions dispatches on progression_tiers (ON=tiered, OFF=flat, old behavior intact).
+  Example ark.yaml now ships progression_tiers: true (recommended).
+- HEADROOM: the CRAFTED_COLLECT exclusion is now applied ONLY when progression_tiers is OFF - with
+  tiers ON the crafted collect sits in its own tier region (gated behind its station engram), so the
+  ordering is already correct and the ~12 excluded slots are reclaimed. This fixes the default heavy
+  pool (bundle_saddles+free_starter OFF, 584 items) crashing with "584 items but only 576 usable":
+  tiers ON now fits it. Tiers OFF + that heavy pool is still ~8 over (legacy path; shrink via the
+  error's levers or just turn tiers ON).
+- Verified: tiers ON default = 10 spheres, gates cascade s1 Anvil/Mortar -> s2 Forge -> s3 Fabricator,
+  notes open s3+, bosses s6+. Matrix all beatable: OFF (5 spheres), ON+2/2 grouping (12), ON+4/4
+  +bundle_structures (9), ON+free_starter (9), 3-player multiworld with other games.
+- (Test-harness note: duplicate-yaml-key crash when injecting options blindly - the live Players
+  yaml already had progression_tiers; variants must replace-or-insert.)
+
+## Added 2026-07-26: per-route bundle_saddles / free_starter (multiplayer flag leak) + Unicorn/Yeti
+
+- Lurch (multiplayer): free_starter=false still granted starters; unbundled tames still handed over
+  the saddle. CAUSE: g_freeStarter / g_bundleSaddles were GLOBAL, set by OR-ing every route's
+  flags.json ("any slot turns it on"). One player's `true` forced it onto everyone.
+- Fix (v108-per-route-flags): g_routeFreeStarter / g_routeBundleSaddles maps, keyed per route.
+  DoGrantStarter checks the route's own flag; the ApplyItem saddle grant checks the receiving
+  route's own flag. No more cross-slot leak. Solo unaffected (single route "").
+- Unicorn/Yeti excluded from progression (Tamed: Unicorn / Killed: Unicorn / Killed: Yeti) - too
+  luck/gear-dependent (rare wandering spawn / snow-cave apex).
+
+## Added 2026-07-26: Collect-N checks filler-only + loose filler replaced by Packs
+
+- CRAFTED-resource "Collect N" checks are EXCLUDED from progression (filler-only) - kills the
+  "Collect 100 Gunpowder -> Mortar and Pestle" weirdness. NARROWED to crafted only (CRAFTED_COLLECT:
+  Cementing Paste, Sparkpowder, Gunpowder, Narcotic, Stimulant, Metal Ingot, Electronics, Absorbent
+  Substrate, Gasoline, Element Dust, Charcoal). RAW-gather collects (Wood/Stone/Hide/Metal Ore/Oil/
+  Crystal/Obsidian/Silica/Chitin/Keratin/Pelt/Sap/...) stay progression-eligible. They all still fire.
+  Headroom: only ~12 excluded now (was 46 when all-collects); default generates, all-off heavy pool
+  is ~8 over (needs one shrink lever).
+- Loose single-resource / single-kibble give-filler (8739540-8739556: Metal Ingots x100, Cementing
+  Paste x50, Narcotics, Element, Sparkpowder, Gunpowder, Chitin, Achatina Paste, 6 kibbles) REMOVED
+  from filler.json (both copies). Good filler now = Bonus Resources (fallback) + 18 buffs + 9 Packs.
+- HEADROOM TRADEOFF: excluding ~46 collects raises n_excluded ~46, so the +40 collects no longer
+  help the pool fit. Shipped default (bundle_saddles+free_starter ON) still generates; a heavy pool
+  (both OFF, no grouping) now fails headroom and needs engrams_per_item/bundle_structures (the error
+  message already lists these). If this bites, narrow the exclusion to CRAFTED collects only (keep
+  raw-gather Wood/Stone/Hide as usable progression slots).
+
+## Open (from Lurch's report) - NOT yet fixed, need decisions:
+- Sphere-1 flatness: progression_tiers is INERT (create_regions flat; option ignored). Real fix is
+  re-activating tier gating and/or per-station resource gating. USER is sending another AP's logic
+  as a reference before the redesign - HOLD.
+- "Tribe with 2 slots sends checks through the tribe leader's slot": multiplayer attribution is by
+  the acting player's survivor route; a shared tribe / other-tribe-member action can mis-route.
+  Known limitation of the per-survivor routing; needs design.
+
 ## Added 2026-07-26: FIXED - group members not granted (nlohmann temporary-lifetime bug)
 
 - ROOT CAUSE (found via v106 diag "item_groups_key=1 parsed=0"): the flags-refresh parsed item_groups

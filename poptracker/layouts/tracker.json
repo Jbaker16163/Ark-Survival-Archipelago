@@ -370,10 +370,6 @@
         },
         {
          "type": "item",
-         "item": "unlocked_titanosaur"
-        },
-        {
-         "type": "item",
          "item": "unlocked_titanoboa"
         },
         {
@@ -383,6 +379,10 @@
         {
          "type": "item",
          "item": "unlocked_triceratops"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_troodon"
         }
        ]
       },
@@ -390,10 +390,6 @@
        "type": "array",
        "orientation": "horizontal",
        "content": [
-        {
-         "type": "item",
-         "item": "unlocked_troodon"
-        },
         {
          "type": "item",
          "item": "unlocked_carbonemys"
@@ -799,10 +795,6 @@
         },
         {
          "type": "item",
-         "item": "tame_titanosaur"
-        },
-        {
-         "type": "item",
          "item": "tame_titanoboa"
         },
         {
@@ -812,6 +804,10 @@
         {
          "type": "item",
          "item": "tame_triceratops"
+        },
+        {
+         "type": "item",
+         "item": "tame_troodon"
         }
        ]
       },
@@ -819,10 +815,6 @@
        "type": "array",
        "orientation": "horizontal",
        "content": [
-        {
-         "type": "item",
-         "item": "tame_troodon"
-        },
         {
          "type": "item",
          "item": "tame_carbonemys"

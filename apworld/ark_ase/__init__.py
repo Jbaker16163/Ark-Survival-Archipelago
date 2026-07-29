@@ -41,6 +41,50 @@ EARLY_DINO_SHORTS = (
 #                   given a bogus "Crossbow KO + Gas Mask" cave floor.
 NO_TAME_LOGIC = {"Electrophorus", "Titanoboa"}
 
+# Building-mod variant naming. A mod engram that is just the mod's version of a vanilla structure
+# folds into the vanilla engram (see _variant_pairs), so ONE unlock grants both. Suffix rules are
+# tried first, then the curated table for the ones the mod RENAMES rather than suffixes. Every
+# result is still checked against the real vanilla engram list, so a bad guess simply doesn't pair.
+VARIANT_SUFFIXES = (" Plus", " Tek", " SS", " SP")
+VARIANT_ALIAS = {
+    "Engram: Smithy Plus": "Engram: Anvil Bench",
+    "Engram: Mortar Pestle Plus": "Engram: Mortar And Pestle",
+    # vanilla's Refrigerator is internally PrimalItemStructure_IceBox, so its generated ap_name is
+    # "Ice Box" - the display name in-game is "Refrigerator".
+    "Engram: Fridge Plus": "Engram: Ice Box",
+    "Engram: Bed Plus": "Engram: Simple Bed",
+    "Engram: Bunk Bed Plus": "Engram: Modern Bed",
+    "Engram: Cloning Chamber Plus": "Engram: Tek Cloning Chamber",
+    "Engram: Replicator Plus": "Engram: Tek Replicator",
+    "Engram: Transmitter Plus": "Engram: Tek Transmitter",
+    "Engram: Teleporter Plus": "Engram: Tek Teleporter",
+    "Engram: Incubator Plus": "Engram: Egg Incubator",
+    "Engram: Industrial Grill Plus": "Engram: Grill",
+    # vanilla "Loadout Mannequin" is internally PrimalItemStructure_LoadoutDummy (Training Dummy is
+    # a DIFFERENT structure), so both S+ loadout dummies pair with it.
+    "Engram: Loadout Dummy Plus": "Engram: Loadout Mannequin",
+    "Engram: Loadout Dummy SS": "Engram: Loadout Mannequin",
+    # (S+ Fridge Plus / Bee Hive Plus have NO vanilla counterpart in our engram set, so they stay
+    #  their own separate unlocks - nothing to pair them with.)
+    "Engram: Taxidermy Plus Large": "Engram: Taxidermy Base Large",
+    "Engram: Taxidermy Plus Medium": "Engram: Taxidermy Base Medium",
+    "Engram: Taxidermy Plus Small": "Engram: Taxidermy Base Small",
+}
+
+# "Collect N <resource>" checks for CRAFTED resources are GATED behind the engram/station that makes
+# the resource. Without this the fill can self-gate ("Collect 100 Sparkpowder" holding Engram:
+# Sparkpowder = you need the engram to make what unlocks the engram = softlock). {resource substring
+# in the location name -> required engram}. Raw-gather collects (Wood/Stone/Hide/Metal Ore/...) need
+# no engram and stay ungated.
+CRAFTED_COLLECT_ENGRAM = {
+    "Sparkpowder": "Engram: Sparkpowder", "Gunpowder": "Engram: Gunpowder",
+    "Narcotic": "Engram: Narcotic", "Stimulant": "Engram: Stimulant",
+    "Electronics": "Engram: Electronics", "Cementing Paste": "Engram: Mortar And Pestle",
+    "Metal Ingot": "Engram: Forge", "Gasoline": "Engram: Forge",
+    "Absorbent Substrate": "Engram: Fabricator", "Element Dust": "Engram: Fabricator",
+    "Charcoal": "Engram: Campfire",
+}
+
 # Core engrams that are HARD-PLACED (locked) onto an easy early-dino KILL instead of pooled or given
 # free. Sphere-0 in practice (Killed: X on a weak dino has no gate), so deep recipes that need them
 # (Campfire feeds cooked meat -> gunpowder -> Rifle KO) are available from the start - but you still
@@ -134,6 +178,10 @@ class ArkASAWorld(World):
             cls = ItemClassification.filler
         elif name in self._tame_required_items() or name in self._group_forced_progression():
             cls = ItemClassification.progression      # engram (or a folded group rep) that GATES a tame
+        elif self.options.progression_tiers.value and name in self._tier_gate_items():
+            cls = ItemClassification.progression      # tier-gate station (or its group rep) opens a region
+        elif name in self._crafted_collect_engrams():
+            cls = ItemClassification.progression      # engram (or rep) that gates a crafted Collect check
         elif self.options.lock_taming.value and name in self._tame_item_names and name not in no_logic:
             cls = ItemClassification.progression
         else:                                          # useful: saddles, non-gating engrams, NO_TAME_LOGIC tames
@@ -179,8 +227,19 @@ class ArkASAWorld(World):
             used[e["name"]] = e["id"]
         # NOTE: "bosses" is intentionally NOT here - boss kills are the goal (via boss_out.jsonl),
         # not item-bearing checks, so nothing gets stranded behind a boss kill.
+        # "Collect N Explorer Notes" milestones scale with dossier_checks: you can't collect more
+        # notes than exist as checks. dossier_checks=0 (notes off) drops them all, so a player who
+        # turned notes off isn't stuck with impossible note-count milestones.
+        n_notes = self.options.dossier_checks.value
         for key in ("milestones", "levels", "alpha_kills", "inventory_checks"):
             for e in cats.get(key, {}).get("entries", []):
+                tag = e.get("tag", "")
+                if tag.startswith("milestone_notes_"):
+                    try:
+                        if int(tag.rsplit("_", 1)[1]) > n_notes:
+                            continue
+                    except ValueError:
+                        pass
                 used[e["name"]] = e["id"]
         for d in self._dinos.get("dinos", []):           # per-dino tame + kill checks
             short = d["name"] if d.get("name") else d["ap_name"].replace("Tame: ", "")
@@ -491,7 +550,44 @@ class ArkASAWorld(World):
         for mod in self._active_mods().values():
             for b in mod.get("bundles", []):
                 skip |= set(b["members"])
+        skip |= self._variant_member_names()   # mod "<X> Plus" folded into vanilla X (variant pairing)
         return skip
+
+    # S+/Super Structures variant pairing: with a building MOD active, its "<Name> Plus" / "<Name>
+    # Tek" engram folds into the matching vanilla engram (Campfire Plus -> Campfire, ...), so ONE
+    # unlock grants BOTH the vanilla structure and its mod variant. Reuses item_groups (vanilla =
+    # representative, mod variant = folded member). Material-bundle structures already pair via
+    # bundle_structures; these are the individual utility structures that don't.
+    def _variant_pairs(self) -> dict:
+        cache = getattr(self, "_variant_pairs_cache", None)
+        if cache is None:
+            cache = {}
+            vanilla = {e["ap_name"] for e in self._engrams["engrams"]}
+
+            def vanilla_name_for(nm):
+                """The vanilla engram this mod engram is a variant OF, or None."""
+                if nm in VARIANT_ALIAS:                     # curated renames (Smithy Plus -> Anvil Bench)
+                    return VARIANT_ALIAS[nm]
+                for suf in VARIANT_SUFFIXES:                # "<X> Plus" / " Tek" / " SS" / " SP"
+                    if nm.endswith(suf):
+                        return nm[: -len(suf)]
+                if " Plus " in nm:                          # infix: "Crop Plot Plus Large" -> "Crop Plot Large"
+                    return nm.replace(" Plus ", " ", 1)
+                return None
+
+            for e in self._active_mod_engrams():
+                nm = e["ap_name"]
+                base = vanilla_name_for(nm)
+                if base and base != nm and base in vanilla and base in self.item_name_to_id:
+                    cache.setdefault(base, []).append(nm)
+            self._variant_pairs_cache = cache
+        return cache
+
+    def _variant_member_names(self) -> set:
+        out: set = set()
+        for members in self._variant_pairs().values():
+            out.update(members)
+        return out
 
     def _engram_ap_names(self) -> set:
         names = {e["ap_name"] for e in self._engrams["engrams"]}
@@ -585,11 +681,69 @@ class ArkASAWorld(World):
     # {rep_item_id(str): [member_item_ids]} for slot_data - the plugin unlocks a group's members
     # when the representative arrives (they are never pooled, so AP never sends them directly).
     def _item_groups_slotdata(self) -> dict:
-        out: Dict[str, list] = {}
+        groups: Dict[str, set] = {}   # rep ap_name -> set(member ap_names)
         for rep, members in self._engram_groups().items():
-            out[str(self.item_name_to_id[rep])] = [self.item_name_to_id[m] for m in members]
+            groups.setdefault(rep, set()).update(members)
         for rep, members in self._tame_groups().items():
-            out[str(self.item_name_to_id[rep])] = [self.item_name_to_id[m] for m in members]
+            groups.setdefault(rep, set()).update(members)
+        # variant pairs fold the mod "<X> Plus" into vanilla X. If vanilla X is itself a folded
+        # count-group member, attach the variant to whatever rep actually GRANTS X, so the chain
+        # still delivers it (member -> its rep).
+        member_to_rep = {m: r for r, ms in groups.items() for m in ms}
+        for vanilla, variants in self._variant_pairs().items():
+            actual = member_to_rep.get(vanilla, vanilla)
+            groups.setdefault(actual, set()).update(variants)
+        out: Dict[str, list] = {}
+        for rep, members in groups.items():
+            if rep in self.item_name_to_id:
+                out[str(self.item_name_to_id[rep])] = sorted(
+                    self.item_name_to_id[m] for m in members if m in self.item_name_to_id)
+        return out
+
+    # {non-pooled item id -> the POOLED item id that unlocks it}, for /hint. AP can only hint items
+    # it actually PLACED; anything folded into a bundle/group was removed from the pool, so hinting
+    # it errors with "item doesn't exist in the multiworld". This covers EVERY fold the apworld does:
+    # count-groups, S+ variant pairs, material structure bundles, curated mod groups, and saddles
+    # bundled with their tame. The plugin uses it to redirect the hint to the item you should chase.
+    def _hint_redirect_slotdata(self) -> dict:
+        out: Dict[str, int] = {}
+        ids = self.item_name_to_id
+
+        def add(member_name, rep_name):
+            if member_name in ids and rep_name in ids:
+                out[str(ids[member_name])] = ids[rep_name]
+
+        for rep_id, members in self._item_groups_slotdata().items():   # count-groups + variants
+            for m in members:
+                out[str(m)] = int(rep_id)
+        if self.options.bundle_structures.value:                       # material structure bundles
+            for bundle, members in structure_bundle_members(
+                    self._engrams, self._active_mod_engrams()).items():
+                if members:
+                    for m in members:
+                        add(m, bundle)
+        for mod in self._active_mods().values():                       # curated per-mod groups
+            for b in mod.get("bundles", []):
+                for m in b.get("members", []):
+                    add(m, b["ap_name"])
+        if self.options.bundle_saddles.value:                          # saddle rides with the tame
+            by_class = {d["saddle_class"]: d for d in self._dinos.get("dinos", [])
+                        if d.get("saddle_class") and d.get("ap_name")}
+            for e in self._engrams["engrams"]:
+                d = by_class.get(e["engram_class"])
+                if d:
+                    add(e["ap_name"], d["ap_name"])
+        # follow chains so the target is always a POOLED item (saddle -> Tame: X -> that tame's
+        # count-group representative; a structure engram -> its bundle; etc.).
+        for _ in range(5):
+            changed = False
+            for k, v in list(out.items()):
+                nxt = out.get(str(v))
+                if nxt is not None and nxt != v and str(nxt) != k:
+                    out[k] = nxt
+                    changed = True
+            if not changed:
+                break
         return out
 
     # ap_item_names that are auto-granted (never in the pool) -> tame logic treats has(x) as always
@@ -803,22 +957,63 @@ class ArkASAWorld(World):
                 self.multiworld.get_location(pick, self.player).place_locked_item(item)
 
     def create_regions(self) -> None:
-        # Single-region layout. Ordering/softlock-safety comes from the tame/craft ACCESS RULES
-        # (set_rules), which supersede the old progression_tiers region gating (now retired - the
-        # option is ignored). early_dino_checks still applies its PRIORITY/EXCLUDED overlay here.
+        # progression_tiers ON -> DS3-style region chain (Menu -> T0 -> T1 -> T2 -> T3, notes behind
+        # T2): sphere depth comes from region topology, so the playthrough orders like a real tech
+        # climb. OFF -> single flat region; ordering comes only from the per-location access rules.
         menu = Region("Menu", self.player, self.multiworld)
         regions = [menu]
-        self._regions_flat(menu, regions)
+        if self.options.progression_tiers.value:
+            self._regions_tiered(menu, regions)
+        else:
+            self._regions_flat(menu, regions)
         self.multiworld.regions += regions
 
-    # progression_tiers: 4 regions T0->T1->T2->T3, each gated by the prior station engram. Every
-    # check lives in its tier (DINO_TIER / level / boss). The 3 gate engrams are hard-placed on
-    # active non-note checks in pre_fill, so a tier is never gated behind hunting an explorer note.
+    # engram (or its group rep) that gates a crafted "Collect N" check -> must be progression, else
+    # the accessibility sweep can't reach that check.
+    def _crafted_collect_engrams(self) -> set:
+        cache = getattr(self, "_ccg_cache", None)
+        if cache is None:
+            remap = self._bundle_remap()
+            cache = {remap(e[len("Engram: "):]) if e.startswith("Engram: ") else e
+                     for e in CRAFTED_COLLECT_ENGRAM.values()}
+            self._ccg_cache = cache
+        return cache
+
+    # every effective item name any tier-entrance rule requires (for classification: they must be
+    # progression or the accessibility sweep can never open T1+).
+    def _tier_gate_items(self) -> set:
+        cache = getattr(self, "_tier_gate_cache", None)
+        if cache is None:
+            cache = set()
+            for gates in TIER_GATES:
+                cache.update(self._gate_items(gates))
+            self._tier_gate_cache = cache
+        return cache
+
+    # The effective AP item names a tier gate requires. A gate engram may be non-pooled: folded into
+    # a count-group (engrams_per_item -> require its REPRESENTATIVE, which is what actually grants
+    # it) or free (starter/auto-grant -> no requirement at all). Mirrors what _bundle_remap does for
+    # the tame-logic rules, so the entrance rules never demand an item AP can't deliver.
+    def _gate_items(self, gates) -> tuple:
+        remap = self._bundle_remap()
+        free = self._free_items() | self._auto_grant_names() | HARD_PLACED
+        out = []
+        for g in gates:
+            if g in free:
+                continue
+            out.append(remap(g[len("Engram: "):]) if g.startswith("Engram: ") else g)
+        return tuple(out)
+
+    # progression_tiers: 4 regions T0->T1->T2->T3, each gated by the prior station engram(s) -
+    # exactly the DS3 pattern (region graph + entrance rules) mapped onto ARK's TECH topology.
+    # Every check lives in its tier (explicit data tier / DINO_TIER / level band / boss=3).
     # Explorer notes are pulled behind TIER 2 (needs BOTH T0->T1 and T1->T2 gates transitively -
     # genuinely 2 rounds deep, sphere-2+) so ARK's sphere-0 set = ONLY T0 kills + low levels. A
     # single-hop gate (e.g. "any early tame") isn't deep enough - AP's early-item placement still
     # treats sphere-1 as "early". Sphere-2+ is deep enough that another game's early-forced item
     # (e.g. DS3 early_banner) can only land on a T0 kill/level-up here - never a note, never T1+.
+    # The existing tame/kill/cave access rules (set_rules) still apply ON TOP, like DS3 layering
+    # location rules (Lift Chamber Key) over region access.
     def _regions_tiered(self, menu: Region, regions: list) -> None:
         tiers = [Region(f"Tier {i}", self.player, self.multiworld) for i in range(4)]
         notes = Region("Explorer Notes", self.player, self.multiworld)
@@ -826,19 +1021,15 @@ class ArkASAWorld(World):
         regions.append(notes)
         menu.connect(tiers[0])
         for i, gates in enumerate(TIER_GATES):             # T0->T1 needs Anvil Bench + Mortar And Pestle, etc.
+            req = self._gate_items(gates)
             tiers[i].connect(tiers[i + 1], f"Tier {i} -> Tier {i + 1}",
-                             rule=lambda state, g=gates: state.has_all(g, self.player))
+                             rule=(lambda state, g=req: state.has_all(g, self.player)) if req else None)
         tiers[2].connect(notes, "Tier 2 -> Explorer Notes")   # inherits gates 0 AND 1 transitively
-        # Boss checks (12) + boss-adjacent lore notes (4 Holograms, physically in/near the boss
-        # arenas) are EXCLUDED from holding progression: reaching them takes real prep + a fight,
-        # not just an item, so another player's needed item could sit there for a very long time
-        # even when "logically reachable". They still fire as checks, just filler-only.
-        HOLOGRAM_NOTES = {"Hologram: Broodmother", "Hologram: Megapithecus",
-                          "Hologram: Dragon", "Hologram: Overseer"}
+        excluded_progression = self._excluded_progression_names()
         for loc_name, loc_id in self._used_locations().items():
             parent = notes if self._is_note(loc_name) else tiers[self._tier_of(loc_name)]
             loc = ArkLocation(self.player, loc_name, loc_id, parent)
-            if loc_name.startswith("Boss:") or loc_name in HOLOGRAM_NOTES:
+            if loc_name in excluded_progression:
                 loc.progress_type = LocationProgressType.EXCLUDED
             parent.locations.append(loc)
         for ev_name in self._boss_events():                # boss events live where bosses do (T3)
@@ -897,6 +1088,9 @@ class ArkASAWorld(World):
         # but you can't solo a Carcha with a crossbow). Filler-only, same as the alpha kills.
         excluded_progression |= {"Killed: Carcharodontosaurus", "Killed: Giganotosaurus",
                                  "Killed: Titanosaur", "Killed: Rhyniognatha"}
+        # Unicorn (a rare wandering spawn you may never find) + Yeti (Gigantopithecus, a nasty
+        # snow-cave apex) - too luck/gear-dependent to sit key progression behind.
+        excluded_progression |= {"Tamed: Unicorn", "Killed: Unicorn", "Killed: Yeti"}
         for loc_name in self._used_locations():
             if loc_name.startswith("Reach Level "):
                 try:
@@ -906,6 +1100,8 @@ class ArkASAWorld(World):
                     pass
             elif loc_name.startswith(HARD_NOTE_PREFIXES):
                 excluded_progression.add(loc_name)
+            # (crafted-resource "Collect N" checks are no longer excluded - they're GATED behind their
+            #  crafting engram in set_rules, which prevents the self-circular placement safely.)
         self._excl_prog_cache = excluded_progression
         return excluded_progression
 
@@ -933,6 +1129,19 @@ class ArkASAWorld(World):
 
     def set_rules(self) -> None:
         excluded = self._sanity_excluded()
+        # Crafted "Collect N <resource>" checks require the engram/station that makes the resource -
+        # you can't hold 100 sparkpowder without the Sparkpowder engram. Blocks the self-circular fill
+        # (Engram: Sparkpowder landing on Collect Sparkpowder). Remapped for count-grouping.
+        remap = self._bundle_remap()
+        for loc_name in self._used_locations():
+            if not (loc_name.startswith("Collect ") and "Explorer Notes" not in loc_name):
+                continue
+            for res, eng in CRAFTED_COLLECT_ENGRAM.items():
+                if res in loc_name:
+                    req = remap(eng[len("Engram: "):]) if eng.startswith("Engram: ") else eng
+                    add_rule(self.multiworld.get_location(loc_name, self.player),
+                             lambda state, it=req: state.has(it, self.player))
+                    break
         # TAME/CRAFT ACCESS RULES (always on): "Tamed: X" requires the engrams X's taming method
         # needs (from tame_logic; prevents the fill stranding a needed item behind a dino you can't
         # yet tame). lock_taming ALSO requires the "Tame: X" unlock. Both add_rule -> ANDed.
@@ -1149,6 +1358,7 @@ class ArkASAWorld(World):
                 "death_link": bool(self.options.death_link.value),
                 "mod_ids": sorted(self._active_mods()),   # mods this slot enabled (plugin diagnostics)
                 "item_groups": self._item_groups_slotdata(),  # rep item id -> folded member ids
+                "hint_redirect": self._hint_redirect_slotdata(),  # unpooled item id -> item that unlocks it
                 "engrams_per_item": self.options.engrams_per_item.value,
                 "tames_per_item": self.options.tames_per_item.value,
                 "npc_replacements": [],           # legacy key (permutation design retired)

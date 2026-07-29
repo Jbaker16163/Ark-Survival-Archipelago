@@ -649,12 +649,10 @@
       "kill_loc": 8755083
     },
     {
-      "id": 8732085,
-      "ap_name": "Tame: Titanosaur",
+      "name": "Titanosaur",
       "dino_tag": "Titan",
-      "saddle_class": "BlueprintGeneratedClass /Game/PrimalEarth/CoreBlueprints/Items/Armor/Saddles/PrimalItemArmor_TitanSaddle_Platform.PrimalItemArmor_TitanSaddle_Platform_C",
-      "tame_loc": 8753084,
-      "kill_loc": 8755084
+      "kill_loc": 8755084,
+      "tameable": false
     },
     {
       "id": 8732086,

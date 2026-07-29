@@ -85,22 +85,6 @@
     { "id": 8739735, "ap_name": "(Trap) Cocooned", "trap": true, "effect": { "kind": "buff", "command": "ForceGiveBuff Buff_XenomorphCocoon true" } },
     { "id": 8739736, "ap_name": "(Trap) Lamprey Latch", "trap": true, "effect": { "kind": "buff", "command": "ForceGiveBuff Buff_Lamprey true" } },
 
-    { "id": 8739540, "ap_name": "Basic Kibble x10", "trap": false, "effect": { "kind": "give", "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Kibble_Base_XSmall.PrimalItemConsumable_Kibble_Base_XSmall'", "qty": 10, "quality": 1 } },
-    { "id": 8739541, "ap_name": "Simple Kibble x10", "trap": false, "effect": { "kind": "give", "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Kibble_Base_Small.PrimalItemConsumable_Kibble_Base_Small'", "qty": 10, "quality": 1 } },
-    { "id": 8739542, "ap_name": "Regular Kibble x8", "trap": false, "effect": { "kind": "give", "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Kibble_Base_Medium.PrimalItemConsumable_Kibble_Base_Medium'", "qty": 8, "quality": 1 } },
-    { "id": 8739543, "ap_name": "Superior Kibble x6", "trap": false, "effect": { "kind": "give", "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Kibble_Base_Large.PrimalItemConsumable_Kibble_Base_Large'", "qty": 6, "quality": 1 } },
-    { "id": 8739544, "ap_name": "Exceptional Kibble x4", "trap": false, "effect": { "kind": "give", "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Kibble_Base_XLarge.PrimalItemConsumable_Kibble_Base_XLarge'", "qty": 4, "quality": 1 } },
-    { "id": 8739545, "ap_name": "Extraordinary Kibble x2", "trap": false, "effect": { "kind": "give", "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Kibble_Base_Special.PrimalItemConsumable_Kibble_Base_Special'", "qty": 2, "quality": 1 } },
-    { "id": 8739546, "ap_name": "Metal Ingots x100", "trap": false, "effect": { "kind": "give", "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Resources/PrimalItemResource_MetalIngot.PrimalItemResource_MetalIngot'", "qty": 100, "quality": 0 } },
-    { "id": 8739547, "ap_name": "Cementing Paste x50", "trap": false, "effect": { "kind": "give", "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Resources/PrimalItemResource_ChitinPaste.PrimalItemResource_ChitinPaste'", "qty": 50, "quality": 0 } },
-    { "id": 8739548, "ap_name": "Narcotics x30", "trap": false, "effect": { "kind": "give", "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Narcotic.PrimalItemConsumable_Narcotic'", "qty": 30, "quality": 0 } },
-    { "id": 8739549, "ap_name": "Element x5", "trap": false, "effect": { "kind": "give", "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Resources/PrimalItemResource_Element.PrimalItemResource_Element'", "qty": 5, "quality": 0 } },
-
-    { "id": 8739553, "ap_name": "Sparkpowder x100", "trap": false, "effect": { "kind": "give", "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Resources/PrimalItemResource_Sparkpowder.PrimalItemResource_Sparkpowder'", "qty": 100, "quality": 0 } },
-    { "id": 8739554, "ap_name": "Gunpowder x50", "trap": false, "effect": { "kind": "give", "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Resources/PrimalItemResource_Gunpowder.PrimalItemResource_Gunpowder'", "qty": 50, "quality": 0 } },
-    { "id": 8739555, "ap_name": "Chitin x100", "trap": false, "effect": { "kind": "give", "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Resources/PrimalItemResource_Chitin.PrimalItemResource_Chitin'", "qty": 100, "quality": 0 } },
-    { "id": 8739556, "ap_name": "Achatina Paste x20", "trap": false, "effect": { "kind": "give", "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Resources/PrimalItemResource_ReFertilizer.PrimalItemResource_ReFertilizer'", "qty": 20, "quality": 0 } },
-
     { "id": 8739560, "ap_name": "Pack: Resource (Basic)", "trap": false, "weight": 5, "effect": { "kind": "give", "gives": [
         { "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Resources/PrimalItemResource_Stone.PrimalItemResource_Stone'", "qty": 20, "quality": 0 },
         { "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Resources/PrimalItemResource_Wood.PrimalItemResource_Wood'", "qty": 20, "quality": 0 },
@@ -118,10 +102,10 @@
         { "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Resources/PrimalItemResource_Oil.PrimalItemResource_Oil'", "qty": 20, "quality": 0 } ] } },
 
     { "id": 8739562, "ap_name": "Pack: Resource (Food)", "trap": false, "weight": 5, "effect": { "kind": "give", "gives": [
-        { "gfi": "Blueprint'/Game/PrimalEarth/Test/PrimalItemConsumable_Veggie_Citronal.PrimalItemConsumable_Veggie_Citronal'", "qty": 5, "quality": 0 },
-        { "gfi": "Blueprint'/Game/PrimalEarth/Test/PrimalItemConsumable_Veggie_Rockarrot.PrimalItemConsumable_Veggie_Rockarrot'", "qty": 5, "quality": 0 },
-        { "gfi": "Blueprint'/Game/PrimalEarth/Test/PrimalItemConsumable_Veggie_Longrass.PrimalItemConsumable_Veggie_Longrass'", "qty": 5, "quality": 0 },
-        { "gfi": "Blueprint'/Game/PrimalEarth/Test/PrimalItemConsumable_Veggie_Savoroot.PrimalItemConsumable_Veggie_Savoroot'", "qty": 5, "quality": 0 },
+        { "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Veggie_Citronal.PrimalItemConsumable_Veggie_Citronal'", "qty": 5, "quality": 0 },
+        { "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Veggie_Rockarrot.PrimalItemConsumable_Veggie_Rockarrot'", "qty": 5, "quality": 0 },
+        { "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Veggie_Longrass.PrimalItemConsumable_Veggie_Longrass'", "qty": 5, "quality": 0 },
+        { "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Veggie_Savoroot.PrimalItemConsumable_Veggie_Savoroot'", "qty": 5, "quality": 0 },
         { "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_RawMeat.PrimalItemConsumable_RawMeat'", "qty": 10, "quality": 0 },
         { "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_RawMeat_Fish.PrimalItemConsumable_RawMeat_Fish'", "qty": 10, "quality": 0 },
         { "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Resources/PrimalItemResource_RareMushroom.PrimalItemResource_RareMushroom'", "qty": 10, "quality": 0 },
@@ -137,16 +121,16 @@
         { "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_SweetVeggieCake.PrimalItemConsumable_SweetVeggieCake'", "qty": 5, "quality": 0 } ] } },
 
     { "id": 8739564, "ap_name": "Pack: Resource (DLC)", "trap": false, "weight": 3, "effect": { "kind": "give", "gives": [
-        { "gfi": "Blueprint'/Game/Aberration/CoreBlueprints/Resources/PrimalItemResource_Gem_Fertile.PrimalItemResource_Gem_Fertile'", "qty": 20, "quality": 0 },
-        { "gfi": "Blueprint'/Game/Aberration/CoreBlueprints/Resources/PrimalItemResource_Gem_BioLum.PrimalItemResource_Gem_BioLum'", "qty": 20, "quality": 0 },
-        { "gfi": "Blueprint'/Game/Aberration/CoreBlueprints/Resources/PrimalItemResource_Gem_Element.PrimalItemResource_Gem_Element'", "qty": 20, "quality": 0 },
-        { "gfi": "Blueprint'/Game/ScorchedEarth/CoreBlueprints/Resources/PrimalItemResource_RawSalt.PrimalItemResource_RawSalt'", "qty": 20, "quality": 0 },
-        { "gfi": "Blueprint'/Game/ScorchedEarth/CoreBlueprints/Resources/PrimalItemResource_Sand.PrimalItemResource_Sand'", "qty": 20, "quality": 0 },
-        { "gfi": "Blueprint'/Game/ScorchedEarth/CoreBlueprints/Resources/PrimalItemResource_Sulfur.PrimalItemResource_Sulfur'", "qty": 20, "quality": 0 },
-        { "gfi": "Blueprint'/Game/Aberration/CoreBlueprints/Resources/PrimalItemResource_Gas.PrimalItemResource_Gas'", "qty": 10, "quality": 0 },
-        { "gfi": "Blueprint'/Game/ScorchedEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_CactusSap.PrimalItemConsumable_CactusSap'", "qty": 20, "quality": 0 },
-        { "gfi": "Blueprint'/Game/ScorchedEarth/CoreBlueprints/Resources/PrimalItemResource_Silk.PrimalItemResource_Silk'", "qty": 20, "quality": 0 },
-        { "gfi": "Blueprint'/Game/Aberration/CoreBlueprints/Resources/PrimalItemResource_FungalWood.PrimalItemResource_FungalWood'", "qty": 20, "quality": 0 } ] } },
+        { "gfi": "Blueprint'/Game/Aberration/CoreBlueprints/Resources/PrimalItemResource_Gem_Fertile.PrimalItemResource_Gem_Fertile'", "qty": 60, "quality": 0 },
+        { "gfi": "Blueprint'/Game/Aberration/CoreBlueprints/Resources/PrimalItemResource_Gem_BioLum.PrimalItemResource_Gem_BioLum'", "qty": 60, "quality": 0 },
+        { "gfi": "Blueprint'/Game/Aberration/CoreBlueprints/Resources/PrimalItemResource_Gem_Element.PrimalItemResource_Gem_Element'", "qty": 60, "quality": 0 },
+        { "gfi": "Blueprint'/Game/ScorchedEarth/CoreBlueprints/Resources/PrimalItemResource_RawSalt.PrimalItemResource_RawSalt'", "qty": 60, "quality": 0 },
+        { "gfi": "Blueprint'/Game/ScorchedEarth/CoreBlueprints/Resources/PrimalItemResource_Sand.PrimalItemResource_Sand'", "qty": 60, "quality": 0 },
+        { "gfi": "Blueprint'/Game/ScorchedEarth/CoreBlueprints/Resources/PrimalItemResource_Sulfur.PrimalItemResource_Sulfur'", "qty": 60, "quality": 0 },
+        { "gfi": "Blueprint'/Game/Aberration/CoreBlueprints/Resources/PrimalItemResource_Gas.PrimalItemResource_Gas'", "qty": 30, "quality": 0 },
+        { "gfi": "Blueprint'/Game/ScorchedEarth/CoreBlueprints/Consumables/PrimalItemConsumable_CactusSap.PrimalItemConsumable_CactusSap'", "qty": 60, "quality": 0 },
+        { "gfi": "Blueprint'/Game/ScorchedEarth/CoreBlueprints/Resources/PrimalItemResource_Silk.PrimalItemResource_Silk'", "qty": 60, "quality": 0 },
+        { "gfi": "Blueprint'/Game/Aberration/CoreBlueprints/Resources/PrimalItemResource_FungalWood.PrimalItemResource_FungalWood'", "qty": 60, "quality": 0 } ] } },
 
     { "id": 8739565, "ap_name": "Pack: Resource (Special Drops)", "trap": false, "weight": 2, "effect": { "kind": "give", "gives": [
         { "gfi": "Blueprint'/Game/PrimalEarth/CoreBlueprints/Resources/PrimalItemResource_AnglerGel.PrimalItemResource_AnglerGel'", "qty": 20, "quality": 0 },

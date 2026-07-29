@@ -123,21 +123,22 @@ class Tier0Remove(OptionSet):
 
 
 class ProgressionTiers(Toggle):
-    """Turn ARK into a tech-tree progression world instead of pure RNG. When on, checks are split
-    into 4 tiers gated by 3 crafting-station engrams. Those gates are placed on your own ACTIVE
-    checks (dino kills/tames or level-ups, never explorer notes), so you advance by playing - not by
-    hunting a specific note - and never wait on another player:
-      Tier 0 (start): weak dinos, explorer notes, Reach Level 5-40
-      Tier 1: opens on receiving Engram: Anvil Bench (Smithy) AND Engram: Mortar And Pestle -
-              mid dinos, Reach Level 45-80
-      Tier 2: opens on receiving Engram: Forge (Refining Forge) - strong/water dinos, Level 85-120
-      Tier 3: opens on receiving Engram: Fabricator - apex/deep-ocean dinos, bosses, Level 125-150
-    You climb by doing your current tier's checks until one hands you the next station engram.
-    ARK's start-reachable (sphere-0) checks are ONLY T0 kills + Reach Level 5-40 (notes are gated
-    behind an early tame, tames behind lock_taming), so another game's early item lands only there.
-    NOTE: this supersedes early_dino_checks (Tier 0 is already an all-reachable sphere-1 = no lockout)."""
+    """Tech-tree progression (RECOMMENDED - default ON). Splits every check into 4 tier REGIONS you
+    open in order: Menu -> Tier 0 -> Tier 1 -> Tier 2 -> Tier 3, each unlocked by receiving the prior
+    tier's crafting-station engram(s). This is what gives the seed a real sphere-by-sphere climb;
+    with it OFF almost everything is reachable from the start and the playthrough collapses into one
+    or two spheres.
+      Tier 0 (start): weak dinos, Reach Level <= 40
+      Tier 1: opens on Engram: Anvil Bench + Engram: Mortar And Pestle - mid dinos, Level 45-80
+      Tier 2: opens on Engram: Forge - strong/water dinos, Level 85-120; explorer NOTES open here
+      Tier 3: opens on Engram: Fabricator - apex/deep-ocean dinos, bosses, Level 125-150
+    The gate engrams are ordinary pool items classified PROGRESSION, so the fill guarantees each is
+    reachable before its tier opens (no hard-placement, no waiting on another player). Explorer notes
+    sit behind Tier 2 (two gates deep), so ARK's sphere-0 set is just Tier 0 kills + low levels -
+    another game's early-forced item can only land there. Supersedes early_dino_checks. The
+    tame/kill/cave access rules still apply ON TOP, within each tier."""
     display_name = "Progression Tiers"
-    default = 0
+    default = 1
 
 
 class ExtraEarlyItems(OptionSet):

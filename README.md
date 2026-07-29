@@ -1,4 +1,4 @@
-# ARK: Survival Evolved — Archipelago integration
+# ARK: Survival Evolved - Archipelago integration
 
 Play **ARK: Survival Evolved** (The Island, Pre-Aquatica) as part of an [Archipelago](https://archipelago.gg)
 multiworld. Engrams, dino taming, and supply-crate access are locked behind Archipelago items;
@@ -17,8 +17,7 @@ several-players-on-one-server mode, and a PopTracker pack.
 | Part | What it is | Runs on |
 |------|-----------|---------|
 | **`ark_ase.apworld`** | the Archipelago world (items/locations/logic/options) | the AP generator/host |
-| **ArkAP plugin** | an [ArkServerApi (AseApi)](https://github.com/ArkServerApi/AseApi) C++ plugin that gates actions, reports checks, and connects to the AP room itself — type `/connect <host:port> <slot>` in game chat | the ARK dedicated **server PC** |
-| **Connector** | optional external bridge (fallback for `/connect`; needed for the `randomize_dino_spawns` Game.ini auto-patch) | the server PC |
+| **ArkAP plugin** | an [ArkServerApi (AseApi)](https://github.com/ArkServerApi/AseApi) C++ plugin that gates actions, reports checks, and connects to the AP room itself - type `/connect <host:port> <slot>` in game chat | the ARK dedicated **server PC** |
 | **PopTracker pack** | optional visual auto-tracker | any PC |
 
 ```
@@ -33,39 +32,38 @@ ARK dedicated server ── ArkAP plugin ──(websocket, via in-game /connect)
 
 > ### ⭐ Easiest: use the community Launcher
 > [aSoberAvocado](https://github.com/aSoberAvocado) built a Windows GUI that automates the whole
-> server side — installing the ARK server (SteamCMD, Pre-Aquatica), ArkServerApi, and the ArkAP
+> server side - installing the ARK server (SteamCMD, Pre-Aquatica), ArkServerApi, and the ArkAP
 > plugin; scanning your paths; verifying the setup; and launching it, plus map-switch / reset /
 > Game.ini-patch utilities and a debug-log viewer:
 > ### 👉 **[ARK-Ipelago-Evolved-Launcher](https://github.com/aSoberAvocado/ARK-Ipelago-Evolved-Launcher)**
 > You still generate & host the AP room yourself (yaml + apworld). It's a **separate community
-> project** — launcher issues go on its tracker. The manual steps below (and the full guide) remain
+> project** - launcher issues go on its tracker. The manual steps below (and the full guide) remain
 > the reference.
 
 The short version is below; **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)** is the full
 walkthrough (getting ASE onto the Pre-Aquatica branch via SteamCMD, ArkServerApi, LAN join, and a
 smoke test). Everything except the game client runs on the **Server PC**.
 
-### 1. Server PC — the plugin
+### 1. Server PC - the plugin
 1. Install **[ARK Server API](https://github.com/ArkServerApi/AseApi)** on your ASE
-   dedicated server (Pre-Aquatica branch — see the full guide; BattlEye must be OFF).
+   dedicated server (Pre-Aquatica branch - see the full guide; BattlEye must be OFF).
 2. Download **`ArkAP_plugin.zip`** from the [release](https://github.com/Jbaker16163/Ark-Survival-Archipelago/releases), unzip it, run
    **`install_plugin.bat`**, and point it at your `...\ArkApi\Plugins` folder.
 3. The plugin defaults to **`ap`** mode (follow the AP room). Only an `ArkAP.config.json` with
-   `"mode": "offline"` changes that — the usual "it does nothing" cause. Restart the server.
+   `"mode": "offline"` changes that - the usual "it does nothing" cause. Restart the server.
 
-### 2. Archipelago — generate the game
+### 2. Archipelago - generate the game
 1. Put **`ark_ase.apworld`** in your Archipelago install's `custom_worlds/` folder.
 2. Copy the example yaml (`ark.yaml` inside the apworld), edit your options, drop it in `Players/`.
 3. Generate + host the room; note its host:port.
 
-### 3. Connect — in game chat
+### 3. Connect - in game chat
 Join your server, spawn in, and type:
 ```
 /connect archipelago.gg:38281 YourSlotName
 ```
 `/apstatus` to check, `/disconnect` to drop; reconnects automatically across server restarts.
-(Alternative: the external **`ArkConnector.zip`** bridge — see the guide; it's the fallback, and
-currently required for the `randomize_dino_spawns` Game.ini auto-patch.)
+No extra software to run - the plugin is the AP client.
 
 ### 4. PopTracker (optional)
 1. Install [PopTracker](https://github.com/black-sliver/PopTracker/releases).
@@ -78,24 +76,24 @@ currently required for the `randomize_dino_spawns` Game.ini auto-patch.)
 
 See `ark.yaml` for the full commented list and defaults; the highlights:
 
-- **`goal`** — which bosses to defeat (Broodmother → +Megapithecus → +Dragon → all).
-- **`progression_tiers`** — tech-tree mode: checks split into 4 tiers gated by
+- **`goal`** - which bosses to defeat (Broodmother → +Megapithecus → +Dragon → all).
+- **`progression_tiers`** - tech-tree mode: checks split into 4 tiers gated by
   Anvil Bench + Mortar And Pestle → Forge → Fabricator. `station_placement`
   (`tiered` / `local_early` / `global_early`) controls where those gate engrams land.
-- **`lock_taming`, `lock_supply_crates`** — gate taming / crates behind AP items.
-- **`bundle_saddles`** — grant a dino's saddle with its tame unlock (leaves the pool).
-- **`bundle_structures`** — one item unlocks all Wood / Stone / Metal / Greenhouse structures.
-- **`free_starter_engrams`** — start with the basic engrams (removed from the pool).
-- **`extra_early_items`** — force specific named items early (routed like `station_placement`).
-- **`food_sanity` / `tame_sanity`** — include a % of food-in-inventory checks / require a % of
+- **`lock_taming`, `lock_supply_crates`** - gate taming / crates behind AP items.
+- **`bundle_saddles`** - grant a dino's saddle with its tame unlock (leaves the pool).
+- **`bundle_structures`** - one item unlocks all Wood / Stone / Metal / Greenhouse structures.
+- **`free_starter_engrams`** - start with the basic engrams (removed from the pool).
+- **`extra_early_items`** - force specific named items early (routed like `station_placement`).
+- **`food_sanity` / `tame_sanity`** - include a % of food-in-inventory checks / require a % of
   per-species tame checks.
-- **`dossier_checks`** — how many explorer-note checks to include (max 240).
-- **`randomize_dino_spawns`** — `off` / `grouped` / `chaos` wild-spawn shuffle (via Game.ini).
-- **`death_link`, `trap_percentage`, `early_dino_checks`** — the usual extras. Traps are a mix of
+- **`dossier_checks`** - how many explorer-note checks to include (max 240).
+- **`randomize_dino_spawns`** - `off` / `grouped` / `chaos` wild-spawn shuffle (via Game.ini).
+- **`death_link`, `trap_percentage`, `early_dino_checks`** - the usual extras. Traps are a mix of
   wild-dino ambushes and debuff effects; good filler includes buffs, kibble, and resources.
 
 Several people can share one ARK server as separate AP slots (`"multiplayer": true` in
-`ArkAP.config.json`; each player runs their own in-game `/connect`) — see the guide's
+`ArkAP.config.json`; each player runs their own in-game `/connect`) - see the guide's
 Multiplayer section.
 
 ---
@@ -123,18 +121,12 @@ python tools/build_release.py                   # -> all release artifacts in di
 `tools/build_release.py` regenerates the apworld + tracker and bundles the plugin (DLL + data +
 default config), connector (exe + ini), and tracker zips into `dist/` ready to attach to a GitHub
 release. The apworld, plugin, and PopTracker all read the same `data/*.json`, so after any data
-change rebuild all of them (build_release does this) and **regenerate the seed** — a running room
+change rebuild all of them (build_release does this) and **regenerate the seed** - a running room
 has its datapackage frozen at generation time.
 
 ---
-
-## AI DISCLAIMER
-
-Claude Code was used to assist in making this. 
 
 ## Credits
 
 Thank you to a drunk Avocado, Beeno, Lurch9229, and Wizard_Brandon for helping test and put the
 entire ARK archipelago together.
-
-

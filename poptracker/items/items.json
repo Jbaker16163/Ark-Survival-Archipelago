@@ -1689,20 +1689,6 @@
  {
   "name": "Titanosaur",
   "type": "toggle",
-  "codes": "unlocked_titanosaur",
-  "img": "images/tame.png",
-  "disabled_img": "images/tame_off.png"
- },
- {
-  "name": "Titanosaur",
-  "type": "toggle",
-  "codes": "tame_titanosaur",
-  "img": "images/tame.png",
-  "disabled_img": "images/tame_off.png"
- },
- {
-  "name": "Titanosaur",
-  "type": "toggle",
   "codes": "kill_titanosaur",
   "img": "images/kill.png",
   "disabled_img": "images/kill_off.png"

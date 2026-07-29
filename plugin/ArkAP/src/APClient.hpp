@@ -491,7 +491,10 @@ private:
                           {"mod_ids", sd.value("mod_ids", json::array())},
                           // engrams_per_item / tames_per_item: {rep id -> [folded member ids]}; the
                           // plugin unlocks a group's members when the representative arrives.
-                          {"item_groups", sd.value("item_groups", json::object())} }).dump(); }
+                          {"item_groups", sd.value("item_groups", json::object())},
+                          // hint_redirect: unpooled item id -> the pooled item that unlocks it, so
+                          // /hint on a bundled member points at the item AP actually placed.
+                          {"hint_redirect", sd.value("hint_redirect", json::object())} }).dump(); }
         catch (...) {}
 
         totalLocs_ = (int)msg.value("checked_locations", json::array()).size()

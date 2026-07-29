@@ -66,16 +66,21 @@ static std::unordered_map<UClass*, int> g_engramClassToItem;          // item bl
 // display name (the apworld groups them), so this is a LIST; base-game items have exactly one.
 static std::unordered_map<int, std::vector<UClass*>> g_itemToEngram;
 static std::set<int> g_starterItemIds;  // free starter engram item ids (from engrams.json starter_engrams)
-static bool g_freeStarter = false;      // grant the starter engrams free (from flags.json)
+// PER-ROUTE flags (each slot's own flags.json) - NOT global. A mixed multiplayer lobby (one player
+// free_starter/bundle_saddles on, another off) must not leak one slot's setting onto everyone.
+static std::map<std::string, bool> g_routeFreeStarter;
+static std::map<std::string, bool> g_routeBundleSaddles;
+static bool FlagFor(const std::map<std::string, bool>& m, const std::string& r) {
+    auto it = m.find(r); return it != m.end() && it->second;
+}
 
 // taming registry: DinoNameTag -> AP item id (loaded straight from dinos.json, no game data)
 static std::unordered_map<std::string, int> g_tameTagToItem;
 static std::unordered_map<std::string, int> g_tameTagToTameLoc;   // DinoNameTag -> "Tamed: X" check loc
 static std::unordered_map<std::string, int> g_killTagToLoc;       // DinoNameTag -> "Killed: X" check loc
 
-// saddle bundling: tame item id -> its saddle ENGRAM item id; gated by g_bundleSaddles (from flags.json)
+// saddle bundling: tame item id -> its saddle ENGRAM item id; gated PER-ROUTE by g_routeBundleSaddles.
 static std::unordered_map<int, int> g_tameItemToSaddleItem;
-static bool g_bundleSaddles = false;
 // route -> mod ids that slot enabled (from flags.json / slot_data). The plugin loads the WHOLE mod
 // catalogue, so a structure bundle must skip engrams belonging to a mod this slot didn't take.
 static std::map<std::string, std::set<std::string>> g_routeMods;
@@ -83,6 +88,10 @@ static std::map<std::string, std::set<std::string>> g_routeMods;
 // item_groups; set by engrams_per_item / tames_per_item). When a representative arrives, the
 // members were never pooled by AP, so the plugin unlocks them here off the representative.
 static std::map<std::string, std::map<int, std::vector<int>>> g_routeItemGroups;
+// route -> {unpooled item id -> the POOLED item id that unlocks it}. AP can only hint items it
+// actually placed, so /hint on a bundled member (count-group, S+ variant, structure bundle, mod
+// group, bundled saddle) must be redirected to the item you should actually chase.
+static std::map<std::string, std::map<int, int>> g_routeHintRedirect;
 // Is this item allowed for this route? Base-game items ("" owner) always are; a mod item only if
 // that slot enabled the mod. Unknown route (no flags yet) -> allow, so nothing silently vanishes.
 static bool ItemAllowedForRoute(const std::string& route, int item_id) {
@@ -832,8 +841,9 @@ void ApplyItem(const std::string& route, int item_id, const std::string& from) {
         DebugLog("FX deferred (target player not in-world) id=" + std::to_string(item_id));
     }
 
-    // bundle_saddles: a tame unlock also grants the dino's saddle engram.
-    if (g_bundleSaddles) {
+    // bundle_saddles: a tame unlock also grants the dino's saddle engram - ONLY if THIS route's slot
+    // enabled it (per-route, so an unbundled slot never gets the saddle handed over with the tame).
+    if (FlagFor(g_routeBundleSaddles, route)) {
         auto sit = g_tameItemToSaddleItem.find(item_id);
         if (sit != g_tameItemToSaddleItem.end()) {
             g_state->AddItem(route, sit->second);     // record so the gate + reassert keep it
@@ -895,8 +905,9 @@ static void DoReassert() {
 // in-game). Multiplayer: every connected player gets them in their own bucket.
 static std::set<std::string> g_starterGrantedRoutes;
 static void DoGrantStarter() {
-    if (!g_freeStarter || g_starterItemIds.empty()) return;
+    if (g_starterItemIds.empty()) return;
     for (auto& route : KnownRoutes()) {
+        if (!FlagFor(g_routeFreeStarter, route)) continue;   // per-route: only slots that enabled it
         if (g_starterGrantedRoutes.count(route)) continue;
         g_starterGrantedRoutes.insert(route);
         int n = 0;
@@ -1492,8 +1503,49 @@ static void DoHint(AShooterPlayerController* pc, FString* message) {
     std::string name; int id = MatchItem(q, name);
     if (!id) { ChatNotify((L"No item matches '" + ArkApi::Tools::Utf8Decode(q) + L"'").c_str()); return; }
     std::string route = RouteFor(pc);              // the asker's own slot receives the hint
+    // A BUNDLED item (count-group member, S+ variant, structure-bundle member, mod-group member, or
+    // a saddle bundled with its tame) is never a placed AP item, so hinting it fails with "item
+    // doesn't exist in the multiworld". Redirect to whatever item actually unlocks it. The apworld
+    // builds this map (hint_redirect) because it is the authority on what got pooled.
+    std::string via;
+    auto hrit = g_routeHintRedirect.find(route);
+    if (hrit != g_routeHintRedirect.end()) {
+        auto rit = hrit->second.find(id);
+        if (rit != hrit->second.end()) {
+            auto rn = g_tables.item_name.find(rit->second);
+            if (rn != g_tables.item_name.end()) { via = name; name = rn->second; id = rit->second; }
+        }
+    }
+    if (via.empty()) {                              // fallback for seeds without hint_redirect
+        auto grit = g_routeItemGroups.find(route);
+        if (grit != g_routeItemGroups.end())
+            for (auto& [rep, members] : grit->second)
+                if (std::find(members.begin(), members.end(), id) != members.end()) {
+                    auto rn = g_tables.item_name.find(rep);
+                    if (rn != g_tables.item_name.end()) { via = name; name = rn->second; id = rep; }
+                    break;
+                }
+    }
     { std::ofstream f(g_ipc->DirFor(route) / "hint_out.jsonl", std::ios::app); if (f) f << name << "\n"; }
-    ChatNotify((L"Revealing hint for " + ArkApi::Tools::Utf8Decode(name) + L"...").c_str());
+    std::wstring m = L"Revealing hint for " + ArkApi::Tools::Utf8Decode(name);
+    if (!via.empty()) m += L" (the unlock that grants " + ArkApi::Tools::Utf8Decode(via) + L")";
+    // list everything that unlock also grants, so the player knows what the hint really buys
+    auto gsit = g_routeItemGroups.find(route);
+    if (gsit != g_routeItemGroups.end()) {
+        auto mit = gsit->second.find(id);
+        if (mit != gsit->second.end() && !mit->second.empty()) {
+            std::string also;
+            for (int mem : mit->second) {
+                auto mn = g_tables.item_name.find(mem);
+                if (mn == g_tables.item_name.end() || mn->second == via) continue;
+                if (!also.empty()) also += ", ";
+                also += mn->second;
+            }
+            if (!also.empty()) m += L" [also unlocks " + ArkApi::Tools::Utf8Decode(also) + L"]";
+        }
+    }
+    m += L"...";
+    ChatNotify(m.c_str());
 }
 static void HintChat(AShooterPlayerController* pc, FString* m, EChatSendMode::Type) { __try { DoHint(pc, m); } __except (EXCEPTION_EXECUTE_HANDLER) {} }
 
@@ -1910,11 +1962,10 @@ static void DoTick() {
     ShowConnStatus();                               // embedded /connect connect/disconnect -> chat
     GreetJoiners();                                 // on JOIN: tell THAT player their AP state
     ShowSpawnPrompt();                              // "/confirm pending" (state-based, not msg_in)
-    // refresh runtime flags the connector(s) relay (bundle_saddles) - cheap, idempotent.
-    // Multiplayer: any slot's flags.json turns a feature on (v1 simplification - per-slot
-    // flag splits are rare; revisit if a mixed lobby needs per-player bundle_saddles).
+    // refresh runtime flags the connector(s) relay - cheap, idempotent. PER-ROUTE now (each slot's
+    // own bundle_saddles / free_starter), so a mixed multiplayer lobby doesn't leak one slot's
+    // setting onto everyone.
     try {
-        bool bundle = false, starter = false;
         static std::map<std::string, size_t> s_lastGroupsN;   // diagnostics: log on change only
         for (auto& route : MailboxRoutes()) {
             fs::path p = g_ipc->DirFor(route) / "flags.json";
@@ -1928,8 +1979,8 @@ static void DoTick() {
             nlohmann::json j;
             try { std::ifstream(p) >> j; }
             catch (const std::exception& e) { DebugLog("FLAGS route=[" + route + "] parse FAIL: " + e.what()); continue; }
-            bundle  |= j.value("bundle_saddles", false);
-            starter |= j.value("free_starter_engrams", false);
+            g_routeBundleSaddles[route] = j.value("bundle_saddles", false);
+            g_routeFreeStarter[route]   = j.value("free_starter_engrams", false);
             std::set<std::string> mods;
             for (auto& m : j.value("mod_ids", nlohmann::json::array()))
                 if (m.is_string()) mods.insert(m.get<std::string>());
@@ -1946,6 +1997,14 @@ static void DoTick() {
                 }
             }
             g_routeItemGroups[route] = groups;
+            std::map<int, int> redir;                          // {unpooled id -> pooled id} for /hint
+            if (j.contains("hint_redirect") && j["hint_redirect"].is_object()) {
+                for (auto& [k, v] : j["hint_redirect"].items()) {
+                    int mem = 0; try { mem = std::stoi(k); } catch (...) { continue; }
+                    if (v.is_number_integer()) redir[mem] = v.get<int>();
+                }
+            }
+            g_routeHintRedirect[route] = redir;
             if (s_lastGroupsN[route] != groups.size() || tn <= 3 || tn % 60 == 0) {   // periodic + on change
                 s_lastGroupsN[route] = groups.size();
                 std::error_code ec; auto sz = fs::file_size(p, ec);
@@ -1954,8 +2013,6 @@ static void DoTick() {
                          " parsed=" + std::to_string(groups.size()) + " (from " + p.string() + ")");
             }
         }
-        g_bundleSaddles = bundle;
-        g_freeStarter = starter;
     } catch (...) {}
 
     // RECONCILE count-groups every tick: if a route owns a representative but not one of its folded
@@ -1999,7 +2056,7 @@ static void Tick() {
 }
 
 // ----------------------------------------------------------------- lifecycle
-static const char* ARKAP_BUILD = "v107-group-parse-fix";
+static const char* ARKAP_BUILD = "v110-hint-redirect-all-bundles";
 
 static void Load() {
     fs::path base = PluginDir();

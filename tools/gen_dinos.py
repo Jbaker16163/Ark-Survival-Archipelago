@@ -44,7 +44,7 @@ KILL_ONLY_LOC_BASE = 8755100   # untameable kill checks (after the tameable 8755
 
 # harvested tags that turned out to be UNtameable (no Tame item/loc emitted, kill check kept).
 # Kept inside the main enumeration so every OTHER harvested dino's ids stay exactly stable.
-KILL_ONLY_OVERRIDE = {"Leedsichthys"}
+KILL_ONLY_OVERRIDE = {"Leedsichthys", "Titan"}   # Titanosaur only TEMP-tames in ASE -> kill check only
 
 # tameable species to ALWAYS include even if not present in the tame harvest (name, DinoNameTag,
 # saddle_class-or-None). Ids assigned in a high block so they never collide with the harvest set.
