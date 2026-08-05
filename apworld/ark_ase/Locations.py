@@ -11,7 +11,8 @@ class ArkLocation(Location):
 
 def build_location_table(location_data: Dict[str, Any],
                          dino_data: Dict[str, Any] | None = None,
-                         mod_catalog: Dict[str, Any] | None = None) -> Dict[str, int]:
+                         mod_catalog: Dict[str, Any] | None = None,
+                         explore: Dict[str, Any] | None = None) -> Dict[str, int]:
     """name -> id from locations.json (dossiers + bosses + milestones + level checks) plus
     per-dino tame checks from dinos.json.
 
@@ -24,7 +25,8 @@ def build_location_table(location_data: Dict[str, Any],
     # "bosses" is deliberately excluded - boss kills are the goal (signalled via boss_out.jsonl),
     # not AP check locations. Keeping them out of the datapackage means the plugin never reports a
     # boss loc id that isn't a real location (which would break other players' clients).
-    for key in ("dossiers", "milestones", "levels", "alpha_kills", "inventory_checks"):
+    for key in ("dossiers", "milestones", "levels", "alpha_kills", "inventory_checks",
+                "deaths"):
         for entry in cats.get(key, {}).get("entries", []):
             table[entry["name"]] = entry["id"]
     for d in (dino_data or {}).get("dinos", []):
@@ -42,4 +44,10 @@ def build_location_table(location_data: Dict[str, Any],
                 table["Tamed: " + short] = d["tame_loc"]
             if d.get("kill_loc"):
                 table["Killed: " + short] = d["kill_loc"]
+    # exploration checks (data/explore_areas.json). ALWAYS in the datapackage, for every map that
+    # has been measured - the "maps" option only decides which a slot actually uses, exactly like
+    # mod creature checks above. Filtering here would break a multiworld where two players run
+    # different maps, since the datapackage has to be identical for everyone.
+    for r in (explore or {}).values():
+        table["Explore: " + r["name"]] = r["id"]
     return table

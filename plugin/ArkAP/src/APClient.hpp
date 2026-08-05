@@ -508,11 +508,29 @@ private:
             sentChecks_.insert(l.get<int>());
 
         connectedOk_ = true;
-        int remaining = (int)msg.value("missing_locations", json::array()).size();
-        SetStatus("connected as '" + cfg_.slot + "' (" + std::to_string(remaining) + " locations remaining)");
+        remaining_ = (int)msg.value("missing_locations", json::array()).size();
+        PublishRemaining();
+        // the one-shot CONNECT announcement. Deliberately separate from PublishRemaining: this
+        // bumps the status seq, which the plugin turns into a chat line.
         WriteConnStatus("AP: connected as '" + cfg_.slot + "'" +
                         (cfg_.route.empty() ? "" : " for " + cfg_.route) +
-                        " (" + std::to_string(remaining) + " locations remaining)");
+                        " (" + std::to_string(remaining_) + " locations remaining)");
+    }
+
+    // The remaining count was written ONCE, at connect, and every later /apstatus and join greet
+    // replayed that frozen number - Lurch's log shows three greets an hour apart all still saying
+    // "673 locations remaining" while he was actively checking things, which reads exactly like
+    // checks not registering. Keep it live by decrementing as checks go out.
+    //
+    // This must NOT go through WriteConnStatus: that bumps the status seq, and the plugin
+    // announces every seq change in chat - so a live counter there would spam a connect line on
+    // every single check. It lands in its own file that only the greet and /apstatus read.
+    void PublishRemaining() {
+        if (remaining_ < 0) remaining_ = 0;
+        SetStatus("connected as '" + cfg_.slot + "' (" + std::to_string(remaining_) +
+                  " locations remaining)");
+        try { std::ofstream(cfg_.mailbox / "remaining.json")
+                << json({ {"remaining", remaining_} }).dump(); } catch (...) {}
     }
 
     // ---------------- pump: mailbox files -> AP (every 500ms) ----------------
@@ -536,8 +554,11 @@ private:
               try { loc = std::stoi(line.substr(line.find(':', p) + 1)); } catch (...) { continue; }
               if (sentChecks_.insert(loc).second) fresh.push_back(loc);
           } }
-        if (!fresh.empty())
+        if (!fresh.empty()) {
             SendJson({ {"cmd", "LocationChecks"}, {"locations", fresh} });
+            remaining_ -= (int)fresh.size();
+            PublishRemaining();
+        }
 
         // death_out.jsonl -> Bounce DeathLink
         if (deathLink_) {
@@ -595,6 +616,17 @@ private:
     }
     // On a NEW seed the AP item indices restart at 0: clear items_in + the applied-index
     // watermarks (root lives in the plugin dir, this route's inside its mailbox).
+    //
+    // It also has to clear the OUTBOUND check log and the plugin's own checked/received sets.
+    // Those persist in ArkAP_state.json, and ReportLocation/ApplyItem both early-return on them:
+    // without a reset, every location the player checked in a PREVIOUS seed is silently dead in
+    // the new one (Lurch's "I have 20 seeds but the check isn't checking"), and every engram they
+    // already received never re-grants. In the other direction, a checks_out.jsonl carried over
+    // from the old seed gets replayed into the new one on the next reconnect, which is where the
+    // "461 locations remaining -> 423 after /connect" jump came from.
+    //
+    // The state file belongs to the game thread, so we only drop a marker here; the plugin tick
+    // performs the reset (see ProcessSeedReset in PluginMain.cpp).
     void ResetOnNewSeed(const std::string& seed) {
         if (seed.empty()) return;
         fs::path sess = cfg_.mailbox / "session.json";
@@ -606,10 +638,14 @@ private:
         fs::remove(cfg_.mailbox / "items_in.jsonl", ec);
         fs::remove(cfg_.mailbox / "applied_index.json", ec);
         fs::remove(cfg_.mailbox / "boss_out.jsonl", ec);      // boss defeats reset with the seed
+        fs::remove(cfg_.mailbox / "checks_out.jsonl", ec);    // never replay a dead seed's checks
         if (cfg_.route.empty()) fs::remove(cfg_.pluginDir / "applied_index.json", ec);
         receivedIdx_.clear();
+        sentChecks_.clear();
+        try { std::ofstream(cfg_.mailbox / "seed_reset.json")
+                << json({ {"seed", seed}, {"route", cfg_.route} }).dump(); } catch (...) {}
         try { std::ofstream(sess) << json({ {"seed", seed} }).dump(); } catch (...) {}
-        SetStatus("new seed '" + seed + "' - cleared item backlog");
+        SetStatus("new seed '" + seed + "' - cleared this slot's progress state");
     }
     // randomize_dino_spawns: write the Game.ini fragment (embedded client can't patch the live
     // Game.ini - ARK rewrites it from memory on shutdown while we're running inside the server).
@@ -666,7 +702,7 @@ private:
     bool deathLink_ = true;
     bool goaled_ = false;
     int  mySlot_ = -1;
-    int  hintCostPct_ = 10, hintPoints_ = 0, totalLocs_ = 0;
+    int  hintCostPct_ = 10, hintPoints_ = 0, totalLocs_ = 0, remaining_ = 0;
     std::set<int> receivedIdx_;                 // item indices written this connection
     std::set<int> sentChecks_;                  // persists across reconnects (AP reseeds it too)
     std::set<std::string> goalBossTags_;        // required boss base-tags (goal via boss_out.jsonl)
@@ -743,14 +779,26 @@ public:
     }
 
     // restart persisted connections (called once from Load; threads only touch files/network)
-    void ResumePersisted() {
+    void ResumePersisted(bool multiplayer = false) {
         try {
             fs::path p = dir_ / "ap_connections.json";
-            if (!fs::exists(p)) return;
+            if (!fs::exists(p)) {
+                log_("APC no ap_connections.json - nothing to auto-resume, use /connect");
+                return;
+            }
             json j; std::ifstream(p) >> j;
             for (auto& c : j.value("connections", json::array())) {
                 std::string route = c.value("route", "");
                 if (route == "_unnamed") continue;       // never resume a mis-bound session
+                // A session saved while the server was in SHARED mode has route "". Resuming it
+                // after multiplayer was switched on republishes that slot's items to the root
+                // mailbox, where they unlock for the whole server. Make the player reconnect.
+                if (multiplayer && route.empty()) {
+                    log_("APC NOT resuming the shared-slot session for '" + c.value("slot", "") +
+                         "' - multiplayer is on, so it needs its own ipc\\<CharacterName> "
+                         "mailbox. Reconnect with /connect.");
+                    continue;
+                }
                 APSession::Config cfg;
                 cfg.route = route;
                 cfg.slot = c.value("slot", "");
@@ -762,9 +810,13 @@ public:
                 sessions_[route] = std::make_unique<APSession>(std::move(cfg));
                 sessions_[route]->Start();
             }
-            if (!sessions_.empty())
-                log_("APC resumed " + std::to_string(sessions_.size()) + " persisted connection(s)");
-        } catch (...) {}
+            // log the empty case too - "did auto-resume run?" was unanswerable from a log that
+            // simply said nothing either way.
+            log_("APC resumed " + std::to_string(sessions_.size()) +
+                 " persisted connection(s) from ap_connections.json");
+        } catch (...) {
+            log_("APC resume FAILED reading ap_connections.json - use /connect");
+        }
     }
 
 private:

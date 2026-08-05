@@ -1992,6 +1992,68 @@
         },
         {
          "type": "item",
+         "item": "ms_die_once"
+        },
+        {
+         "type": "item",
+         "item": "ms_die_5_times"
+        },
+        {
+         "type": "item",
+         "item": "ms_die_10_times"
+        },
+        {
+         "type": "item",
+         "item": "ms_die_25_times"
+        },
+        {
+         "type": "item",
+         "item": "ms_die_40_times"
+        },
+        {
+         "type": "item",
+         "item": "ms_explore_5_regions"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "ms_explore_10_regions"
+        },
+        {
+         "type": "item",
+         "item": "ms_explore_15_regions"
+        },
+        {
+         "type": "item",
+         "item": "ms_explore_20_regions"
+        },
+        {
+         "type": "item",
+         "item": "ms_explore_25_regions"
+        },
+        {
+         "type": "item",
+         "item": "ms_tame_a_high_level_creature"
+        },
+        {
+         "type": "item",
+         "item": "ms_tame_a_very_high_level_creature"
+        },
+        {
+         "type": "item",
+         "item": "ms_kill_a_high_level_creature"
+        },
+        {
+         "type": "item",
+         "item": "ms_kill_a_very_high_level_creature"
+        },
+        {
+         "type": "item",
          "item": "ms_breed_your_first_dino"
         },
         {

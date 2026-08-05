@@ -3010,6 +3010,104 @@
   "disabled_img": "images/milestone_off.png"
  },
  {
+  "name": "Die once",
+  "type": "toggle",
+  "codes": "ms_die_once",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Die 5 times",
+  "type": "toggle",
+  "codes": "ms_die_5_times",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Die 10 times",
+  "type": "toggle",
+  "codes": "ms_die_10_times",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Die 25 times",
+  "type": "toggle",
+  "codes": "ms_die_25_times",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Die 40 times",
+  "type": "toggle",
+  "codes": "ms_die_40_times",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Explore 5 Regions",
+  "type": "toggle",
+  "codes": "ms_explore_5_regions",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Explore 10 Regions",
+  "type": "toggle",
+  "codes": "ms_explore_10_regions",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Explore 15 Regions",
+  "type": "toggle",
+  "codes": "ms_explore_15_regions",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Explore 20 Regions",
+  "type": "toggle",
+  "codes": "ms_explore_20_regions",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Explore 25 Regions",
+  "type": "toggle",
+  "codes": "ms_explore_25_regions",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Tame a high-level creature",
+  "type": "toggle",
+  "codes": "ms_tame_a_high_level_creature",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Tame a very high-level creature",
+  "type": "toggle",
+  "codes": "ms_tame_a_very_high_level_creature",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Kill a high-level creature",
+  "type": "toggle",
+  "codes": "ms_kill_a_high_level_creature",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
+  "name": "Kill a very high-level creature",
+  "type": "toggle",
+  "codes": "ms_kill_a_very_high_level_creature",
+  "img": "images/milestone.png",
+  "disabled_img": "images/milestone_off.png"
+ },
+ {
   "name": "Breed your first dino",
   "type": "toggle",
   "codes": "ms_breed_your_first_dino",

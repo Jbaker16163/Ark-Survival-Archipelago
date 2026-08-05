@@ -88,10 +88,10 @@ class EarlyDinoChecks(Toggle):
 
 
 class StationPlacement(Choice):
-    """How the 3 tier-gate station engrams (Smithy/Anvil Bench, Refining Forge, Fabricator) are
+    """How the 3 tier-gate station engrams (Refining Forge, Smithy/Anvil Bench, Fabricator) are
     placed when progression_tiers is on:
-      tiered       - (default) hard-placed on YOUR OWN active checks, staggered by tier: Smithy in
-                     Tier 0, Forge in Tier 1, Fabricator in Tier 2. The classic staged ARK climb.
+      tiered       - (default) hard-placed on YOUR OWN active checks, staggered by tier: Forge in
+                     Tier 0, Smithy in Tier 1, Fabricator in Tier 2. The classic staged ARK climb.
       local_early  - forced into an early sphere of YOUR world (like DS3 'early_local'). All three
                      surface quickly on your own early checks, so tiers open sooner.
       global_early - forced into an early sphere ANYWHERE in the multiworld (like DS3 'early_global').
@@ -129,8 +129,9 @@ class ProgressionTiers(Toggle):
     with it OFF almost everything is reachable from the start and the playthrough collapses into one
     or two spheres.
       Tier 0 (start): weak dinos, Reach Level <= 40
-      Tier 1: opens on Engram: Anvil Bench + Engram: Mortar And Pestle - mid dinos, Level 45-80
-      Tier 2: opens on Engram: Forge - strong/water dinos, Level 85-120; explorer NOTES open here
+      Tier 1: opens on Engram: Forge + Engram: Mortar And Pestle - mid dinos, Level 45-80
+      Tier 2: opens on Engram: Anvil Bench (the Smithy - it costs metal ingots, so it needs the
+              Forge first) - strong/water dinos, Level 85-120; explorer NOTES open here
       Tier 3: opens on Engram: Fabricator - apex/deep-ocean dinos, bosses, Level 125-150
     The gate engrams are ordinary pool items classified PROGRESSION, so the fill guarantees each is
     reachable before its tier opens (no hard-placement, no waiting on another player). Explorer notes

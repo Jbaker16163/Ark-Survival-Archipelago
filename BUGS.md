@@ -1,4 +1,94 @@
+## Added 2026-07-26: 270-generation fuzz sweep (2 passes)
+
+- Sweep #1 (160 gens, all solo): fuzzed goal/tiers/lock_taming/lock_crates/bundle_saddles/
+  free_starter/bundle_structures/engrams+tames_per_item/trap%/dossier/food+tame_sanity/
+  randomize_spawns/early_dino/station_placement/5 mod combos.
+- Sweep #2 (110 gens = 70 solo + 40 MULTIWORLD with 2-4 ARK slots each): covered what #1 missed -
+  extra_early_items, start_inventory_from_pool, tier0_add/tier0_remove, dossier_checks 0, all-8-mods,
+  and several ARK slots sharing one multiworld (#1 was 100% solo).
+- Checks were not just "did it error": an offline compile of every kill/tame/cave rule produced a
+  location -> required-items map, and each spoiler was scanned for SELF-GATING (an item placed on a
+  check whose own rule requires it - the "Collect 100 Sparkpowder unlocks Engram: Sparkpowder" class
+  of bug). Also sphere-collapse and per-slot multiworld reachability.
+- RESULT: 0 crashes, 0 accessibility failures, 0 self-gating, 0 multiworld slot issues, 0 sphere
+  collapses. Spheres ranged 3-12, clustering 5-6. 16 of 270 hit the intended pool-vs-locations guard.
+- FALSE POSITIVE in my own harness worth remembering: a "gate order" check comparing the PLAYTHROUGH
+  SPHERE of Forge/Anvil Bench/Fabricator flags cases that are perfectly valid. The sphere of a gate
+  item is where it is FOUND, not the tier it opens; Fabricator landing on a Tier 0 check (Collect 300
+  Stone) is legal. The real invariant (cannot reach a tier's checks without its gate) is enforced by
+  the region graph and already verified by AP's accessibility sweep.
+- FINDING - the shipped default has THIN headroom (measured margins):
+    default as shipped ............ OK
+    + food_sanity: 0 .............. FAIL (-10)
+    + dossier_checks: 200 ......... FAIL (-23)
+    + tame_sanity: 25 ............. FAIL (-65)
+  So any single location-reducing option tips the DEFAULT config over. Adding either
+  bundle_structures: true or engrams_per_item: 2 fixes all of them. The error message already names
+  the levers, but consider shipping one of those on by default if testers keep hitting it.
+
 # Known bugs / open items
+
+## Added 2026-07-26: TIER_GATES order was INVERTED (Forge vs Smithy)
+
+- Was: T0->T1 = Anvil Bench + Mortar And Pestle, T1->T2 = Forge. But the SMITHY costs metal INGOTS,
+  so it needs the Refining Forge first. Lurch's sheet agrees: Refining Forge and Mortar & Pestle are
+  both tier 1 (a foundation is all they need), Smithy is tier 2 and lists "Refining Forge" as its
+  requirement, Fabricator is tier 3.
+- Effect was a logic inaccuracy, not a softlock: Tier 1 could open on the Anvil Bench while the
+  player had no Forge, i.e. the region granted access to a station they could not actually build.
+  The tame/kill rules were always right, because item_recipes has Smithy -> Refining Forge and the
+  compiler expands it; only the hardcoded TIER_GATES bypassed the recipe graph.
+- Now: T0->T1 = Forge + Mortar And Pestle | T1->T2 = Anvil Bench | T2->T3 = Fabricator.
+  ark.yaml comment + Options.py ProgressionTiers/StationPlacement docstrings updated to match.
+- Verified on a default seed the gates cascade correctly: Forge and Mortar first appear in sphere 1,
+  Anvil Bench sphere 2, Fabricator sphere 3. Sweep of 14 configs: 14 OK / 0 FAIL.
+
+## Added 2026-07-26: STAGE 1 - Lurch's real kill logic replaces the heuristic
+
+- Was: `_kill_gate_expr` GUESSED a kill requirement from spawn_classes.json habitat/danger tags plus
+  4 manual overrides, resolving to only 3 canned expressions. That guesswork is what produced the
+  unrealistic spheres testers kept reporting.
+- Now: imports Lurch's 'KillTame Logic' sheet (109 creatures, 0 blanks) + 23 combat macros. That
+  sheet supersedes the older kill column in 'tier gates (Base)' (10 disagreements, all refinements).
+- NEW Ride model: `RideX` = tame X AND hold X's saddle engram; a BARE creature name = tame only
+  (ARK lets you ride Equus/Moschops/Gigantopithecus/Direwolf bareback, and the sheet distinguishes
+  the two deliberately). 43 saddle engrams are now referenced by rules, so they classify as
+  PROGRESSION automatically via _tame_required_items - the other ~18 stay 'useful'.
+  Resolution lives in the apworld (_ride_map/_direct_nodes) because it needs dinos.json saddle_class
+  plus the count-grouping remaps; tame_logic.compile() takes it as an injected `direct` map, so a
+  rule always names an item the fill can really place. bundle_saddles ON still works: the saddle is
+  in _free_items() so has(saddle) collapses and Ride == Tame, which is then CORRECT not a fudge.
+- Parser: MACRO_NORMALIZE fixes 8 unambiguous spelling variants (UseArrow/Use Pistol/AdvMelee/
+  Metal Pickaxe/...), KILL_FIX corrects the 3 malformed rows (Pteranodon + Tusoteuthis unbalanced
+  parens, Achatina's "Use| Rifle"), FREE_TOKENS covers ARK's auto-granted Stone Pick/Torch. Anything
+  else unknown FAILS THE BUILD rather than silently dropping a requirement (a dropped requirement
+  makes a check easier, which is the exact bug being fixed). Validation is scoped to macros the
+  kill/cave rules actually reach, so unmodelled farming structures don't block the build.
+- VALIDATION using Lurch's Sphere column (his numbers are DERIVED from the requirements, so they
+  make a free regression target, DS3-style): it caught 2 real gaps. Araneo and Dung Beetle compiled
+  to always-true (their expressions allow plain melee, and melee includes the auto-granted Stone
+  Pick) but he marks them sphere 2 - because they are CAVE dwellers. Fixed by ANDing in the same
+  cave survival floor we already use for taming them. Now 0 discrepancies.
+- Result: 80 of 109 kill rows gated, 29 ungated (all sphere 0-1 'None'/melee rows, correct).
+  Sweep of 12 configs: 12 OK / 0 FAIL, no accessibility failures. Default seed 10 spheres.
+## Added 2026-07-26: STAGE 2 - cave requirements imported from the sheet
+
+- cave_reqs now come from 'tier gates (Base)' via load_cave_reqs() instead of the hardcoded table.
+  This COMPLETES Lurch's Discord table rather than contradicting it: his sheet ADDS a Useful<X>Tame
+  mount requirement to the five caves he had specified (Immune/Strong/Skylord/Brute/Cunning) and
+  gives real requirements for the five he had left blank, replacing the placeholder combat floors we
+  were shipping (Hunter/Massive/Clever/Pack/Devourer). Old table kept as CAVE_REQS_FALLBACK.
+- 9 new Useful<Cave>Tame macros (the per-cave mount OR-lists) imported alongside.
+  CAVE_NORMALIZE handles the sheet's wording: "Scuba Set"->Scuba Tank, "bug repellant"->Bug
+  Repellent, "Fur Set"/"Fur Torso"->Fur, and the "UsefuBrutelTame" typo.
+- BUG FOUND while wiring: _compile_expr and _tame_ast did NOT pass the `direct` map, so Ride<X> in a
+  CAVE/boss/tribute/note expression would have silently failed to resolve. Both now pass it. Only
+  the kill path had it because that is where I added it first.
+- Verified: all 10 caves gate (none collapse to always-true; 12-30 items each) and the bosses inherit
+  real depth (Broodmother 30, Megapithecus 41, Dragon 46 distinct items). Sweep of 14 configs:
+  14 OK / 0 FAIL, every boss event reachable in all of them.
+- NOTE for Lurch: the sheet's Massive cave now requires "(StoreWater + Otter) + ..." - an Otter tame
+  is a hard AND, no alternative branch. It generates fine, but flag it if that was not intended.
 
 ## Added 2026-07-26: S+ variant pairing widened (26 -> 91 engrams)
 

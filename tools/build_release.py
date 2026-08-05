@@ -58,6 +58,29 @@ def zip_files(pairs, out_zip):
                 print(f"  ! skip (missing): {src}")
 
 
+def verify_dll(path):
+    """Refuse to ship a DLL that is not a real 64-bit PE.
+
+    A build once produced 2,097,152 bytes of pure zeros - NTFS had extended the file but the data
+    never reached disk - and MSBuild still reported success. build_release.py copied the hole into
+    dist/ and into the zip, and the server rejected it with 0xc000012f (STATUS_INVALID_IMAGE_NOT_MZ).
+    Nothing between the compiler and the player noticed, so check it here."""
+    with open(path, "rb") as fh:
+        data = fh.read()
+    if len(data) < 100_000:
+        raise SystemExit(f"REFUSING TO SHIP: {path} is only {len(data)} bytes - build is broken")
+    if data[:2] != b"MZ":
+        raise SystemExit(f"REFUSING TO SHIP: {path} has no MZ header "
+                         f"({'all zero bytes' if not any(data) else 'not a PE file'}) - rebuild it")
+    off = int.from_bytes(data[0x3c:0x40], "little")
+    if data[off:off + 4] != b"PE\0\0":
+        raise SystemExit(f"REFUSING TO SHIP: {path} has no PE signature - rebuild it")
+    machine = int.from_bytes(data[off + 4:off + 6], "little")
+    if machine != 0x8664:
+        raise SystemExit(f"REFUSING TO SHIP: {path} is machine {machine:#x}, expected x64 (0x8664)")
+    print(f"  dll verified: {len(data):,} bytes, x64 PE")
+
+
 def main():
     os.makedirs(DIST, exist_ok=True)
 
@@ -75,6 +98,7 @@ def main():
 
     print("[4/6] Server plugin bundle (DLL + data + install bat)...")
     dll = os.path.join(ROOT, "plugin", "ArkAP", "x64", "Release", "ArkAP.dll")
+    verify_dll(dll)
     data = os.path.join(ROOT, "data")
     # the config template ships AS ArkAP.config.json (the name the plugin actually reads -
     # shipping it as *.default.json confused people). install_plugin.bat preserves an existing
@@ -83,7 +107,8 @@ def main():
              (os.path.join(ROOT, "plugin", "ArkAP", "ArkAP.config.default.json"),
               "ArkAP/ArkAP.config.json"),
              (os.path.join(ROOT, "tools", "install_plugin.bat"), "install_plugin.bat")]
-    for name in ("engrams.json", "dinos.json", "locations.json", "crates.json", "filler.json"):
+    for name in ("engrams.json", "dinos.json", "locations.json", "crates.json", "filler.json",
+                 "explore_areas.json"):
         pairs.append((os.path.join(data, name), f"ArkAP/{name}"))
     # mod catalog: the plugin loads data/mods/index.json + each listed <modid>.json so it can grant
     # and gate MOD engrams. Without these the apworld would hand out mod items the server ignores.
@@ -93,6 +118,10 @@ def main():
             if name.endswith(".json"):
                 pairs.append((os.path.join(mods_dir, name), f"ArkAP/mods/{name}"))
     zip_files(pairs, os.path.join(DIST, "ArkAP_plugin.zip"))
+    # also refresh the LOOSE dll. It is what people drop in for a quick upgrade, and it
+    # used to be updated by hand - so it silently sat a build behind the zip.
+    if os.path.exists(dll):
+        shutil.copyfile(dll, os.path.join(DIST, "ArkAP.dll"))
 
     print("[5/6] ARK server scripts bundle...")
     tools = os.path.join(ROOT, "tools")

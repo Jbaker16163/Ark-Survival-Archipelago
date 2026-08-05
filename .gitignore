@@ -42,3 +42,18 @@ plugin/ArkAP/ArkAP.config.json
 # OS cruft
 .DS_Store
 Thumbs.db
+
+# NOT READY TO PUBLISH - internal working docs and the map-authoring pipeline.
+# Map support is only half-built (authoring exists, filtering does not), and these describe
+# features players cannot use yet. Remove a line here when its feature ships.
+docs/ADDING_A_MAP.md
+docs/STATE_PERSISTENCE.md
+docs/ARKipelago_Checklist.xlsx
+docs/exploration_overlay.html
+docs/exploration_map.html
+data/maps.json
+apworld/ark_ase/data/maps.json
+tools/gen_checklist.py
+tools/import_checklist.py
+tools/checklist_schema.py
+tools/download_ue4ss.bat

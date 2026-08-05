@@ -127,3 +127,15 @@ def load_tame_logic_data() -> Dict[str, Any]:
         return _load("tame_logic.json")
     except FileNotFoundError:
         return {}
+
+
+def load_explore_data() -> Dict[str, Any]:
+    """Exploration areas measured in-game with /dumppos (data/explore_areas.json).
+
+    Optional and map-scoped: every region carries its own "map" key, so the datapackage always
+    holds every mapped region while a slot only USES the ones for the maps it enabled. Missing
+    file = no exploration checks, silently."""
+    try:
+        return _load("explore_areas.json")
+    except FileNotFoundError:
+        return {}

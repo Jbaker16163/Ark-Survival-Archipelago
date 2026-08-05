@@ -63,6 +63,8 @@ if exist "%CLUSTER%" (
 REM clear plugin + connector tracking (regenerated on next run)
 echo Clearing tracking files...
 del /q "%PLUGIN%\state.json"            2>nul
+del /q "%PLUGIN%\state.json.bak"        2>nul
+del /q "%PLUGIN%\state.json.tmp"        2>nul
 del /q "%PLUGIN%\seed.json"             2>nul
 del /q "%PLUGIN%\ipc\state.json"        2>nul
 del /q "%PLUGIN%\ipc\checks_out.jsonl"  2>nul
@@ -76,6 +78,8 @@ del /q "%PLUGIN%\ipc\flags.json"        2>nul
 del /q "%PLUGIN%\ipc\session.json"      2>nul
 del /q "%PLUGIN%\ipc\game_ini_fragment.txt" 2>nul
 del /q "%PLUGIN%\ipc\conn_status.txt"   2>nul
+del /q "%PLUGIN%\ipc\remaining.json"    2>nul
+del /q "%PLUGIN%\ipc\seed_reset.json"   2>nul
 del /q "%PLUGIN%\ipc\boss_out.jsonl"    2>nul
 del /q "%PLUGIN%\ap_wipe_wild.flag"     2>nul
 del /q "%PLUGIN%\applied_index.json"    2>nul

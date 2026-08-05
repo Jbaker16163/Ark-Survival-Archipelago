@@ -13,10 +13,17 @@ ARK Survival Evolved:
   # Win: defeat these bosses (any difficulty). Cumulative:
   #   broodmother | broodmother_megapithecus | broodmother_megapithecus_dragon | all_bosses
   goal: all_bosses
+  # Die when a linked player in another game dies (and send yours to them).
   death_link: true
+  # Taming a creature requires its "Tame: X" item first. Off = tame anything from the start
+  # (its "Tamed: X" check still fires, and the craft/weapon logic below still applies).
   lock_taming: true
+  # Supply crates / beacons stay locked until you receive their access item.
   lock_supply_crates: true
-  # Bundle each dino's saddle with its tame unlock (saddle leaves the item pool).
+  # Bundle each dino's saddle with its tame unlock (the saddle leaves the item pool).
+  # Saddles matter to the logic now: fighting from a mount needs "tame + its saddle", so kills and
+  # caves that call for a mount require both. On = one item covers both, a smaller pool and slightly
+  # looser logic. Off = saddles are separate items you hunt for.
   bundle_saddles: false
   # Free-grant basic starter engrams at start + remove them from the pool.
   free_starter_engrams: false
@@ -28,14 +35,17 @@ ARK Survival Evolved:
   trap_percentage: 25
   # Tech-tree progression (RECOMMENDED, default on). Splits checks into 4 tier REGIONS opened in
   # order (Menu -> T0 -> T1 -> T2 -> T3), each gated by the prior tier's station engram:
-  #   T1 = Anvil Bench + Mortar And Pestle | T2 = Forge | T3 = Fabricator. Explorer notes open at T2.
+  #   T1 = Forge + Mortar And Pestle | T2 = Anvil Bench (Smithy) | T3 = Fabricator.
+  #   Explorer notes open at T2. Order follows ARK's craft chain: the Smithy costs metal
+  #   ingots, so it needs the Forge first.
   # This is what makes the seed play out sphere-by-sphere; OFF = almost everything reachable at once
   # (playthrough collapses to ~1 sphere). Gate engrams are normal progression items - fill keeps
   # each reachable before its tier. Tame/kill/cave logic still applies on top.
   progression_tiers: true
-  # Softlock-safe ordering is AUTOMATIC: a "Tamed: X" check requires the engrams X's taming
-  # method needs (e.g. Rex needs the Crossbow chain), so the fill can never strand a needed item
-  # behind a creature you can't yet tame. No option to configure.
+  # Softlock-safe ordering is AUTOMATIC and needs no configuring. Every check carries the real
+  # requirement for doing it: taming a Rex needs the Crossbow chain, KILLING one needs a strong
+  # mount or a rifle/shotgun, and an artifact cave needs its gear plus a suitable mount. So the
+  # fill can never strand a needed item behind something you cannot do yet.
   #
   # Force extra specific items early. Quote names:
   #   extra_early_items:
@@ -49,7 +59,8 @@ ARK Survival Evolved:
   #   tier0_remove: [Coelacanth]
   tier0_add: []
   tier0_remove: []
-  # Explorer-note checks to include (max 240, The Island's collectible notes). Keep at max.
+  # Explorer-note checks to include (232 = every collectible note on The Island). Keep at max
+  # unless you know what you're doing: the item pool needs most of these to fit.
   dossier_checks: 232
   # Percent of the 14 food "hold N in inventory" checks included (0/25/50/75/100).
   food_sanity: 100
@@ -76,5 +87,6 @@ ARK Survival Evolved:
   # hand of species; every species still spawns somewhere (checks stay obtainable).
   # off | grouped (habitat-appropriate + predators kept rare) | chaos (anything anywhere, equal
   # odds - predator walls included). Bosses/alphas/tek/caves/specialty spawners never touched.
-  # Connector writes the Game.ini lines; one server start applies.
+  # After you /connect, the plugin asks you to type /confirm: that writes the Game.ini lines and
+  # restarts the server with a forced wild-dino wipe so the new rosters apply. One time per seed.
   randomize_dino_spawns: off

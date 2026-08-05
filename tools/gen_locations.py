@@ -163,7 +163,9 @@ RESOURCE_INV = [
     ("Collect 100 Gunpowder", "PrimalItemResource_Gunpowder", 100, 1),
     ("Collect 100 Narcotic", "PrimalItemConsumable_Narcotic", 100, 1),
     ("Collect 100 Stimulant", "PrimalItemConsumable_Stimulant", 100, 1),
-    ("Collect 30 Leech Blood", "PrimalItemConsumable_LeechBlood", 30, 1),
+    # Leech Blood is a RESOURCE, not a Consumable - confirmed in-game as
+    # PrimalItemResource_LeechBlood_C via /apdumpinv.
+    ("Collect 30 Leech Blood", "PrimalItemResource_LeechBlood", 30, 1),
     ("Collect 30 Achatina Paste", "PrimalItemResource_SnailPaste", 30, 1),
     ("Collect 50 Raw Prime Meat", "PrimalItemConsumable_RawPrimeMeat_C", 50, 1),
     # tier 2: metal age
@@ -202,7 +204,53 @@ FOOD_INV = [
     ("Giant Bee Honey x3", "PrimalItemConsumable_Honey", 3, 1),
     ("Rare Flower x50", "PrimalItemResource_RareFlower", 50, 0),
     ("Rare Mushroom x50", "PrimalItemResource_RareMushroom", 50, 0),
-    ("Plant Species X Seed x20", "Seed_PlantSpeciesX", 20, 1),
+    # NOT "Seed_PlantSpeciesX" - the in-game class is Seed_DefensePlant (confirmed by
+    # "cheat GFI Seed_DefensePlant"). Plant Species X is named after its role in the
+    # blueprints, not its display name.
+    ("Plant Species X Seed x20", "Seed_DefensePlant", 20, 1),
+]
+
+# DEATH checks. The plugin classifies each player death from the UDamageType class and, for a
+# creature kill, the causer's own class (bIsCarnivore, and the alpha class fragments the alpha-kill
+# checks already use). "kind" is the tag the plugin matches - see DeathKind() in PluginMain.cpp.
+#
+# None of these are gated. Dying is the one thing a player can always do, and it is EASIEST without
+# the relevant gear - a rule requiring Fur to die of cold would be exactly backwards.
+DEATH_ID_BASE = 8759000
+DEATHS = [
+    ("Die to a carnivore",   "carnivore"),
+    ("Die to a herbivore",   "herbivore"),
+    ("Die to an alpha",      "alpha"),
+    ("Die to cold",          "cold"),
+    ("Die to heat",          "heat"),
+    ("Die to drowning",      "drowning"),
+    ("Die to lava",          "lava"),
+    ("Die from fall damage", "falling"),
+    ("Die to starvation",    "starvation"),
+    ("Die to dehydration",   "dehydration"),
+]
+
+# DEATH-count + EXPLORATION-count milestones. Both ride on machinery that already exists: deaths
+# go through the same events_queue counter as tames/kills/breeds, and the exploration count is just
+# how many "Explore: X" locations are already checked (exactly how the note-count milestones work).
+# Neither is gated - dying and walking about need no engram.
+DEATH_TOTALS = [(1, 0), (5, 0), (10, 1), (25, 2), (40, 2)]
+# Thresholds must be reachable WITHOUT gear. 45 regions are mapped but 13 of them need Fur or
+# Scuba, leaving 32 a naked survivor can reach - and these milestones carry no access rule, so
+# anything above 32 would look sphere-0 to Archipelago while actually demanding cold/dive gear.
+# Capped at 25 to leave slack for the handful of tiny cave regions a player may never bother with.
+EXPLORE_TOTALS = [(5, 0), (10, 0), (15, 1), (20, 1), (25, 2)]
+
+# HIGH-LEVEL creature milestones. Deliberately NOT written as an absolute level: the maximum wild
+# level is a server setting (DifficultyValue x 30, so 30 on stock single-player and 150 on the
+# difficulty most people run). "Tame a level 100+" would be flat-out impossible on a default server
+# and trivial on a boosted one. The plugin reads the server's own difficulty and treats these as a
+# PERCENTAGE of that server's maximum wild level, so they scale and can never be unreachable.
+HIGH_LEVEL = [
+    ("Tame a high-level creature",      "milestone_tamelevel_hi",   1),
+    ("Tame a very high-level creature", "milestone_tamelevel_vhi",  2),
+    ("Kill a high-level creature",      "milestone_killlevel_hi",   1),
+    ("Kill a very high-level creature", "milestone_killlevel_vhi",  2),
 ]
 
 # breeding milestones - every mating event counts (fertilized egg laid OR gestation started),
@@ -251,6 +299,16 @@ def main() -> None:
         milestones.append({"id": MILESTONE_ID_BASE + mid, "name": f"Collect {n} Explorer Notes",
                            "tag": f"milestone_notes_{n}", "tier": tier}); mid += 1
     # breeding: appended AFTER every existing block so earlier milestone ids never shift.
+    for n, tier in DEATH_TOTALS:
+        label = "Die once" if n == 1 else f"Die {n} times"
+        milestones.append({"id": MILESTONE_ID_BASE + mid, "name": label,
+                           "tag": f"milestone_deaths_{n}", "tier": tier}); mid += 1
+    for n, tier in EXPLORE_TOTALS:
+        milestones.append({"id": MILESTONE_ID_BASE + mid, "name": f"Explore {n} Regions",
+                           "tag": f"milestone_explore_{n}", "tier": tier}); mid += 1
+    for name, tag, tier in HIGH_LEVEL:
+        milestones.append({"id": MILESTONE_ID_BASE + mid, "name": name,
+                           "tag": tag, "tier": tier}); mid += 1
     milestones.append({"id": MILESTONE_ID_BASE + mid, "name": "Breed your first dino",
                        "tag": "milestone_first_breed", "tier": 1}); mid += 1
     for n, tier in BREED_TOTALS:
@@ -279,10 +337,13 @@ def main() -> None:
     world_items = [{"id": WORLD_ITEM_ID_BASE + i, "name": f"Boss Access: {short}",
                     "kind": "boss_access", "tag": tag} for i, (_, short, tag) in enumerate(BOSS_BASES)]
 
+    deaths = [{"id": DEATH_ID_BASE + i, "name": name, "kind": kind}
+              for i, (name, kind) in enumerate(DEATHS)]
+
     out = {
         "_comment": f"Generated by gen_locations.py (Island whitelist). {len(notes)} island notes + "
                     f"{len(bosses)} boss checks + {len(alphas)} alpha kills + {len(milestones)} milestones + "
-                    f"{len(levels)} levels. note id = 8740000 + ExplorerNoteIndex.",
+                    f"{len(levels)} levels + {len(deaths)} death checks. note id = 8740000 + ExplorerNoteIndex.",
         "_loc_id_base": NOTE_ID_BASE,
         "location_categories": {
             "dossiers":    {"_note": "The Island collectible notes only (whitelist from ark.wiki.gg)",
@@ -293,6 +354,9 @@ def main() -> None:
             "levels":      {"entries": levels},
             "inventory_checks": {"_note": "hold N of item_class -> fires (persists after you use them)",
                                  "entries": inv},
+            "deaths": {"_note": "classified player deaths - the plugin maps a damage type / killer "
+                                "to one of these 'kind' tags",
+                       "entries": deaths},
         },
         "_world_item_id_base": WORLD_ITEM_ID_BASE,
         "world_items": {"entries": world_items},
@@ -302,7 +366,8 @@ def main() -> None:
         with open(path, "w", encoding="utf-8") as fh:
             json.dump(out, fh, indent=2)
         print(f"wrote {len(notes)} notes + {len(bosses)} bosses + {len(alphas)} alphas + "
-              f"{len(milestones)} milestones + {len(levels)} levels + {len(inv)} inventory -> {path}")
+              f"{len(milestones)} milestones + {len(levels)} levels + {len(inv)} inventory + "
+              f"{len(deaths)} deaths -> {path}")
 
 
 if __name__ == "__main__":

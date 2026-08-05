@@ -51,15 +51,21 @@ class TameLogic:
     # `free` = ap_item_names that are auto-granted (start engrams, etc.) and therefore never sit
     # in the item pool. Requiring has(free) would be permanently unsatisfiable and strand the
     # location, so those leaves collapse to ('true',).
-    def compile(self, expr: str, remap: Callable[[str], str], free=frozenset()) -> AST:
+    # `direct` resolves ARK-specific nodes the sheet uses that are NOT engrams: "RideRex" (tame the
+    # Rex AND hold its saddle engram) and a bare creature name (just tame it - some creatures are
+    # rideable with no saddle). It maps a node -> the list of exact AP item names that must ALL be
+    # held. The apworld builds it from dinos.json with the count-grouping remaps already applied,
+    # which is why it is injected rather than derived here.
+    def compile(self, expr: str, remap: Callable[[str], str], free=frozenset(), direct=None) -> AST:
         if not expr or not expr.strip():
             return ("true",)
-        return self._expand(_parse(expr), remap, frozenset(), free)
+        return self._expand(_parse(expr), remap, frozenset(), free, direct or {})
 
-    def _expand(self, node: AST, remap, seen, free) -> AST:
+    def _expand(self, node: AST, remap, seen, free, direct=None) -> AST:
+        direct = direct or {}
         kind = node[0]
         if kind in ("and", "or"):
-            kids = [self._expand(c, remap, seen, free) for c in node[1]]
+            kids = [self._expand(c, remap, seen, free, direct) for c in node[1]]
             if kind == "or":
                 if any(k == ("true",) for k in kids):   # a free branch makes the OR trivially true
                     return ("true",)
@@ -69,13 +75,20 @@ class TameLogic:
                 return ("true",)
             return kids[0] if len(kids) == 1 else (kind, kids)
         if kind == "name":
-            return self._expand_name(node[1], remap, seen, free)
+            return self._expand_name(node[1], remap, seen, free, direct)
         return ("true",)
 
-    def _expand_name(self, name: str, remap, seen, free) -> AST:
+    def _expand_name(self, name: str, remap, seen, free, direct=None) -> AST:
+        direct = direct or {}
         if name in seen:                       # cycle guard
             return ("true",)
         seen = seen | {name}
+        if name in direct:                     # RideX / bare creature -> exact AP item names
+            needed = [n for n in direct[name] if n not in free]
+            if not needed:
+                return ("true",)
+            return ("has", needed[0]) if len(needed) == 1 else \
+                   ("and", [("has", n) for n in needed])
         parts: List[AST] = []
         if name in self.alias:                 # this node is a real gated engram
             ap = remap(self.alias[name])
@@ -83,7 +96,7 @@ class TameLogic:
                 parts.append(("has", ap))
         recipe = self.recipes.get(name)        # + whatever crafting/using it needs
         if recipe and recipe.strip():
-            parts.append(self._expand(_parse(recipe), remap, seen, free))
+            parts.append(self._expand(_parse(recipe), remap, seen, free, direct))
         parts = [p for p in parts if p != ("true",)]
         if not parts:
             return ("true",)                   # free node (crop/resource/unknown)
