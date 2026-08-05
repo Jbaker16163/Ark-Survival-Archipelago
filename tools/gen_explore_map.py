@@ -108,6 +108,13 @@ DEPTH_REGIONS = OrderedDict([
     ("deepocean", ("Deep Ocean", "Scuba", "island", -35253)),
 ])
 
+# WORLD COORDS -> IN-GAME GPS. ARK maps use lat = y/divisor + shift, lon = x/divisor + shift, and
+# The Island uses 8000 / 50. This was checked against the three obelisks in our own sample data and
+# lands within 0.1 degrees of their published positions - so the overlay no longer needs a
+# calibration point, and --calib is only there to override a map whose constants differ.
+#     key -> (divisor, shift)
+MAP_TRANSFORM = {"island": (8000.0, 50.0)}
+
 EXPLORE_ID_BASE = 8758000        # own block, after inventory checks (8757xxx)
 MIN_POINTS = 3                   # fewer than 3 samples is not a polygon
 
@@ -159,6 +166,10 @@ def main():
     ap.add_argument("--calib", nargs=4, type=float, metavar=("LAT", "LON", "X", "Y"),
                     help="one known point: in-game GPS lat/lon and the world X/Y at that spot")
     ap.add_argument("--scale", type=float, default=8000, help="world units per degree")
+    ap.add_argument("--no-embed", action="store_true",
+                    help="do NOT inline the Island map image. The page is published, and the image "
+                         "is a Wildcard asset - use this for a repo copy that ships only our own "
+                         "measured data. Readers can drop their own docs/island_map.png beside it.")
     a = ap.parse_args()
 
     known = REGIONS.get(a.map)
@@ -253,71 +264,166 @@ def main():
     write_overlay(regions, a)
 
 
+def island_map_data_uri(embed=True):
+    """Embed the local Island map as a data URI so the page is self-contained.
+
+    It used to be a plain <img src="island_map.jpg">, which meant the background silently vanished
+    if the file was named .png (it was), or if the html was opened from anywhere else. The image is
+    a Wildcard asset so it is still never committed - docs/island_map.* is gitignored, and this html
+    is too. Absent image = the page falls back to the plain grid.
+    """
+    import base64
+    if not embed:
+        print("  --no-embed: linking docs/island_map.png instead of inlining it")
+        return "", "link"
+    for name, mime in (("island_map.png", "image/png"), ("island_map.jpg", "image/jpeg"),
+                       ("island_map.jpeg", "image/jpeg"), ("island_map.webp", "image/webp")):
+        path = os.path.join(ROOT, "docs", name)
+        if os.path.isfile(path):
+            with open(path, "rb") as fh:
+                b64 = base64.b64encode(fh.read()).decode("ascii")
+            print(f"  embedded {name} ({os.path.getsize(path):,} bytes)")
+            return f"data:{mime};base64,{b64}", name
+    print("  no docs/island_map.* found - the overlay will render on a plain grid")
+    return "", ""
+
+
 def write_overlay(regions, a):
-    if a.calib:
+    """Draw the measured loops over the real Island map, positioned by in-game GPS.
+
+    ARK's lat/lon run 0-100 across a map, so a GPS coordinate IS a percentage - the SVG viewBox is
+    literally 0 0 100 100 and no extra scaling is needed. Earlier versions stretched the samples to
+    fit their own bounding box, which meant the shapes never lined up with the map image."""
+    div, shift = MAP_TRANSFORM.get(a.map, (a.scale, 50.0))
+    if a.calib:                                     # explicit override for a map with odd constants
         lat0, lon0, x0, y0 = a.calib
-        to_lon = lambda x: lon0 + (x - x0) / a.scale       # noqa: E731
-        to_lat = lambda y: lat0 + (y - y0) / a.scale       # noqa: E731
-        note = (f"Calibrated from one measured point: GPS {lat0:.1f}/{lon0:.1f} at world "
-                f"({x0:.0f}, {y0:.0f}), {a.scale:.0f} units per degree.")
+        to_lat = lambda y: lat0 + (y - y0) / a.scale        # noqa: E731
+        to_lon = lambda x: lon0 + (x - x0) / a.scale        # noqa: E731
+        note = (f"Calibrated from a measured point: GPS {lat0:.1f}/{lon0:.1f} at world "
+                f"({x0:.0f}, {y0:.0f}).")
     else:
-        allp = [p for r in regions.values() for p in r["polygon"]]
-        xs = [p[0] for p in allp] or [0]
-        ys = [p[1] for p in allp] or [0]
-        sx, sy = min(xs), min(ys)
-        rx, ry = (max(xs) - sx) or 1, (max(ys) - sy) or 1
-        to_lon = lambda x: (x - sx) / rx * 100            # noqa: E731
-        to_lat = lambda y: (y - sy) / ry * 100            # noqa: E731
-        note = ("NOT calibrated - stretched to fit the samples, so it will not line up with the "
-                "map image. Re-run with --calib LAT LON X Y for true placement.")
+        to_lat = lambda y: y / div + shift                  # noqa: E731
+        to_lon = lambda x: x / div + shift                  # noqa: E731
+        note = (f"Positioned by in-game GPS (lat = y/{div:.0f} + {shift:.0f}), verified against the "
+                f"three obelisks to within 0.1 degrees.")
 
-    def esc(s):
-        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    def esc(t):
+        return t.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
-    shapes = []
+    def cls_of(r):
+        return "fur" if r["gate"] == "Fur" else "scuba" if r["gate"] == "Scuba" else "plain"
+
+    shapes, rows = [], []
     for key, r in regions.items():
-        if not r["polygon"]:
-            continue                                   # depth region - nothing to draw
-        cls = "fur" if r["gate"] == "Fur" else "scuba" if r["gate"] == "Scuba" else "plain"
-        pts = " ".join(f"{to_lon(x):.3f},{to_lat(y):.3f}" for x, y in r["polygon"])
-        cx = sum(to_lon(x) for x, _ in r["polygon"]) / len(r["polygon"])
-        cy = sum(to_lat(y) for _, y in r["polygon"]) / len(r["polygon"])
-        shapes.append(f'<polygon class="{cls}" points="{pts}"><title>{esc(r["name"])}'
-                      f'{" - needs " + r["gate"] if r["gate"] else ""}</title></polygon>')
+        poly = r["polygon"]
+        if not poly:                                # depth region - no shape to draw
+            rows.append((r["name"], key, r["gate"], "-", "-", "-",
+                         f"below z {r['z_below']:,}", cls_of(r)))
+            continue
+        lats = [to_lat(y) for _, y in poly]
+        lons = [to_lon(x) for x, _ in poly]
+        pts = " ".join(f"{to_lon(x):.3f},{to_lat(y):.3f}" for x, y in poly)
+        cx, cy = sum(lons) / len(lons), sum(lats) / len(lats)
+        shapes.append(
+            f'<polygon class="{cls_of(r)}" points="{pts}"><title>{esc(r["name"])}'
+            f' - lat {min(lats):.1f} to {max(lats):.1f}, lon {min(lons):.1f} to {max(lons):.1f}'
+            f'{" - needs " + r["gate"] if r["gate"] else ""}</title></polygon>')
         shapes.append(f'<text x="{cx:.2f}" y="{cy:.2f}">{esc(r["name"])}</text>')
+        rows.append((r["name"], key, r["gate"],
+                     f"{min(lats):.1f} - {max(lats):.1f}",
+                     f"{min(lons):.1f} - {max(lons):.1f}",
+                     f"{cy:.1f}, {cx:.1f}",
+                     f"{len(poly)} pts", cls_of(r)))
 
-    html = f"""<title>ARK:ipelago - Measured exploration areas</title>
+    tbody = "\n".join(
+        f'<tr class="{c}"><td>{esc(n)}</td><td><code>{esc(k)}</code></td>'
+        f'<td>{esc(g) or "-"}</td><td>{la}</td><td>{lo}</td><td>{ctr}</td><td>{extra}</td></tr>'
+        for n, k, g, la, lo, ctr, extra, c in rows)
+
+    gated = sum(1 for r in regions.values() if r["gate"])
+    map_uri, map_name = island_map_data_uri(embed=not a.no_embed)
+    if map_uri:
+        map_img = f'<img src="{map_uri}" alt="">'
+        map_note = (f"Background: your local <code>docs/{map_name}</code>, embedded so this page "
+                    f"works on its own.")
+    elif map_name == "link":
+        map_img = ('<img src="island_map.png" alt="" '
+                   "onerror=\"this.style.display='none'\">")
+        map_note = ("Put your own copy of the Island map at <code>docs/island_map.png</code> to see "
+                    "the terrain behind the loops. It is a Wildcard asset, so it is not included "
+                    "here - only our own measured data is.")
+    else:
+        map_img = '<!-- no docs/island_map.* found; grid only -->'
+        map_note = ("No <code>docs/island_map.png</code> found, so this is the plain grid. Drop "
+                    "your own copy there and re-run to see the terrain.")
+    html = f"""<title>ARK:ipelago - exploration areas</title>
 <style>
  body{{margin:0;padding:20px;background:#12161c;color:#e8edf3;
-      font:14px/1.5 ui-sans-serif,system-ui,"Segoe UI",sans-serif}}
- .wrap{{max-width:1100px;margin:0 auto}}
- h1{{font-size:20px;margin:0 0 4px}} p{{color:#8b98a8;margin:0 0 14px}}
+      font:14px/1.55 ui-sans-serif,system-ui,"Segoe UI",sans-serif}}
+ .wrap{{max-width:1180px;margin:0 auto}}
+ h1{{font-size:20px;margin:0 0 4px}} h2{{font-size:15px;margin:26px 0 8px}}
+ p{{color:#8b98a8;margin:0 0 14px}}
  .note{{border-left:3px solid #5bc0de;background:rgba(91,192,222,.08);padding:9px 13px;
        border-radius:0 6px 6px 0;color:#e8edf3;margin:0 0 16px}}
  .map{{position:relative;width:100%;aspect-ratio:1/1;border:1px solid #2a323d;border-radius:10px;
       overflow:hidden;background:#0d1b2a}}
  .map img,.map svg{{position:absolute;inset:0;width:100%;height:100%}}
  .map img{{object-fit:fill}}
- polygon{{fill:rgba(201,212,224,.13);stroke:#c9d4e0;stroke-width:.25;vector-effect:non-scaling-stroke}}
- polygon.fur{{fill:rgba(127,179,255,.16);stroke:#7fb3ff}}
- polygon.scuba{{fill:rgba(79,214,196,.16);stroke:#4fd6c4}}
- text{{fill:#e8edf3;font:2.2px ui-sans-serif,sans-serif;text-anchor:middle;
-       paint-order:stroke;stroke:#000;stroke-width:.6px}}
- code{{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:4px;
+ /* DARK fills, bright strokes. Light translucent fills washed out completely over the map
+    image - the shapes were barely readable against sunlit terrain. Shading the region down
+    instead makes every loop obvious and keeps the labels legible. */
+ polygon{{fill:rgba(8,11,16,.52);stroke:#e4ebf2;stroke-width:.3;vector-effect:non-scaling-stroke}}
+ polygon:hover{{fill:rgba(8,11,16,.2)}}
+ polygon.fur{{fill:rgba(6,20,44,.55);stroke:#8dbcff}}
+ polygon.scuba{{fill:rgba(3,30,29,.55);stroke:#5fe0ce}}
+ text{{fill:#e8edf3;font:2.1px ui-sans-serif,sans-serif;text-anchor:middle;
+       paint-order:stroke;stroke:#000;stroke-width:.55px;pointer-events:none}}
+ .grid{{position:absolute;inset:0;pointer-events:none;
+       background-image:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),
+                        linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px);
+       background-size:10% 10%}}
+ .key span{{display:inline-block;margin-right:16px}}
+ .sw{{display:inline-block;width:11px;height:11px;border:1px solid #e4ebf2;
+      background:rgba(8,11,16,.6);vertical-align:-1px;margin-right:5px}}
+ .sw.fur{{border-color:#8dbcff;background:rgba(6,20,44,.75)}}
+ .sw.scuba{{border-color:#5fe0ce;background:rgba(3,30,29,.75)}}
+ table{{border-collapse:collapse;width:100%;font-size:13px}}
+ th,td{{text-align:left;padding:5px 9px;border-bottom:1px solid #232a33}}
+ th{{color:#8b98a8;font-weight:600;position:sticky;top:0;background:#12161c}}
+ tr.fur td:first-child{{border-left:3px solid #8dbcff}}
+ tr.scuba td:first-child{{border-left:3px solid #5fe0ce}}
+ tr.plain td:first-child{{border-left:3px solid #3a444f}}
+ code{{background:rgba(255,255,255,.08);padding:1px 5px;border-radius:4px;
        font:12px ui-monospace,Consolas,monospace}}
+ td:nth-child(4),td:nth-child(5),td:nth-child(6){{font:12px ui-monospace,Consolas,monospace}}
 </style>
 <div class="wrap">
-<h1>Measured exploration areas</h1>
-<p>{len(regions)} regions circled with <code>/dumppos</code>. Blue = needs Fur, teal = needs Scuba.</p>
+<h1>Exploration areas - The Island</h1>
+<p>{len(regions)} regions, {gated} of them gated. Coordinates are in-game GPS, so they match what
+your compass shows. Hover a shape for its range.</p>
 <div class="note">{esc(note)}</div>
+<p class="key">
+  <span><i class="sw"></i>no gear needed</span>
+  <span><i class="sw fur"></i>needs Fur</span>
+  <span><i class="sw scuba"></i>needs Scuba</span>
+</p>
 <div class="map">
-  <img src="island_map.jpg" alt="" onerror="this.style.display='none'">
+  {map_img}
   <svg viewBox="0 0 100 100" preserveAspectRatio="none">
   {chr(10) + "  ".join(shapes)}
   </svg>
+  <div class="grid"></div>
 </div>
-<p style="margin-top:14px">Drop your own copy of the Island map at <code>docs/island_map.jpg</code>
-to see the loops over the real terrain. The image is not shipped with the repo.</p>
+<p style="margin-top:10px">Grid lines are every 10 degrees. {map_note} The image is a Wildcard
+asset, so neither it nor this page is committed.</p>
+
+<h2>Ranges</h2>
+<table>
+<thead><tr><th>Region</th><th>/dumppos key</th><th>Gate</th><th>Lat</th><th>Lon</th>
+<th>Centre (lat, lon)</th><th>Shape</th></tr></thead>
+<tbody>
+{tbody}
+</tbody></table>
 </div>
 """
     dst = os.path.join(ROOT, "docs", "exploration_overlay.html")
