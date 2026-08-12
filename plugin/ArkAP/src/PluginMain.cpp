@@ -62,6 +62,9 @@ static bool  g_reassertFaulted = false;
 
 // engram registry, built once the server is ready
 static std::unordered_map<UClass*, int> g_engramClassToItem;          // item blueprint class -> AP item id
+// The game's own engram ENTRY behind each mapped class. Kept purely so a failed unlock can be
+// explained with facts (level, points, prereq chain) instead of a guess.
+static std::unordered_map<UClass*, UPrimalEngramEntry*> g_classToEntry;
 // AP item id -> its engram item class(es). A MOD item can own several classes that share one
 // display name (the apworld groups them), so this is a LIST; base-game items have exactly one.
 static std::unordered_map<int, std::vector<UClass*>> g_itemToEngram;
@@ -132,7 +135,12 @@ struct InvCheck { int loc; std::string cls; int qty; std::string name; };
 // anywhere inside the loop counts. Regions deliberately overlap (caves sit under biomes), so a
 // player can complete several at once - we test them all, we do not stop at the first hit.
 // Altitude is ignored on purpose: you fly through the volcano to reach its maw.
-struct ExploreArea { int loc; std::string name; std::vector<std::pair<double, double>> poly; };
+// A region can be made of SEVERAL disjoint shapes. Hand-drawn areas are one loop, but the ones
+// imported from ark.wiki.gg's region data are rectangle sets - MurderSnow is 24 of them - and a
+// bounding box round those would swallow half the map. `parts` holds them all; being inside ANY
+// part counts. Single-shape regions just have one part, so nothing about them changes.
+struct ExploreArea { int loc; std::string name;
+                     std::vector<std::vector<std::pair<double, double>>> parts; };
 static std::vector<ExploreArea> g_explore;
 // DEPTH regions have no polygon - they fire anywhere below a world Z. The deep ocean cannot be
 // circled like a landmass, and a surface polygon would fire from a bird flying over it, which
@@ -141,6 +149,24 @@ struct DepthArea { int loc; std::string name; double zBelow; };
 static std::vector<DepthArea> g_depth;
 // death checks: "kind" tag (from locations.json) -> loc id
 static std::map<std::string, int> g_deathKindToLoc;
+// ---- MAP FILTERING -------------------------------------------------------------------------
+// A location that belongs only to another map must never fire here. The Island's exploration
+// polygons are plain world coordinates, so standing at the same X/Y on Scorched Earth completes
+// an Island region - the check is real, the player is nowhere near it. Same shape of problem for
+// any other map-specific check, which is why the guard lives in ReportLocation (the one choke
+// point) rather than only in the exploration test.
+//
+// FAIL-OPEN, matching the apworld's _map_filter: an id maps.json has never heard of still fires.
+// Dropping unknown ids would turn "we forgot to tag a new category" into checks that silently stop
+// working, which is far harder to notice than an extra check.
+static std::set<int> g_mapAllowedIds;      // ids on THIS map (plus "any")
+static std::set<int> g_mapKnownIds;        // ids tagged for ANY map at all
+static std::string   g_mapKey;             // our key for the running map ("island", "scorched", ...)
+static bool MapAllowsLoc(int id) {
+    if (g_mapKnownIds.empty()) return true;            // no maps.json -> no filtering
+    if (!g_mapKnownIds.count(id)) return true;         // untagged -> fail open
+    return g_mapAllowedIds.count(id) != 0;
+}
 // RECOVERY WINDOW. When the item list is deliberately re-sent to rebuild lost state, the player
 // ALREADY owns everything in it - so announcing all 200 unlocks in chat and re-firing every filler
 // effect is pure noise (and a shower of free resources). While a route is inside its window,
@@ -157,6 +183,11 @@ static bool QuietFor(const std::string& route) {
 static std::vector<InvCheck> g_invChecks;
 
 namespace fs = std::filesystem;
+
+// Which dll is actually loaded. Declared up here rather than beside Load() because the JOIN greet
+// and /apstatus both quote it: "what version are they running?" was answered by asking someone to
+// find a log file on the server box, which is no answer at all when the report comes from a player.
+static const char* ARKAP_BUILD = "v165-fresh-start-clears-mailboxes";
 
 // the plugin's own folder: ArkApi/Plugins/ArkAP
 static fs::path PluginDir() {
@@ -246,6 +277,16 @@ static AShooterPlayerController* PcForTeam(int team) {
 //                        server-wide in per-player mode either.
 static bool RootMailboxIsShared() { return !g_multiplayer; }
 
+// A disconnected player's controller LINGERS in PlayerControllerList, and its survivor name is
+// never cleared - so RouteFor() still matches it (see DoGreetJoiners, which learned this the hard
+// way). Anything that "delivers to a route" must therefore skip it, or the delivery lands on a
+// dead player state: the engram grant VERIFIES as successful against that state, the log reads
+// granted=1, the live survivor gets nothing, and Reassert is permanently satisfied so it never
+// retries. A live player has a NetConnection; a lingering one does not.
+static bool IsLivePc(AShooterPlayerController* pc) {
+    return pc && pc->NetConnectionField() != nullptr;
+}
+
 static std::vector<AShooterPlayerController*> PcsForRoute(const std::string& route) {
     std::vector<AShooterPlayerController*> out;
     UWorld* world = ArkApi::GetApiUtils().GetWorld();
@@ -253,7 +294,7 @@ static std::vector<AShooterPlayerController*> PcsForRoute(const std::string& rou
     const bool everyone = route.empty() && RootMailboxIsShared();
     for (TWeakObjectPtr<APlayerController> wpc : world->PlayerControllerListField()) {
         auto* pc = static_cast<AShooterPlayerController*>(wpc.Get());
-        if (!pc) continue;
+        if (!IsLivePc(pc)) continue;                          // lingering disconnected controller
         if (route.empty()) {
             out.push_back(pc);
             if (!everyone) break;                             // misconfigured root -> contain it
@@ -262,6 +303,17 @@ static std::vector<AShooterPlayerController*> PcsForRoute(const std::string& rou
         if (RouteFor(pc) == route) { out.push_back(pc); break; }  // that survivor only
     }
     return out;
+}
+
+// Is this route ready to RECEIVE? Connected is not enough - a survivor sitting on the respawn
+// screen has a controller but no character, so an engram grant lands on a body that isn't there
+// and every filler effect has nowhere to go. "_unnamed" is never ready: it is SanitizeRoute's
+// fallback for a name it could not read, so it names nobody and must never be delivered to.
+static bool RouteReady(const std::string& route) {
+    if (route == "_unnamed") return false;
+    for (auto* pc : PcsForRoute(route))      // already skips lingering disconnected controllers
+        if (pc->GetPlayerCharacter()) return true;
+    return false;
 }
 
 static AShooterPlayerController* PcForRoute(const std::string& route) {
@@ -305,6 +357,71 @@ static float ReadDifficultySEH() {                   // POD-only: __try needs no
     } __except (EXCEPTION_EXECUTE_HANDLER) { d = 0.f; }
     return d;
 }
+// ---- the map's REAL GPS transform, read from the game instead of measured ------------------------
+// ARK converts world coordinates to the lat/lon on your compass with four numbers the map itself
+// carries (APrimalWorldSettings). Our exploration polygons live in world coordinates, so authoring
+// them from a drawn map needs exactly this conversion:
+//
+//     lat = (y - LatitudeOrigin) / LatitudeScale        -> divisor = Scale, shift = -Origin/Scale
+//
+// The Island's are 8000 and -400000, which is the 8000/50 pair we had measured against the
+// obelisks - so this reproduces the hand-calibrated answer and removes the need to fly to corners
+// on every new map. POD-only reads, so the SEH block has nothing to unwind.
+struct MapGeo { float latOrigin, latScale, lonOrigin, lonScale; bool over; int src; bool got; };
+// Two ways to reach APrimalWorldSettings, because the first can be null early or on a streaming
+// level: UWorld::GetWorldSettings, then the player's own AActor::GetWorldSettings. `got` means we
+// READ the struct - the values may still be zero, which is itself the answer (see DumpMapGeo).
+static MapGeo ReadMapGeoSEH(AActor* actor) {
+    MapGeo g = {0.f, 0.f, 0.f, 0.f, false, 0, false};
+    __try {
+        AWorldSettings* ws = nullptr;
+        UWorld* w = ArkApi::GetApiUtils().GetWorld();
+        if (w) { ws = w->GetWorldSettings(false, false); if (ws) g.src = 1; }
+        if (!ws && actor) { ws = actor->GetWorldSettings(); if (ws) g.src = 2; }
+        if (ws) {
+            APrimalWorldSettings* p = static_cast<APrimalWorldSettings*>(ws);
+            g.latOrigin = p->LatitudeOriginField();
+            g.latScale  = p->LatitudeScaleField();
+            g.lonOrigin = p->LongitudeOriginField();
+            g.lonScale  = p->LongitudeScaleField();
+            g.over      = p->bOverrideLongitudeAndLatitudeField();
+            g.got       = true;
+        }
+    } __except (EXCEPTION_EXECUTE_HANDLER) { g.got = false; }
+    return g;
+}
+static void DumpMapGeo(AActor* actor) {
+    static bool done = false;
+    if (done) return;
+    MapGeo g = ReadMapGeoSEH(actor);
+    if (!g.got) {
+        DebugLog("MAPGEO could not reach APrimalWorldSettings (world and controller both refused)");
+        return;
+    }
+    // Log the raw values ALWAYS. Zeros here are a real finding - it means this map leaves the
+    // override fields blank and ARK is using built-in defaults, which no amount of retrying fixes.
+    DebugLog("MAPGEO raw src=" + std::to_string(g.src) +
+             " override=" + std::string(g.over ? "true" : "false") +
+             " latScale=" + std::to_string(g.latScale) + " latOrigin=" + std::to_string(g.latOrigin) +
+             " lonScale=" + std::to_string(g.lonScale) + " lonOrigin=" + std::to_string(g.lonOrigin));
+    if (g.latScale == 0.f || g.lonScale == 0.f) {
+        DebugLog("MAPGEO scale is zero - this map does not fill the world-settings fields, so the "
+                 "transform has to come from /dumppos samples instead (--calib).");
+        return;
+    }
+    done = true;
+    const double latDiv = g.latScale, latShift = -(double)g.latOrigin / g.latScale;
+    const double lonDiv = g.lonScale, lonShift = -(double)g.lonOrigin / g.lonScale;
+    DebugLog("MAPGEO map=" + (g_mapKey.empty() ? std::string("?") : g_mapKey) +
+             " -> lat divisor=" + std::to_string(latDiv) + " shift=" + std::to_string(latShift) +
+             " | lon divisor=" + std::to_string(lonDiv) + " shift=" + std::to_string(lonShift));
+    std::ofstream f(PluginDir() / "ArkAP_map_geo.json");
+    if (f) f << "{\"map\": \"" << g_mapKey << "\", \"lat_scale\": " << g.latScale
+             << ", \"lat_origin\": " << g.latOrigin << ", \"lon_scale\": " << g.lonScale
+             << ", \"lon_origin\": " << g.lonOrigin << ", \"divisor\": " << latDiv
+             << ", \"shift\": " << latShift << "}" << std::endl;
+}
+
 static int MaxWildLevel() {
     static int cached = 0;
     if (cached) return cached;
@@ -346,6 +463,22 @@ static void DoNoteHook(AShooterPlayerController* pc, int idx,
     DebugLog("HOOK note idx=" + std::to_string(idx) + (route.empty() ? "" : " by=" + route));
     std::ofstream f(PluginDir() / "note_queue.jsonl", std::ios::app);
     if (f) f << idx << "\t" << route << "\n";
+
+    // CALIBRATION FOR FREE. A map's world-unit-per-degree transform is not exposed by the game
+    // (APrimalWorldSettings leaves the fields zero unless a map overrides them), so it has to be
+    // measured. Explorer notes are perfect reference points: the wiki publishes each note's lat/lon,
+    // and picking one up tells us the world coordinate of that exact spot. Every note a player
+    // collects is therefore a calibration sample, at no cost to them.
+    // tools/calibrate_from_notes.py joins these against the published coordinates.
+    if (pc) {
+        FVector p = ArkApi::GetApiUtils().GetPosition(pc);
+        DebugLog("NOTEPOS idx=" + std::to_string(idx) +
+                 " x=" + std::to_string((long long)p.X) +
+                 " y=" + std::to_string((long long)p.Y));
+        std::ofstream g(PluginDir() / "ArkAP_note_positions.jsonl", std::ios::app);
+        if (g) g << "{\"note_index\": " << idx << ", \"x\": " << (long long)p.X
+                 << ", \"y\": " << (long long)p.Y << "}" << std::endl;
+    }
 }
 
 // ----------------------------------------------------------------- hooks
@@ -389,15 +522,36 @@ static std::string DinoTag(APrimalDinoCharacter* dino) {
     return CanonDinoTag(fs.ToString());
 }
 
+// Whose tame is this? The game calls TameDino with ForPC = NULL for anything that is not a player
+// actively taming a wild creature - a BABY HATCHING/BIRTHING above all, but also a cryopod or soul
+// ball release and an admin tame. RouteFor(null) is "", and in multiplayer "" is the ROOT mailbox,
+// which owns nothing - so the gate refused every baby with "Taming is locked for this creature",
+// even though the player had tamed both parents. (Solo never saw it: there "" IS the player.)
+// Attribute by the dino's TEAM instead, exactly how kills are already attributed.
+static AShooterPlayerController* TamePcFor(APrimalDinoCharacter* dino,
+                                           AShooterPlayerController* forPc) {
+    if (forPc || !dino) return forPc;
+    return PcForTeam(dino->TargetingTeamField());
+}
 // gate worker (objects live here, not in the __try-bearing hook). Returns true if the tame must be BLOCKED.
 static bool DoTameGate(APrimalDinoCharacter* dino, AShooterPlayerController* forPc) {
     std::string tag = DinoTag(dino);
     if (tag.empty()) return false;
-    std::string route = RouteFor(forPc);
-    DebugLog("TAME tag=" + tag + (route.empty() ? "" : " by=" + route));   // harvest the real DinoNameTags
+    std::string route = RouteFor(TamePcFor(dino, forPc));
+    DebugLog("TAME tag=" + tag + (route.empty() ? "" : " by=" + route) +
+             (forPc ? "" : " (no controller: birth/release, attributed by team)"));
     { std::ofstream f(PluginDir() / "dino_queue.jsonl", std::ios::app); if (f) f << tag << "\n"; }
     auto it = g_tameTagToItem.find(tag);
-    return it != g_tameTagToItem.end() && !g_state->HasItem(route, it->second);   // tracked + not unlocked FOR THIS PLAYER
+    if (it == g_tameTagToItem.end()) return false;              // not a tracked species
+    // Still nobody to attribute it to (the owning player is offline, or the team is a tribe with
+    // no one connected). We cannot fairly gate a tame with no owner, and refusing it strands a
+    // baby the player has already earned - so allow it and say why.
+    if (g_multiplayer && route.empty()) {
+        DebugLog("TAME tag=" + tag + " has no attributable owner - ALLOWED (never refuse an "
+                 "unowned tame; in multiplayer the root route owns nothing by design)");
+        return false;
+    }
+    return !g_state->HasItem(route, it->second);   // tracked + not unlocked FOR THIS PLAYER
 }
 
 // --- engram GATE --- (identify whose learn this is: the controller owning this player state)
@@ -443,7 +597,7 @@ static void ChatNotify(const wchar_t* msg) {
 static void DoQueueTameCheck(APrimalDinoCharacter* dino, AShooterPlayerController* forPc) {
     std::string tag = DinoTag(dino);
     if (tag.empty()) return;
-    std::string route = RouteFor(forPc);
+    std::string route = RouteFor(TamePcFor(dino, forPc));   // births carry no controller; use the team
     { std::ofstream f(PluginDir() / "tame_check_queue.jsonl", std::ios::app);
       if (f) f << tag << "\t" << route << "\n"; }
     QueueCountEvent("tame", route);                 // collective count (drained on the game tick)
@@ -476,6 +630,45 @@ void Hook_APrimalDinoCharacter_TameDino(APrimalDinoCharacter* _this, AShooterPla
 // Runs on each crate spawn (BeginPlay). One pass: harvest the class name, fire the artifact
 // CHECK (discovery = streaming the container in), and GATE beacons/cave crates (destroy a
 // locked one so it yields no loot). Returns true if the crate was destroyed (caller stops).
+// Supply-crate classes are gated by EXACT name, but the DLC maps ship the same crate under a
+// map-suffixed class: SupplyCrate_Level35_Double_ScorchedEarth_C is the Island's
+// SupplyCrate_Level35_Double_C. Unrecognised = ungated, so on Scorched and Ragnarok every beacon
+// dropped full loot regardless of whether the player held the access item.
+//
+// Rather than guess the DLC class names, strip a known map suffix and the trailing _C and match
+// what remains. A crate that still does not match behaves exactly as before (ungated), so this can
+// only ever gate MORE of what we already intended to gate - never something new and unrelated.
+static std::string NormalizeCrateClass(const std::string& cls) {
+    std::string s = cls;
+    if (s.size() > 2 && s.compare(s.size() - 2, 2, "_C") == 0) s.erase(s.size() - 2);
+    static const char* suffixes[] = {
+        "_ScorchedEarth", "_Ragnarok", "_Aberration", "_Extinction", "_Genesis", "_Gen2",
+        "_TheCenter", "_Valguero", "_CrystalIsles", "_LostIsland", "_Fjordur", "_SE",
+    };
+    for (const char* suf : suffixes) {
+        size_t n = strlen(suf);
+        if (s.size() > n && s.compare(s.size() - n, n, suf) == 0) { s.erase(s.size() - n); break; }
+    }
+    return s;
+}
+// normalized class -> access item, built alongside g_crateGateClassToItem
+static std::unordered_map<std::string, int> g_crateGateNormToItem;
+
+// A beacon's LEVEL NUMBER is map-relative and must never be matched across maps. The Island's six
+// tiers are 3/15/25/35/45/60; Scorched Earth's are 3/15/30/45/55/70. So SupplyCrate_Level45 is the
+// YELLOW drop on the Island and the PURPLE one on Scorched - matching by level (or by stripping the
+// map suffix, which amounts to the same thing) silently gates the wrong colour behind the wrong
+// item. Beacons therefore have to be listed explicitly in crates.json, per map.
+//
+// Cave and ocean crates are different: their tier is named, not numbered by level
+// (SupplyCrate_Cave_QualityTier2_ScorchedEarth_C really is our Cave T2), so suffix matching is
+// sound for them and is all this predicate allows through.
+static bool CrateHasLevelToken(const std::string& cls) {
+    size_t p = cls.find("Level");
+    return p != std::string::npos && p + 5 < cls.size() &&
+           cls[p + 5] >= '0' && cls[p + 5] <= '9';
+}
+
 static bool DoCrateHook(APrimalStructureItemContainer_SupplyCrate* crate) {
     // GetFullName on the instance = "<ClassName> <PackagePath>:<ObjName>"; first token is the class.
     FString fn; crate->GetFullName(&fn, nullptr);
@@ -494,8 +687,36 @@ static bool DoCrateHook(APrimalStructureItemContainer_SupplyCrate* crate) {
     //  spawned from looted, so they'd auto-fire on every fresh game. Dropped.)
     // crates are WORLD objects (can't attribute a spawn to a player) -> unlocked once ANY player
     // has the access item; locked only while nobody does.
-    auto gate = g_crateGateClassToItem.find(name);             // beacon / cave / deep-sea -> GATE
-    if (gate != g_crateGateClassToItem.end() && !g_state->HasItemAny(gate->second)) {
+    int gateItem = 0;                                          // beacon / cave / deep-sea -> GATE
+    auto gate = g_crateGateClassToItem.find(name);
+    if (gate != g_crateGateClassToItem.end()) {
+        gateItem = gate->second;
+    } else if (!CrateHasLevelToken(name)) {                    // DLC variant of a NON-beacon crate
+        auto alt = g_crateGateNormToItem.find(NormalizeCrateClass(name));
+        if (alt != g_crateGateNormToItem.end()) gateItem = alt->second;
+        static std::set<std::string> matchedLogged;
+        if (matchedLogged.insert(name).second && gateItem)
+            DebugLog("CRATE map-variant matched by suffix: " + name + " -> item " +
+                     std::to_string(gateItem));
+    }
+    // BEAVER DAMS are not supply drops. Ragnarok's (and the Island's) Giant Beaver Dams are built
+    // from SupplyCrateBaseBP_Instantaneous_DamLogs/DenLogs classes, so they arrive here looking
+    // like beacons. They must never be gated: a locked crate is DESTROYED, and destroying dams
+    // would delete the map's cementing paste supply. Excluded from the warning too, or every
+    // Ragnarok log nags about a crate nobody should touch.
+    bool isDam = name.find("DamLogs") != std::string::npos ||
+                 name.find("DenLogs") != std::string::npos;
+    // Warn only about SUPPLY crates. Artifact crates reach this hook too and are deliberately
+    // ungated (they are not checks - see above), so flagging them would send people chasing a
+    // non-problem.
+    if (!gateItem && !isDam &&
+        (name.rfind("SupplyCrate", 0) == 0 || name.rfind("SupplyCreate", 0) == 0)) {
+        static std::set<std::string> ungatedLogged;
+        if (ungatedLogged.insert(name).second)
+            DebugLog("CRATE UNGATED (not in crates.json): " + name +
+                     " - add this exact class to the right colour in crates.json");
+    }
+    if (gateItem && !g_state->HasItemAny(gateItem)) {
         static std::set<std::string> destroyedLogged;          // log each locked class once (these respawn constantly)
         if (destroyedLogged.insert(name).second) DebugLog("CRATE locked, destroying: " + name + " (further hidden)");
         crate->Destroy(false, true);                           // locked -> remove so it gives no loot
@@ -763,6 +984,11 @@ static void DoPlayerDeath(AShooterCharacter* who) {
     }
     if (g_multiplayer && route.empty())              // never silently share a death with everyone
         DebugLog("PLAYER death: route unresolved - death goes to the ROOT mailbox (shared)");
+    if (route == "_unnamed") {                       // names nobody: the DeathLink would go nowhere
+        DebugLog("PLAYER death: survivor name unreadable (_unnamed) - NOT broadcasting a DeathLink "
+                 "and not counting the death, rather than sending it to a mailbox nobody reads");
+        return;
+    }
     auto sit = g_suppressDeathUntil.find(route);
     if (sit != g_suppressDeathUntil.end() && std::time(nullptr) < sit->second) return;   // incoming-link kill -> don't echo
     QueueCountEvent("death", route);
@@ -797,6 +1023,36 @@ bool Hook_AShooterCharacter_Die(AShooterCharacter* _this, float KillingDamage,
 // ----------------------------------------------------------------- reporting / applying
 void ReportLocation(const std::string& route, int loc_id) {
     if (loc_id == 0) { DebugLog("REPORT skip: loc_id=0 (unmapped)"); return; }
+    // "_unnamed" is SanitizeRoute's fallback when a survivor name could not be read (mid-spawn,
+    // respawn screen, a controller half torn down). /connect already refuses to bind a session
+    // there; reporting a CHECK there was still possible, and it was worse than useless - the id
+    // got marked checked against a route no AP client reads, the line went to a phantom
+    // ipc\_unnamed mailbox, and MailboxRoutes then polled that folder for the rest of the boot.
+    // Live-hit: two kill-level milestones vanished this way in one session. Drop it unmarked so
+    // the rescan can re-report it under the real survivor.
+    // NO OWNER, NO REPORT (multiplayer). "_unnamed" is SanitizeRoute's fallback for a name it
+    // could not read; "" is the ROOT mailbox, which in multiplayer belongs to nobody - PollMailbox
+    // already refuses to APPLY items there for the same reason. A check written to either is
+    // simply lost, and marking it would stop the real survivor ever re-reporting it. Live case:
+    // a baby claimed with no resolvable owner logged `REPORT loc=8753050 ->` with no route at all.
+    if (g_multiplayer && (route.empty() || route == "_unnamed")) {
+        DebugLog("REPORT skip: loc=" + std::to_string(loc_id) + " has NO resolvable survivor "
+                 "(route would be " + (route.empty() ? "the shared root" : "_unnamed") +
+                 ") - NOT marked, will re-report once it can be attributed");
+        return;
+    }
+    if (!MapAllowsLoc(loc_id)) {
+        // Deliberately NOT marked checked: on a cluster the player may travel to the map that owns
+        // this location, and it has to fire there. But the rescan retries it forever, so say it
+        // once per route per boot instead of once per attempt (one live log repeated a single id
+        // a dozen times in three seconds).
+        static std::set<std::pair<std::string, int>> skipLogged;
+        if (skipLogged.insert({ route, loc_id }).second)
+            DebugLog("REPORT skip: loc=" + std::to_string(loc_id) + " belongs to another map (running " +
+                     (g_mapKey.empty() ? std::string("?") : g_mapKey) + ")" +
+                     (route.empty() ? "" : " [" + route + "]") + " - further skips of this id quiet");
+        return;
+    }
     if (g_state->AlreadyChecked(route, loc_id)) return;   // quiet: per-player dedup
     g_state->MarkChecked(route, loc_id);
     g_ipc->ReportCheck(route, loc_id);
@@ -808,17 +1064,111 @@ void ReportLocation(const std::string& route, int loc_id) {
     }
 }
 
+// A refused grant is USUALLY TEMPORARY, so we never stop retrying - we only stop shouting.
+//
+// ServerUnlockEngram(bForce=true) bypasses the level and engram-point costs. It does NOT bypass
+// an engram's PREREQUISITE ENGRAMS. Tranq Arrow needs Stone Arrow + Narcotic, Narcotic needs
+// Mortar And Pestle, Refined Tranq Dart needs Tranq Dart, Tripwire C4 needs C4. Until the player
+// receives those - separate AP items that may arrive much later - the game refuses, and there is
+// nothing wrong with the class, the registry or the data.
+//
+// v151 gave up after 10 verified failures and blacklisted the class permanently, on the theory
+// that a refusal meant "no engram entry behind this class". That was wrong: a live log showed 10
+// give-ups while `registry fallback: recovered=2` proved at least 8 of them came from real engram
+// entries. Worse, the blacklist made the failure PERMANENT - when the prerequisite finally
+// arrived, the retry that would have fixed it had been switched off. Retrying forever was noisy;
+// blacklisting was silently unrecoverable, which is worse.
+//
+// So: retry every tick as before, but log on a widening schedule (1, 2, 3, then ~x3 each time) so
+// a stuck engram stays visible without the 1,001,589-line / 238 MB flood that started all this.
+static std::map<UClass*, int> g_grantFailures;
+static bool ShouldLogGrantFailure(int n) {
+    if (n <= 3) return true;
+    for (int t = 10; t <= 1000000000; t *= 3) if (n == t) return true;
+    return false;
+}
+
+// Learned engrams live in TWO places: the survivor's persistent stats (what HasEngram reads, and
+// what survives death) and the craftable blueprints inside the CURRENT character's inventory. A
+// respawn builds a new inventory, so every blueprint has to be pushed again for the new body.
+// Keyed on the character pointer, which is only ever compared, never dereferenced.
+
+// Say WHY an unlock did not take, in facts rather than a guess. Every number here comes from the
+// game's own engram entry, so the log names the actual blocker instead of "almost always a
+// prerequisite". MeetsEngramRequirements is asked three ways to separate the causes: the full
+// check, level-only, and the full check with prerequisites waived - whichever flips tells us which
+// rule is doing the blocking.
+static void DiagnoseGrantFailure(AShooterPlayerState* ps, UClass* engramClass,
+                                 const std::string& route) {
+    const std::string who = route.empty() ? "" : " [" + route + "]";
+    auto eit = g_classToEntry.find(engramClass);
+    if (eit == g_classToEntry.end() || !eit->second) {
+        DebugLog("  WHY: no UPrimalEngramEntry is registered for this class, so ServerUnlockEngram "
+                 "had nothing to unlock - the AP item can never work" + who);
+        return;
+    }
+    UPrimalEngramEntry* e = eit->second;
+    FString nm; e->GetEngramName(&nm);
+    const int  needLvl = e->GetRequiredLevel();
+    const int  haveLvl = ps->GetCharacterLevel();
+    const int  needPts = e->GetRequiredEngramPoints();
+    const int  havePts = ps->FreeEngramPointsField();
+    const bool manual  = e->bCanBeManuallyUnlocked().Get();
+    const bool full    = e->MeetsEngramRequirements(ps, false, false);
+    const bool lvlOnly = e->MeetsEngramRequirements(ps, true,  false);
+    const bool noPre   = e->MeetsEngramRequirements(ps, false, true);
+    const bool chain   = e->MeetsEngramChainRequirements(ps);
+    DebugLog("  WHY: \"" + nm.ToString() + "\"" + who +
+             " level=" + std::to_string(haveLvl) + "/" + std::to_string(needLvl) +
+             " points=" + std::to_string(havePts) + "/" + std::to_string(needPts) +
+             " manuallyUnlockable=" + (manual  ? "1" : "0") +
+             " meetsAll="           + (full    ? "1" : "0") +
+             " levelOK="            + (lvlOnly ? "1" : "0") +
+             " okIfPrereqsIgnored=" + (noPre   ? "1" : "0") +
+             " prereqChainOK="      + (chain   ? "1" : "0"));
+    if (!manual)
+        DebugLog("  WHY: bCanBeManuallyUnlocked=0 - the game forbids unlocking this one directly "
+                 "(typically a Tek engram gated behind a boss)");
+    if (!lvlOnly)
+        DebugLog("  WHY: CHARACTER LEVEL is short - needs " + std::to_string(needLvl) +
+                 ", player is " + std::to_string(haveLvl));
+    if (!chain) {
+        TArray<TSubclassOf<UPrimalEngramEntry>> pre;
+        e->GetAllChainedPreReqs(ps, &pre);
+        std::string list;
+        for (int i = 0; i < pre.Num() && i < 12; ++i)
+            if (pre[i].uClass)
+                list += (list.empty() ? "" : ", ") + ClassShortName(pre[i].uClass);
+        DebugLog("  WHY: PREREQUISITE CHAIN not satisfied. Chain: " +
+                 (list.empty() ? std::string("(the game reported none)") : list));
+    }
+    if (full && manual)
+        DebugLog("  WHY: the game says every requirement IS met, yet HasEngram is still false "
+                 "after the call - that points at the entry/class pairing, not at the player");
+}
+
 // grant an engram: route "" = every connected player (solo/shared); otherwise only that player.
-static void GrantEngramToPlayers(const std::string& route, UClass* engramClass) {
-    if (!engramClass) return;
+// Returns TRUE when the engram is now known to at least one target (freshly granted, or they
+// already had it), FALSE when there was NOBODY to grant it to - which is the normal case for an
+// item that arrives while its owner is dead or logged out. Reassert picks those up on respawn, so
+// the caller only needs the answer to say so in the log.
+static bool GrantEngramToPlayers(const std::string& route, UClass* engramClass,
+                                 bool* refusedOut = nullptr) {
+    if (!engramClass) return false;
     TSubclassOf<UPrimalItem> engram; engram.uClass = engramClass;   // rebuild from the class
     UWorld* world = ArkApi::GetApiUtils().GetWorld();
-    if (!world) { DebugLog("grant: no world"); return; }
+    if (!world) { DebugLog("grant: no world"); return false; }
     auto& world_players = world->PlayerControllerListField();
-    int seen = 0, granted = 0, had = 0;
+    int seen = 0, granted = 0, had = 0, stale = 0, nobody = 0, refused = 0;
     for (TWeakObjectPtr<APlayerController> wpc : world_players) {
         auto* pc = static_cast<AShooterPlayerController*>(wpc.Get());
         if (!pc) continue;
+        // Never grant to a lingering disconnected controller - it would verify as a success
+        // against a dead player state and the real survivor would never see the engram.
+        if (!IsLivePc(pc)) {
+            if (route.empty() || RouteFor(pc) == route) ++stale;
+            continue;
+        }
         // An empty route here is INTENTIONALLY server-wide: the only caller that uses one is the
         // Tek grant on a boss kill, which is a team reward rather than a per-slot item. v135 added
         // a guard that capped this at one player to contain mis-routed items - wrong place for it,
@@ -828,6 +1178,27 @@ static void GrantEngramToPlayers(const std::string& route, UClass* engramClass) 
         ++seen;
         auto* ps = pc->GetShooterPlayerState();
         if (!ps) continue;
+        // NO BODY, NO GRANT - wait for a spawned survivor. Nothing here needs the character
+        // any more (see below), so this is purely the rule that items wait for a live, alive
+        // player rather than landing on a corpse or a respawn screen; the mailbox hold applies the
+        // same rule one level up. Reassert retries every tick, so deferring costs a second.
+        //
+        // NB the old justification for this check - "ServerUnlockEngram also pushes a craftable
+        // into the character's inventory and HasEngram only sees the persistent half" - was wrong.
+        // There is no inventory half.
+        auto* body = pc->GetPlayerCharacter();
+        if (!body) { ++nobody; continue; }
+        // ONE CALL, NOTHING ELSE. ServerUnlockEngram records the engram in the survivor's
+        // persistent stats, which is what makes it appear learned and craftable - that is all an
+        // engram is. It does NOT need a blueprint item pushed alongside it.
+        //
+        // v156 added AddEngramBlueprintToPlayerInventory on the theory that the unlock's "inventory
+        // half" was going missing. There is no inventory half. A blueprint ITEM is a separate,
+        // lootable thing (UPrimalItem keeps bIsBlueprint and bIsEngram as different flags), so that
+        // call was minting a real item every time it ran - which is what buried a player's
+        // inventory in duplicate IED blueprints. v75 of this plugin never made that call and worked
+        // for an entire long-term run; ArkServerApi's own AllEngrams plugin does not make it either
+        // (vendor/ASE-Plugins/AllEngrams: HasEngram check, then ServerUnlockEngram, done).
         if (ps->HasEngram(engram)) { ++had; continue; }
         g_applying = true;
         ps->ServerUnlockEngram(engram, true, true);
@@ -835,15 +1206,33 @@ static void GrantEngramToPlayers(const std::string& route, UClass* engramClass) 
         // verify it landed. Silent failures here are permanent for the player (ApplyItem dedups
         // by id), so a refusal has to end up in the log rather than nowhere. Reassert retries it
         // every tick regardless, which covers the "player not fully spawned yet" case.
-        if (!ps->HasEngram(engram))
-            DebugLog("grant REFUSED by the game for " + ClassShortName(engramClass) +
-                     (route.empty() ? "" : " [" + route + "]"));
+        if (!ps->HasEngram(engram)) {
+            ++refused;
+            int n = ++g_grantFailures[engramClass];
+            if (ShouldLogGrantFailure(n)) {
+                DebugLog("grant REFUSED for " + ClassShortName(engramClass) +
+                         (route.empty() ? "" : " [" + route + "]") +
+                         " (attempt " + std::to_string(n) + ") - will keep retrying");
+                DiagnoseGrantFailure(ps, engramClass, route);
+            }
+            continue;                       // nothing was granted - do not count it as one
+        }
+        g_grantFailures.erase(engramClass);  // it took; forget any earlier transient failure
         ++granted;
     }
+    // NAME what was granted. Without it a reassert grant is an anonymous line, and "did Lurch ever
+    // actually get the Grappling Hook?" could not be answered from the log at all - the APPLY line
+    // said engram=1, no grant line followed (he was dead), and two nameless grants fired when he
+    // respawned. Which two was unknowable.
     if (granted > 0)   // quiet: only log when we actually unlocked something
-        DebugLog("grant: controllers=" + std::to_string(seen) +
+        DebugLog("grant: " + ClassShortName(engramClass) +
+                 " controllers=" + std::to_string(seen) +
                  " already=" + std::to_string(had) + " granted=" + std::to_string(granted) +
+                 (stale ? " (skipped " + std::to_string(stale) + " disconnected)" : "") +
+                 (nobody ? " (skipped " + std::to_string(nobody) + " with no body)" : "") +
                  (route.empty() ? "" : " [" + route + "]"));
+    if (refusedOut && refused) *refusedOut = true;
+    return granted > 0 || had > 0;
 }
 
 // trap effect: SpawnDino "<blueprint>" <distance> <yOffset> 5000 <level> = a WILD dino <distance>
@@ -1223,8 +1612,20 @@ void ApplyItem(const std::string& route, int item_id, const std::string& from) {
         AnnounceUnlock(route, nameIt->second, extras, from);
 
     auto it = g_itemToEngram.find(item_id);       // engram item -> push the unlock now
-    if (it != g_itemToEngram.end())
-        for (UClass* c : it->second) GrantEngramToPlayers(route, c);
+    if (it != g_itemToEngram.end()) {
+        bool reached = false, refused = false;
+        for (UClass* c : it->second) reached |= GrantEngramToPlayers(route, c, &refused);
+        // Two very different reasons the grant can not land, and calling both "nobody in-world"
+        // sent one live investigation down the wrong path: the player may be dead/logged out, or
+        // the player may be right there and the GAME refused because a prerequisite engram is
+        // missing. Reassert retries either way; name which one it is.
+        if (!reached)
+            DebugLog("ENGRAM deferred id=" + std::to_string(item_id) + ": " +
+                     (refused ? "the game REFUSED it (prerequisite engram not received yet)"
+                              : "nobody in-world for " +
+                                (route.empty() ? std::string("this server") : "route " + route)) +
+                     " - Reassert keeps retrying");
+    }
     // taming / supply / boss / map items: gating reads State on demand, nothing to push.
 
     // filler effects; if the target player isn't in-world yet, queue a retry.
@@ -1291,11 +1692,25 @@ static void GrantTekForBoss(const std::string& baseTag) {
 
 // Re-apply every received engram to its players (idempotent - HasEngram skips ones already
 // known). Handles items that arrived before the player was in-world. Shared "" grants to all.
+// One grant, individually guarded. The registry's second pass caches UClass* obtained from
+// BPLoadClass, and nothing holds a GC reference to them - so a pointer can go stale between boot
+// and use. Guarding only the whole pass (as ReassertEngrams does) meant one stale class aborted
+// every remaining engram for every remaining player, silently: the log said "FAULT in
+// ReassertEngrams" and nothing else. Per-class guarding keeps the rest of the pass working.
+// No C++ object is constructed inside the __try (route is passed by reference), so this is legal.
+static bool GrantEngramGuarded(const std::string& route, UClass* c) {
+    __try { GrantEngramToPlayers(route, c); return true; }
+    __except (EXCEPTION_EXECUTE_HANDLER) { return false; }
+}
 static void DoReassert() {
+    static std::set<int> badLogged;              // name each culprit once, not every tick
     for (auto& route : g_state->Players())
         for (auto& [item_id, classes] : g_itemToEngram)
             if (g_state->HasItem(route, item_id))
-                for (UClass* c : classes) GrantEngramToPlayers(route, c);
+                for (UClass* c : classes)
+                    if (c && !GrantEngramGuarded(route, c) && badLogged.insert(item_id).second)
+                        DebugLog("!! FAULT granting engram item=" + std::to_string(item_id) +
+                                 " (stale class pointer?) - skipped, rest of the pass continues");
 }
 
 // free starter engrams: mark the configured starter engrams as owned (reassert then grants them
@@ -1347,6 +1762,20 @@ static void ReownItem(const std::string& route, int item_id) {
     if (g_fillerSpawn.count(item_id) || g_fillerGive.count(item_id) || g_fillerBuff.count(item_id))
         return;                                     // filler owns nothing; its effect already fired
     bool isNew = g_state->AddItem(route, item_id);
+    // A bundle rep owns nothing by itself - all of its value is in the members, so re-owning just
+    // the rep would leave the player holding an item that unlocks nothing. Expand it, but only
+    // when state had genuinely lost it (isNew): on a routine boot backfill every rep is already
+    // owned, so this stays quiet.
+    auto bit = kStructureBundles.find(item_id);
+    if (bit != kStructureBundles.end()) {
+        if (isNew) ApplyStructureBundle(route, item_id, bit->second, "");
+        return;
+    }
+    auto mbit = g_tables.mod_bundles.find(item_id);
+    if (mbit != g_tables.mod_bundles.end()) {
+        if (isNew) ApplyModBundle(route, item_id, mbit->second, "");
+        return;
+    }
     auto it = g_itemToEngram.find(item_id);
     if (it != g_itemToEngram.end())
         for (UClass* c : it->second) GrantEngramToPlayers(route, c);
@@ -1413,6 +1842,50 @@ static void PollMailbox(const std::string& route) {
         return;                                  // never guess an owner
     }
 
+    // WAIT FOR THE SURVIVOR. Nothing here is delivered to a player who is disconnected or dead:
+    // hold the whole mailbox instead, un-drained and with the watermark untouched, so it replays
+    // intact the moment they are back and standing up. Deferring only the EFFECT was not enough -
+    // ownership, the chat announcement and the engram unlock all still fired into the void, and
+    // an unlock that "succeeded" against an absent body is exactly the failure that is impossible
+    // to tell from a working one in a log. Nothing is lost by waiting: the lines stay in the
+    // file, and an offline player's mailbox simply drains when they return.
+    static std::map<std::string, bool> held;                 // log the TRANSITION, not every tick
+    if (!RouteReady(route)) {
+        if (!held[route]) {
+            held[route] = true;
+            DebugLog("MAILBOX held: " + (route.empty() ? std::string("this server") : route) +
+                     " has no live, spawned survivor - items wait (watermark not advanced)");
+        }
+        return;
+    }
+    if (held[route]) {
+        held[route] = false;
+        DebugLog("MAILBOX resumed: " + (route.empty() ? std::string("this server") : route) +
+                 " is back in-world - delivering everything that queued up");
+    }
+
+    // STALE WATERMARK GUARD. The watermark is only ever set from an index that was present in
+    // this file, so it can never legitimately exceed the file's highest index. When it does, the
+    // mailbox was reset (new seed) without its watermark going with it - which used to silently
+    // swallow every item of the new seed up to the old high-water mark. Treat it as absent.
+    {   int maxIdx = -1;
+        std::stringstream scan(content);
+        std::string l;
+        while (std::getline(scan, l)) {
+            auto p = l.find("\"index\"");
+            if (p == std::string::npos) continue;
+            try { maxIdx = (std::max)(maxIdx, std::stoi(l.substr(l.find(':', p) + 1))); }
+            catch (...) {}
+        }
+        if (watermark > maxIdx) {
+            DebugLog("WATERMARK stale: " + std::to_string(watermark) + " > highest index in "
+                     "items_in.jsonl (" + std::to_string(maxIdx) + ") - mailbox was reset without "
+                     "it; clearing so nothing is skipped" + (route.empty() ? "" : " [" + route + "]"));
+            watermark = -1;
+            SaveWatermark(route, -1);
+        }
+    }
+
     std::stringstream ls(content);
     std::string line;
     bool wmDirty = false;
@@ -1435,7 +1908,16 @@ static void PollMailbox(const std::string& route) {
                 // watermark means nothing would ever re-fill it: taming and crates stay locked
                 // forever with no way back except a manual command. Re-owning here is idempotent
                 // (a set insert plus a HasEngram-guarded unlock) and makes that self-healing.
-                if (!backfilled) ReownItem(route, id);
+                //
+                // The `!backfilled` gate alone was not enough. It only covers the FIRST non-empty
+                // pass of a boot, so an item whose line reached the mailbox LATE - after the
+                // watermark had already moved past its index, which is exactly what AP's resend
+                // on a reconnect looks like when the original write was lost - was skipped on
+                // every pass forever. The player saw it awarded on the AP server and nothing at
+                // all in game; only /send (a fresh index) could recover it. So also re-own any
+                // line this route does not actually own yet: idempotent, silent, and it turns a
+                // permanently lost item into a one-line "state had lost it" in the log.
+                if (!backfilled || !g_state->HasItem(route, id)) ReownItem(route, id);
                 continue;
             }
             watermark = idx; wmDirty = true;
@@ -1460,8 +1942,23 @@ static std::vector<std::string> MailboxRoutes() {
     std::vector<std::string> routes = { "" };
     if (!g_multiplayer) return routes;
     std::error_code ec;
-    for (auto& e : fs::directory_iterator(g_ipc->Root(), ec))
-        if (e.is_directory()) routes.push_back(e.path().filename().string());
+    for (auto& e : fs::directory_iterator(g_ipc->Root(), ec)) {
+        if (!e.is_directory()) continue;
+        // "_unnamed" is not a survivor - it is the fallback SanitizeRoute returns when a name
+        // could not be read. A folder by that name is debris from an older build; treat it as a
+        // route and every tick spends work polling a mailbox no AP client will ever write to.
+        if (e.path().filename() == "_unnamed") {
+            static bool warned = false;
+            if (!warned) {
+                warned = true;
+                DebugLog("!! ipc\\_unnamed exists and is NOT a survivor mailbox - ignoring it. "
+                         "It is debris from a build that could report under an unresolved name; "
+                         "anything inside it was never delivered. Safe to delete.");
+            }
+            continue;
+        }
+        routes.push_back(e.path().filename().string());
+    }
     return routes;
 }
 
@@ -1560,32 +2057,57 @@ static std::string EngramClassToBlueprintPath(const std::string& full) {
 
 static int g_unresolvedEngrams = 0;               // reported in /apstatus
 
+static bool MapEngramEntry(UPrimalEngramEntry* e) {
+    if (!e) return false;
+    TSubclassOf<UPrimalItem> sub = e->BluePrintEntryField();
+    UClass* cls = sub.uClass;
+    if (!cls) return false;
+    std::string name = ClassShortName(cls);       // item blueprint class path
+    auto it = g_tables.engram_class_to_item.find(name);
+    if (it == g_tables.engram_class_to_item.end()) return false;
+    bool fresh = !g_itemToEngram.count(it->second);
+    g_engramClassToItem[cls] = it->second;
+    g_classToEntry[cls] = e;
+    auto& v = g_itemToEngram[it->second];
+    if (std::find(v.begin(), v.end(), cls) == v.end()) v.push_back(cls);
+    return fresh;
+}
 static void DoBuildRegistry() {
     UPrimalGameData* gd = GameData();
     if (!gd) return;
     g_engramClassToItem.clear();
     g_itemToEngram.clear();
-    for (UPrimalEngramEntry* e : gd->EngramBlueprintEntriesField()) {
-        if (!e) continue;
-        TSubclassOf<UPrimalItem> sub = e->BluePrintEntryField();
-        UClass* cls = sub.uClass;
-        if (!cls) continue;
-        std::string name = ClassShortName(cls);   // item blueprint class path
-        auto it = g_tables.engram_class_to_item.find(name);
-        if (it != g_tables.engram_class_to_item.end()) {
-            g_engramClassToItem[cls] = it->second;
-            auto& v = g_itemToEngram[it->second];
-            if (std::find(v.begin(), v.end(), cls) == v.end()) v.push_back(cls);
-        }
-    }
-    // SECOND PASS - the entry list is not a reliable index of the game's engrams. On Lurch's
+    g_classToEntry.clear();
+    g_grantFailures.clear();
+
+    for (UPrimalEngramEntry* e : gd->EngramBlueprintEntriesField())
+        MapEngramEntry(e);
+    // EngramBlueprintEntries is only ONE of the three lists UPrimalGameData keeps. The other two
+    // hold CLASSES rather than instances, and AdditionalEngramBlueprintClasses is the one mods
+    // append to. Walking only the entries is what left Stimulant, Sparkpowder, the arrows and 37
+    // other classes to the BPLoadClass fallback below - and a class loaded by path has no engram
+    // ENTRY behind it, so ServerUnlockEngram silently does nothing on it. The player's item
+    // arrives, the log says granted, and the engram stays locked forever. Take the entries from
+    // the class lists' default objects instead, which ARE the game's own entries.
+    int fromClasses = 0;
+    for (auto& sub : gd->EngramBlueprintClassesField())
+        if (sub.uClass && MapEngramEntry(
+                static_cast<UPrimalEngramEntry*>(sub.uClass->GetDefaultObject(true)))) ++fromClasses;
+    for (auto& sub : gd->AdditionalEngramBlueprintClassesField())
+        if (sub.uClass && MapEngramEntry(
+                static_cast<UPrimalEngramEntry*>(sub.uClass->GetDefaultObject(true)))) ++fromClasses;
+    if (fromClasses)
+        DebugLog("registry: " + std::to_string(fromClasses) + " engrams came ONLY from the "
+                 "EngramBlueprintClasses / AdditionalEngramBlueprintClasses lists");
+    // THIRD PASS - the entry list is not a reliable index of the game's engrams. On Lurch's
     // server 30 vanilla engrams (Campfire, Spear, Sparkpowder, Gunpowder, Narcotic, Stimulant,
     // the arrows...) were absent from EngramBlueprintEntries, so their AP items arrived, logged
     // "engram=0", and silently unlocked nothing - forever, since ApplyItem dedups by id. Several
     // of those are progression gates in the apworld's logic, so it was a softlock risk.
     // We already hold the exact BlueprintGeneratedClass path in engrams.json, so load it directly
     // instead of hoping it shows up in a list we do not own.
-    int recovered = 0, missing = 0;
+    int recovered = 0, missing = 0, notUnlockable = 0;
+    auto engMap = gd->ItemEngramMapField();      // hoisted: the accessor copies
     for (auto& [clsPath, item_id] : g_tables.engram_class_to_item) {
         if (g_itemToEngram.count(item_id)) continue;          // already mapped by the walk above
         std::string bp = EngramClassToBlueprintPath(clsPath);
@@ -1596,14 +2118,32 @@ static void DoBuildRegistry() {
             if (missing <= 20) DebugLog("registry UNRESOLVED " + clsPath);
             continue;
         }
+        // A class loaded by path may still have a perfectly good engram ENTRY - UPrimalGameData
+        // publishes the authoritative item-class -> entry map, so ASK rather than assume. If an
+        // entry exists the class is fully unlockable; if not, ServerUnlockEngram would be a silent
+        // no-op on it, so it is registered for the GATE direction only (class -> item, used to
+        // lock the engram in the hook) and reported. Better an honest line than a grant that
+        // logs success and does nothing.
         g_engramClassToItem[cls] = item_id;
-        g_itemToEngram[item_id].push_back(cls);
-        ++recovered;
+        UPrimalEngramEntry* entry = nullptr;
+        if (auto* found = engMap.Find(cls)) entry = *found;
+        if (entry) {
+            g_itemToEngram[item_id].push_back(cls);
+            g_classToEntry[cls] = entry;
+            ++recovered;
+        } else {
+            DebugLog("registry NOT-UNLOCKABLE item=" + std::to_string(item_id) + " " + clsPath +
+                     " - class loads, but the game has no engram entry for it");
+            ++notUnlockable;
+        }
     }
     g_unresolvedEngrams = missing;
-    if (recovered || missing)
+    if (recovered || missing || notUnlockable)
         DebugLog("registry fallback: recovered=" + std::to_string(recovered) +
-                 " still_unresolved=" + std::to_string(missing));
+                 " NOT-unlockable=" + std::to_string(notUnlockable) +
+                 " still_unresolved=" + std::to_string(missing) +
+                 (notUnlockable ? " (no engram entry for those - their AP items cannot unlock "
+                                  "anything; exclude them from the pool)" : ""));
 }
 static void BuildRegistrySEH() {                   // __try only, no objects to unwind
     __try { DoBuildRegistry(); }
@@ -1615,18 +2155,53 @@ static void BuildEngramRegistry() {
     DebugLog("registry built: " + std::to_string(g_engramClassToItem.size()) + " engrams mapped");
 }
 
+// UPrimalGameData keeps engrams in THREE places and only one of them holds instances:
+//   EngramBlueprintEntries          - instantiated entries (what we used to dump)
+//   EngramBlueprintClasses          - classes, not yet instantiated
+//   AdditionalEngramBlueprintClasses- classes, and the field MODS append to
+// Dumping only the first is why "30 vanilla engrams were absent" (see DoBuildRegistry's second
+// pass) and why a mod can come back with a fraction of its real engram set - Awesome Teleporters
+// yielded 3. The registry has a BPLoadClass fallback to cover the gap for content we already
+// know about; a DUMP has nothing to fall back on, because the whole point of it is to discover
+// classes we do not have yet. So walk the class lists too, reading each one's CDO.
+static void DumpOneEngram(nlohmann::json& out, std::set<std::string>& seen,
+                          UPrimalEngramEntry* e, const char* src) {
+    if (!e) return;
+    std::string cls = ClassShortName(e->BluePrintEntryField().uClass);
+    if (cls.empty() || !seen.insert(cls).second) return;      // same engram via two lists
+    FString ename; e->NameField().ToString(&ename);
+    out.push_back({ {"entry_name", ename.ToString()},
+                    {"item_class", cls},
+                    {"level", e->GetRequiredLevel()},
+                    {"source", src} });
+}
 static void DoDumpEngrams() {
     UPrimalGameData* gd = GameData();
     if (!gd) return;
     nlohmann::json out = nlohmann::json::array();
-    for (UPrimalEngramEntry* e : gd->EngramBlueprintEntriesField()) {
-        if (!e) continue;
-        FString ename; e->NameField().ToString(&ename);
-        out.push_back({ {"entry_name", ename.ToString()},
-                        {"item_class", ClassShortName(e->BluePrintEntryField().uClass)},
-                        {"level", e->GetRequiredLevel()} });
-    }
+    std::set<std::string> seen;
+    for (UPrimalEngramEntry* e : gd->EngramBlueprintEntriesField())
+        DumpOneEngram(out, seen, e, "entries");
+    const size_t fromEntries = out.size();
+    // Written now, before the CDO walk: instantiating a default object can fault on a badly
+    // behaved mod class, and the SEH guard around this whole function would then leave no dump
+    // at all. A partial dump beats none.
     std::ofstream(PluginDir() / "ArkAP_engrams_dump.json") << out.dump(2);
+
+    for (auto& sub : gd->EngramBlueprintClassesField())
+        if (sub.uClass)
+            DumpOneEngram(out, seen,
+                          static_cast<UPrimalEngramEntry*>(sub.uClass->GetDefaultObject(true)),
+                          "classes");
+    for (auto& sub : gd->AdditionalEngramBlueprintClassesField())
+        if (sub.uClass)
+            DumpOneEngram(out, seen,
+                          static_cast<UPrimalEngramEntry*>(sub.uClass->GetDefaultObject(true)),
+                          "additional");
+    std::ofstream(PluginDir() / "ArkAP_engrams_dump.json") << out.dump(2);
+    DebugLog("DUMP engrams: " + std::to_string(out.size()) + " unique (" +
+             std::to_string(fromEntries) + " from EngramBlueprintEntries, " +
+             std::to_string(out.size() - fromEntries) + " only reachable via the class lists)");
 }
 // Console: ArkAP.DumpEngrams - harvest real engram classes to regenerate engrams.json.
 static void DumpEngrams(APlayerController*, FString*, bool) {
@@ -1684,6 +2259,7 @@ static void DoDumpDinos(AShooterPlayerController* pc) {
 static std::map<std::string, int> g_posSamples;      // key -> samples taken this session
 static void DoDumpPos(AShooterPlayerController* pc, FString* message) {
     if (!pc) return;
+    DumpMapGeo(pc);               // one-shot: the map's own lat/lon constants -> ArkAP_map_geo.json
     std::string text = message ? message->ToString() : std::string();
     auto sp = text.find(' ');
     std::string keyArg = (sp == std::string::npos) ? "" : text.substr(sp + 1);
@@ -1784,12 +2360,19 @@ static void ApDisconnectChat(AShooterPlayerController* pc, FString*, EChatSendMo
     __try { DoApDisconnect(pc); } __except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 static void DoApStatus() {
-    if (!g_apManager) return;
-    std::string s = g_apManager->StatusAll();
+    // No early return on a missing manager any more: /apstatus was the natural place to ask "what
+    // version is this server on?", and it answered with silence on exactly the servers most likely
+    // to be running something old (embedded client off, or offline mode).
+    std::string s = "ArkAP " + std::string(ARKAP_BUILD) + " | ";
+    s += g_apManager ? g_apManager->StatusAll()
+                     : std::string("embedded AP client is off (external connector / offline mode)");
     s += " | engrams mapped=" + std::to_string(g_engramClassToItem.size());
     if (g_unresolvedEngrams)                       // never let this fail silently again
         s += ", UNRESOLVED=" + std::to_string(g_unresolvedEngrams) +
              " (those items cannot unlock - see ArkAP_debug.log)";
+    if (!g_grantFailures.empty())                  // mapped, but the game is refusing them for now
+        s += ", AWAITING PREREQS=" + std::to_string(g_grantFailures.size()) +
+             " (engrams the game refuses until their prerequisite engram arrives - still retrying)";
     ChatNotify(ArkApi::Tools::Utf8Decode(s).c_str());
 }
 static void ApStatusChat(AShooterPlayerController*, FString*, EChatSendMode::Type) {
@@ -1957,6 +2540,26 @@ static std::string CurrentMapName() {
     return tok;
 }
 
+// The command line gives ARK's own map name ("TheIsland", "ScorchedEarth_P", "Ragnarok"); our data
+// files use short keys ("island", "scorched", "ragnarok"). Translate, tolerating the "_P" suffix
+// several maps carry. Returns "" when the map is not one we know, which disables map filtering
+// rather than guessing.
+static std::string CurrentMapKey() {
+    std::string m = CurrentMapName();
+    for (auto& c : m) c = (char)std::tolower((unsigned char)c);
+    if (m.size() > 2 && m.compare(m.size() - 2, 2, "_p") == 0) m.erase(m.size() - 2);
+    static const std::pair<const char*, const char*> tbl[] = {
+        {"theisland", "island"},         {"scorchedearth", "scorched"},
+        {"aberration", "aberration"},    {"extinction", "extinction"},
+        {"genesis", "genesis1"},         {"gen2", "genesis2"},
+        {"thecenter", "center"},         {"ragnarok", "ragnarok"},
+        {"valguero", "valguero"},        {"crystalisles", "crystalisles"},
+        {"lostisland", "lostisland"},    {"fjordur", "fjordur"},
+    };
+    for (auto& kv : tbl) if (m == kv.first) return kv.second;
+    return std::string();
+}
+
 // spawn a detached cmd that waits for OUR pid to vanish, then relaunches the server.
 // Returns true only if the helper actually started - the caller MUST NOT kill the server otherwise
 // (that's how you get "it closed and never came back").
@@ -2090,6 +2693,13 @@ static bool PointInPolygon(double x, double y, const std::vector<std::pair<doubl
             in = !in;
     }
     return in;
+}
+// Inside ANY part of a multi-shape region. Parts are disjoint by construction, so the first hit
+// is the answer - no need to keep testing.
+static bool PointInAnyPart(double x, double y,
+                           const std::vector<std::vector<std::pair<double, double>>>& parts) {
+    for (auto& p : parts) if (PointInPolygon(x, y, p)) return true;
+    return false;
 }
 
 static int CountResource(UPrimalInventoryComponent* inv, const std::string& cls) {
@@ -2316,8 +2926,11 @@ static void DoProcessPending() {
         }
     }
 
-    // notes auto-granted on (re)spawn, not real collectibles -> never a check.
-    static const std::set<int> kSkipNotes = { 1214 };
+    // Notes auto-granted on (re)spawn, not real collectibles -> never a check.
+    // 1216 was caught by NOTEPOS: it fires at world (400000, 400000), which is lat/lon 100/100 -
+    // the corner of the coordinate space, not anywhere a player can stand - and it arrives the
+    // instant they join. It also appears on no map's note list in the wiki or the reference sheet.
+    static const std::set<int> kSkipNotes = { 1214, 1216 };
 
     for (auto& [idx, route] : notes) {
         if (kSkipNotes.count(idx)) { DebugLog("NOTE idx=" + std::to_string(idx) + " skipped (spawn note)"); continue; }
@@ -2387,7 +3000,7 @@ static void DoProcessPending() {
                     }
                 for (auto& ea : g_explore)
                     if (!g_state->AlreadyChecked(route, ea.loc) &&
-                        PointInPolygon(pos.X, pos.Y, ea.poly)) {
+                        PointInAnyPart(pos.X, pos.Y, ea.parts)) {
                         DebugLog("EXPLORE " + ea.name + " -> loc=" + std::to_string(ea.loc) +
                                  (route.empty() ? "" : " [" + route + "]"));
                         ReportLocation(route, ea.loc);
@@ -2600,7 +3213,11 @@ static void DoShowConnStatus() {
         auto it = shown.find(route);
         if (it != shown.end() && it->second == seq) continue;   // already announced this state
         shown[route] = seq;
-        ChatNotify(ArkApi::Tools::Utf8Decode(line.substr(tab + 1)).c_str());
+        // Tag the connect/disconnect line with the build too - it is the one message everybody
+        // sees at the start of a session, so a screenshot of it is enough to answer "what are you
+        // running?" without anyone digging for a log file.
+        std::string msg = line.substr(tab + 1) + "  [ArkAP " + ARKAP_BUILD + "]";
+        ChatNotify(ArkApi::Tools::Utf8Decode(msg).c_str());
     }
 }
 static void ShowConnStatus() { __try { DoShowConnStatus(); } __except (EXCEPTION_EXECUTE_HANDLER) {} }
@@ -2644,6 +3261,7 @@ static void DoGreetPlayer(AShooterPlayerController* pc) {
     }
     if (status.empty())
         status = "AP: not connected - use /connect <host>:<port> <slot> to link this survivor.";
+    status += "  [ArkAP " + std::string(ARKAP_BUILD) + "]";   // so a bug report names its build
     // pass the text as an ARGUMENT: FString::Format is fmt-style, so braces in a survivor name
     // would otherwise be treated as a format field.
     ArkApi::GetApiUtils().SendChatMessage(pc, FString(L"Archipelago"), L"{}",
@@ -2852,9 +3470,53 @@ static void Tick() {
     __except (EXCEPTION_EXECUTE_HANDLER) { g_tickFaulted = true; }   // no objects in __except
 }
 
-// ----------------------------------------------------------------- lifecycle
-static const char* ARKAP_BUILD = "v137-tek-stays-server-wide";
+// A reset tool deleted state.json but left the mailboxes behind - clear the stale history.
+//
+// docs/STATE_PERSISTENCE.md rule 2: an ABSENT state.json is a deliberate fresh start, never
+// corruption. Rule 8 requires a reset to remove every ipc\<CharacterName> folder too, and
+// tools/reset_ark_test.bat does. Third-party resetters (the community launcher, hand-deletion)
+// generally delete a flat file list and never descend into the per-player mailboxes - so the old
+// seed's items_in.jsonl and its watermark survive.
+//
+// That is not harmless. PollMailbox's REOWN backfill re-owns every line the route does not
+// currently own, which after a wipe is ALL of them, so the previous seed's entire item list is
+// restored seconds after boot and the "reset" looks like it did nothing.
+//
+// Losing state.json accidentally is still fully covered: AUTORECOVER sees a watermark with nothing
+// owned and asks Archipelago to re-send the whole list, which is the documented recovery path and
+// does not depend on this history.
+static void PurgeStaleMailboxes() {
+    if (!g_state || !g_ipc || !g_state->StartedFresh()) return;
+    static const char* kStale[] = {
+        "items_in.jsonl", "applied_index.json", "checks_out.jsonl", "boss_out.jsonl",
+        "death_out.jsonl", "death_in.jsonl", "msg_in.jsonl", "hint_out.jsonl",
+        "hint_status.json", "remaining.json", "seed_reset.json", "conn_status.txt",
+        "session.json", "flags.json", "game_ini_fragment.txt",
+    };
+    std::error_code ec;
+    std::vector<fs::path> boxes{ g_ipc->Root() };
+    for (auto& e : fs::directory_iterator(g_ipc->Root(), ec))
+        if (e.is_directory()) boxes.push_back(e.path());
+    int removed = 0;
+    std::string where;
+    for (auto& box : boxes) {
+        int n = 0;
+        for (const char* f : kStale) {
+            std::error_code ec2;
+            if (fs::remove(box / f, ec2)) { ++n; ++removed; }
+        }
+        if (n) where += (where.empty() ? "" : ", ") + box.filename().string() +
+                        "(" + std::to_string(n) + ")";
+    }
+    // ROOT watermark lives beside the dll, not in ipc\ - see WatermarkPath().
+    if (fs::remove(PluginDir() / "applied_index.json", ec)) ++removed;
+    if (removed)
+        DebugLog("FRESH START: state.json was absent, so " + std::to_string(removed) +
+                 " leftover mailbox file(s) from the previous seed were cleared [" + where +
+                 "] - without this the REOWN backfill would have restored the old item list");
+}
 
+// ----------------------------------------------------------------- lifecycle
 static void Load() {
     fs::path base = PluginDir();
     // build marker - lets us confirm which dll is actually loaded
@@ -2874,6 +3536,8 @@ static void Load() {
     if (!g_state->LoadError().empty())          // never let a state problem pass unnoticed again
         DebugLog("!! STATE " + g_state->LoadError());
     g_ipc = std::make_unique<Ipc>(base / "ipc");
+    PurgeStaleMailboxes();      // reset tool wiped state.json but left the mailboxes? clear them
+                                // BEFORE the first poll, or the backfill restores the old seed
     // embedded AP client (/connect). Sessions run on their own threads and only touch
     // files/network - never ArkApi - so starting them from Load is safe. Kill-switch:
     // "embedded_ap": false in ArkAP.config.json disables it entirely (auto-resume included) -
@@ -2933,7 +3597,13 @@ static void Load() {
             for (auto& c : cj.value("crate_items", nlohmann::json::array())) {
                 int id = c.at("id").get<int>();
                 g_tables.item_name[id] = c.at("ap_name").get<std::string>();   // announce on grant
-                for (auto& cls : c.at("classes")) g_crateGateClassToItem[cls.get<std::string>()] = id;
+                for (auto& cls : c.at("classes")) {
+                    std::string cn = cls.get<std::string>();
+                    g_crateGateClassToItem[cn] = id;
+                    // Only non-beacon crates may be suffix-matched; see CrateHasLevelToken.
+                    if (!CrateHasLevelToken(cn))
+                        g_crateGateNormToItem[NormalizeCrateClass(cn)] = id;
+                }
             }
             // artifact_locations intentionally NOT loaded - artifacts are no longer checks.
         }
@@ -3013,22 +3683,77 @@ static void Load() {
                                     ic.value("qty", 1), ic.value("name", std::string()) });
     } catch (...) {}
 
+    // which map are we on, and which location ids belong to it? Must load BEFORE the exploration
+    // areas so those can be filtered as they are read.
+    try {
+        g_mapKey = CurrentMapKey();
+        if (fs::exists(base / "maps.json")) {
+            nlohmann::json mj; std::ifstream(base / "maps.json") >> mj;
+            if (mj.contains("content") && mj["content"].is_object()) {
+                for (auto& [key, buckets] : mj["content"].items()) {
+                    if (!buckets.is_object()) continue;
+                    bool mine = (key == "any") || (!g_mapKey.empty() && key == g_mapKey);
+                    for (const char* which : {"items", "locations"}) {
+                        if (!buckets.contains(which) || !buckets[which].is_array()) continue;
+                        for (auto& v : buckets[which]) {
+                            if (!v.is_number_integer()) continue;
+                            int id = v.get<int>();
+                            // Only LOCATION ids gate reporting. Item ids share the file but live in
+                            // their own numeric blocks, and filtering those here would refuse to
+                            // grant a perfectly valid item.
+                            if (std::string(which) != "locations") continue;
+                            g_mapKnownIds.insert(id);
+                            if (mine) g_mapAllowedIds.insert(id);
+                        }
+                    }
+                }
+            }
+        }
+        // An unrecognised map means we cannot tell what belongs here - carry on unfiltered rather
+        // than silently refusing every check.
+        if (g_mapKey.empty()) {
+            g_mapKnownIds.clear();
+            g_mapAllowedIds.clear();
+            DebugLog("MAPFILTER: running map not identified - filtering DISABLED");
+        } else {
+            DebugLog("MAPFILTER: map=" + g_mapKey + " allowed=" + std::to_string(g_mapAllowedIds.size()) +
+                     " known=" + std::to_string(g_mapKnownIds.size()));
+        }
+    } catch (...) { g_mapKnownIds.clear(); g_mapAllowedIds.clear(); }
+
     // exploration areas (optional file - absent just means no exploration checks)
     try {
         if (fs::exists(base / "explore_areas.json")) {
             nlohmann::json xj; std::ifstream(base / "explore_areas.json") >> xj;
+            int skipped = 0;
             for (auto& [key, r] : xj["regions"].items()) {
+                // Regions carry their own map tag. Skip other maps' here as well as in
+                // ReportLocation: the polygons are raw world coordinates, so an Island region would
+                // otherwise be TESTED against a Scorched player's position and match on geometry.
+                std::string rmap = r.value("map", std::string());
+                if (!rmap.empty() && !g_mapKey.empty() && rmap != g_mapKey) { ++skipped; continue; }
                 ExploreArea ea;
                 ea.loc = r.at("id").get<int>();
                 ea.name = r.value("name", key);
-                for (auto& p : r.at("polygon"))
-                    ea.poly.emplace_back(p.at(0).get<double>(), p.at(1).get<double>());
+                // "polygons" (a list of shapes) wins when present; "polygon" is the single-shape
+                // form every hand-drawn region uses and is still written for those, so older
+                // tooling that only knows the singular keeps reading these files.
+                auto addPart = [&ea](const nlohmann::json& pts) {
+                    std::vector<std::pair<double, double>> part;
+                    for (auto& p : pts) part.emplace_back(p.at(0).get<double>(), p.at(1).get<double>());
+                    if (part.size() >= 3) ea.parts.push_back(std::move(part));
+                };
+                if (r.contains("polygons")) for (auto& poly : r["polygons"]) addPart(poly);
+                else if (r.contains("polygon"))                       addPart(r["polygon"]);
                 if (r.contains("z_below")) {            // depth region - no polygon
                     g_depth.push_back({ea.loc, ea.name, r["z_below"].get<double>()});
-                } else if (ea.poly.size() >= 3) {
+                } else if (!ea.parts.empty()) {
                     g_explore.push_back(std::move(ea));
                 }
             }
+            if (skipped)
+                DebugLog("MAPFILTER: skipped " + std::to_string(skipped) +
+                         " exploration region(s) belonging to other maps");
         }
     } catch (...) {}
 

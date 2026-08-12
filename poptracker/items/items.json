@@ -2023,6 +2023,230 @@
   "disabled_img": "images/kill_off.png"
  },
  {
+  "name": "Deathworm",
+  "type": "toggle",
+  "codes": "kill_deathworm",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Griffin",
+  "type": "toggle",
+  "codes": "unlocked_griffin",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Griffin",
+  "type": "toggle",
+  "codes": "tame_griffin",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Griffin",
+  "type": "toggle",
+  "codes": "kill_griffin",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Jug Bug",
+  "type": "toggle",
+  "codes": "kill_jug_bug",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Mantis",
+  "type": "toggle",
+  "codes": "unlocked_mantis",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Mantis",
+  "type": "toggle",
+  "codes": "tame_mantis",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Mantis",
+  "type": "toggle",
+  "codes": "kill_mantis",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Lymantria",
+  "type": "toggle",
+  "codes": "unlocked_lymantria",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Lymantria",
+  "type": "toggle",
+  "codes": "tame_lymantria",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Lymantria",
+  "type": "toggle",
+  "codes": "kill_lymantria",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Rock Elemental",
+  "type": "toggle",
+  "codes": "unlocked_rock_elemental",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Rock Elemental",
+  "type": "toggle",
+  "codes": "tame_rock_elemental",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Rock Elemental",
+  "type": "toggle",
+  "codes": "kill_rock_elemental",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Thorny Dragon",
+  "type": "toggle",
+  "codes": "unlocked_thorny_dragon",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Thorny Dragon",
+  "type": "toggle",
+  "codes": "tame_thorny_dragon",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Thorny Dragon",
+  "type": "toggle",
+  "codes": "kill_thorny_dragon",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Vulture",
+  "type": "toggle",
+  "codes": "unlocked_vulture",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Vulture",
+  "type": "toggle",
+  "codes": "tame_vulture",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Vulture",
+  "type": "toggle",
+  "codes": "kill_vulture",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Wyvern",
+  "type": "toggle",
+  "codes": "unlocked_wyvern",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Wyvern",
+  "type": "toggle",
+  "codes": "tame_wyvern",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Wyvern",
+  "type": "toggle",
+  "codes": "kill_wyvern",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Morellatops",
+  "type": "toggle",
+  "codes": "unlocked_morellatops",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Morellatops",
+  "type": "toggle",
+  "codes": "tame_morellatops",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Morellatops",
+  "type": "toggle",
+  "codes": "kill_morellatops",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Jerboa",
+  "type": "toggle",
+  "codes": "unlocked_jerboa",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Jerboa",
+  "type": "toggle",
+  "codes": "tame_jerboa",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Jerboa",
+  "type": "toggle",
+  "codes": "kill_jerboa",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Phoenix",
+  "type": "toggle",
+  "codes": "unlocked_phoenix",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Phoenix",
+  "type": "toggle",
+  "codes": "tame_phoenix",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Phoenix",
+  "type": "toggle",
+  "codes": "kill_phoenix",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
   "name": "Alpha Raptor",
   "type": "toggle",
   "codes": "kill_alpha_raptor",
@@ -2068,6 +2292,20 @@
   "name": "Alpha Tusoteuthis",
   "type": "toggle",
   "codes": "kill_alpha_tusoteuthis",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Alpha Deathworm",
+  "type": "toggle",
+  "codes": "kill_alpha_deathworm",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Alpha Fire Wyvern",
+  "type": "toggle",
+  "codes": "kill_alpha_fire_wyvern",
   "img": "images/kill.png",
   "disabled_img": "images/kill_off.png"
  },
@@ -3836,6 +4074,111 @@
   "disabled_img": "images/apex_off.png"
  },
  {
+  "name": "Artifact: Gatekeeper",
+  "type": "toggle",
+  "codes": "inv_artifact_gatekeeper",
+  "img": "images/artifact.png",
+  "disabled_img": "images/artifact_off.png"
+ },
+ {
+  "name": "Artifact: Crag",
+  "type": "toggle",
+  "codes": "inv_artifact_crag",
+  "img": "images/artifact.png",
+  "disabled_img": "images/artifact_off.png"
+ },
+ {
+  "name": "Artifact: Destroyer",
+  "type": "toggle",
+  "codes": "inv_artifact_destroyer",
+  "img": "images/artifact.png",
+  "disabled_img": "images/artifact_off.png"
+ },
+ {
+  "name": "Collect 100 Sulfur",
+  "type": "toggle",
+  "codes": "inv_collect_100_sulfur",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 100 Silk",
+  "type": "toggle",
+  "codes": "inv_collect_100_silk",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 50 Raw Salt",
+  "type": "toggle",
+  "codes": "inv_collect_50_raw_salt",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 100 Cactus Sap",
+  "type": "toggle",
+  "codes": "inv_collect_100_cactus_sap",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 50 Propellant",
+  "type": "toggle",
+  "codes": "inv_collect_50_propellant",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 300 Sand",
+  "type": "toggle",
+  "codes": "inv_collect_300_sand",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Fire Talon x2",
+  "type": "toggle",
+  "codes": "inv_fire_talon_x2",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Fire Talon x10",
+  "type": "toggle",
+  "codes": "inv_fire_talon_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Lightning Talon x2",
+  "type": "toggle",
+  "codes": "inv_lightning_talon_x2",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Lightning Talon x10",
+  "type": "toggle",
+  "codes": "inv_lightning_talon_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Poison Talon x2",
+  "type": "toggle",
+  "codes": "inv_poison_talon_x2",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Poison Talon x10",
+  "type": "toggle",
+  "codes": "inv_poison_talon_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
   "name": "Beacon: White",
   "type": "toggle",
   "codes": "crate_beacon_white",
@@ -4606,6 +4949,202 @@
   "disabled_img": "images/dossier_off.png"
  },
  {
+  "name": "Dossier: Deathworm",
+  "type": "toggle",
+  "codes": "dossier_dossier_deathworm",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Mantis",
+  "type": "toggle",
+  "codes": "dossier_dossier_mantis",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Jerboa",
+  "type": "toggle",
+  "codes": "dossier_dossier_jerboa",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Jug Bug",
+  "type": "toggle",
+  "codes": "dossier_dossier_jug_bug",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Moth",
+  "type": "toggle",
+  "codes": "dossier_dossier_moth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Rock Elemental",
+  "type": "toggle",
+  "codes": "dossier_dossier_rock_elemental",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Thorny Dragon",
+  "type": "toggle",
+  "codes": "dossier_dossier_thorny_dragon",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Wyvern",
+  "type": "toggle",
+  "codes": "dossier_dossier_wyvern",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Vulture",
+  "type": "toggle",
+  "codes": "dossier_dossier_vulture",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Morellatops",
+  "type": "toggle",
+  "codes": "dossier_dossier_morellatops",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Manticore Hologram (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_manticore_hologram_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #1 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_1_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #2 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_2_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #3 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_3_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #4 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_4_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #1 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_1_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #2 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_2_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #3 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_3_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #4 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_4_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #1 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_1_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #2 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_2_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #3 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_3_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #4 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_4_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #1 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_1_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #2 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_2_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #3 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_3_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #4 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_4_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #5 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_5_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
   "name": "Rockwell Note #5",
   "type": "toggle",
   "codes": "dossier_rockwell_note_5",
@@ -4613,9 +5152,30 @@
   "disabled_img": "images/dossier_off.png"
  },
  {
+  "name": "Dahkeya Note #5 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_5_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #5 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_5_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
   "name": "Nerva Note #5",
   "type": "toggle",
   "codes": "dossier_nerva_note_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #5 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_5_scorched_earth",
   "img": "images/dossier.png",
   "disabled_img": "images/dossier_off.png"
  },
@@ -4662,6 +5222,20 @@
   "disabled_img": "images/dossier_off.png"
  },
  {
+  "name": "Helena Note #6 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_6_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #7 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_7_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
   "name": "Nerva Note #6",
   "type": "toggle",
   "codes": "dossier_nerva_note_6",
@@ -4676,6 +5250,34 @@
   "disabled_img": "images/dossier_off.png"
  },
  {
+  "name": "Raia Tablet #6 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_6_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #7 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_7_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #6 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_6_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #7 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_7_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
   "name": "Rockwell Note #6",
   "type": "toggle",
   "codes": "dossier_rockwell_note_6",
@@ -4686,6 +5288,20 @@
   "name": "Rockwell Note #7",
   "type": "toggle",
   "codes": "dossier_rockwell_note_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #6 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_6_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #7 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_7_scorched_earth",
   "img": "images/dossier.png",
   "disabled_img": "images/dossier_off.png"
  },
@@ -4739,6 +5355,34 @@
   "disabled_img": "images/dossier_off.png"
  },
  {
+  "name": "Helena Note #8 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_8_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #8 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_8_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #8 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_8_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #8 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_8_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
   "name": "Mei Yin Note #9",
   "type": "toggle",
   "codes": "dossier_mei_yin_note_9",
@@ -4763,6 +5407,34 @@
   "name": "Rockwell Note #9",
   "type": "toggle",
   "codes": "dossier_rockwell_note_9",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #9 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_9_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #9 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_9_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #9 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_9_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #9 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_9_scorched_earth",
   "img": "images/dossier.png",
   "disabled_img": "images/dossier_off.png"
  },
@@ -4826,6 +5498,34 @@
   "name": "Rockwell Note #10",
   "type": "toggle",
   "codes": "dossier_rockwell_note_10",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #10 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_10_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #10 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_10_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #10 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_10_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #10 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_10_scorched_earth",
   "img": "images/dossier.png",
   "disabled_img": "images/dossier_off.png"
  },
@@ -5078,6 +5778,174 @@
   "name": "Nerva Note #18",
   "type": "toggle",
   "codes": "dossier_nerva_note_18",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #11 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_11_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #12 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_12_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #13 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_13_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #14 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_14_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #15 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_15_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #16 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_16_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #17 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_17_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #18 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_18_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #11 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_11_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #12 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_12_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #13 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_13_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #14 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_14_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #15 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_15_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #16 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_16_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #17 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_17_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #18 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_18_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #11 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_11_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #12 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_12_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #13 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_13_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #14 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_14_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #15 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_15_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #16 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_16_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #17 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_17_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #18 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_18_scorched_earth",
   "img": "images/dossier.png",
   "disabled_img": "images/dossier_off.png"
  },
@@ -5362,6 +6230,62 @@
   "disabled_img": "images/dossier_off.png"
  },
  {
+  "name": "Raia Tablet #11 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_11_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #12 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_12_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #13 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_13_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #14 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_14_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #15 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_15_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #16 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_16_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #17 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_17_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #18 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_18_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
   "name": "Dossier: Giant Bee",
   "type": "toggle",
   "codes": "dossier_dossier_giant_bee",
@@ -5516,6 +6440,342 @@
   "disabled_img": "images/dossier_off.png"
  },
  {
+  "name": "Dahkeya Note #19 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_19_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #20 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_20_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #21 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_21_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #22 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_22_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #23 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_23_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #24 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_24_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #25 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_25_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #26 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_26_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #27 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_27_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #28 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_28_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #29 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_29_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dahkeya Note #30 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_dahkeya_note_30_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #19 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_19_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #20 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_20_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #21 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_21_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #22 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_22_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #23 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_23_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #24 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_24_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #25 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_25_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #26 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_26_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #27 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_27_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #28 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_28_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #29 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_29_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Helena Note #30 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_helena_note_30_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #19 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_19_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #20 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_20_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #21 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_21_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #22 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_22_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #23 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_23_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #24 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_24_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #25 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_25_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #26 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_26_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #27 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_27_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #28 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_28_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #29 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_29_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Rockwell Record #30 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_rockwell_record_30_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #19 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_19_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #20 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_20_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #21 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_21_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #22 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_22_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #23 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_23_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #24 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_24_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #25 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_25_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #26 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_26_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #27 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_27_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #28 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_28_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #29 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_29_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Raia Tablet #30 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_raia_tablet_30_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
   "name": "Rockwell Note #29",
   "type": "toggle",
   "codes": "dossier_rockwell_note_29",
@@ -5551,9 +6811,23 @@
   "disabled_img": "images/dossier_off.png"
  },
  {
+  "name": "Dossier: Phoenix",
+  "type": "toggle",
+  "codes": "dossier_dossier_phoenix",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
   "name": "??? Note #1 (idx 508)",
   "type": "toggle",
   "codes": "dossier_note_1_idx_508",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "??? Note #2 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_note_2_scorched_earth",
   "img": "images/dossier.png",
   "disabled_img": "images/dossier_off.png"
  },
@@ -5565,9 +6839,23 @@
   "disabled_img": "images/dossier_off.png"
  },
  {
+  "name": "??? Note #5 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_note_5_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
   "name": "??? Note #3 (idx 514)",
   "type": "toggle",
   "codes": "dossier_note_3_idx_514",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "??? Note #8 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_note_8_scorched_earth",
   "img": "images/dossier.png",
   "disabled_img": "images/dossier_off.png"
  },
@@ -5579,9 +6867,30 @@
   "disabled_img": "images/dossier_off.png"
  },
  {
+  "name": "??? Note #11 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_note_11_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
   "name": "??? Note #5 (idx 520)",
   "type": "toggle",
   "codes": "dossier_note_5_idx_520",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "??? Note #14 (Scorched Earth)",
+  "type": "toggle",
+  "codes": "dossier_note_14_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Dossier: Griffin",
+  "type": "toggle",
+  "codes": "dossier_dossier_griffin",
   "img": "images/dossier.png",
   "disabled_img": "images/dossier_off.png"
  },

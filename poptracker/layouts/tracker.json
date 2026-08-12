@@ -421,6 +421,52 @@
         {
          "type": "item",
          "item": "unlocked_unicorn"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_griffin"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_mantis"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_lymantria"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_rock_elemental"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "unlocked_thorny_dragon"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_vulture"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_wyvern"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_morellatops"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_jerboa"
+        },
+        {
+         "type": "item",
+         "item": "unlocked_phoenix"
         }
        ]
       }
@@ -846,6 +892,52 @@
         {
          "type": "item",
          "item": "tame_unicorn"
+        },
+        {
+         "type": "item",
+         "item": "tame_griffin"
+        },
+        {
+         "type": "item",
+         "item": "tame_mantis"
+        },
+        {
+         "type": "item",
+         "item": "tame_lymantria"
+        },
+        {
+         "type": "item",
+         "item": "tame_rock_elemental"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "tame_thorny_dragon"
+        },
+        {
+         "type": "item",
+         "item": "tame_vulture"
+        },
+        {
+         "type": "item",
+         "item": "tame_wyvern"
+        },
+        {
+         "type": "item",
+         "item": "tame_morellatops"
+        },
+        {
+         "type": "item",
+         "item": "tame_jerboa"
+        },
+        {
+         "type": "item",
+         "item": "tame_phoenix"
         }
        ]
       }
@@ -1332,6 +1424,60 @@
         },
         {
          "type": "item",
+         "item": "kill_deathworm"
+        },
+        {
+         "type": "item",
+         "item": "kill_griffin"
+        },
+        {
+         "type": "item",
+         "item": "kill_jug_bug"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "kill_mantis"
+        },
+        {
+         "type": "item",
+         "item": "kill_lymantria"
+        },
+        {
+         "type": "item",
+         "item": "kill_rock_elemental"
+        },
+        {
+         "type": "item",
+         "item": "kill_thorny_dragon"
+        },
+        {
+         "type": "item",
+         "item": "kill_vulture"
+        },
+        {
+         "type": "item",
+         "item": "kill_wyvern"
+        },
+        {
+         "type": "item",
+         "item": "kill_morellatops"
+        },
+        {
+         "type": "item",
+         "item": "kill_jerboa"
+        },
+        {
+         "type": "item",
+         "item": "kill_phoenix"
+        },
+        {
+         "type": "item",
          "item": "kill_alpha_raptor"
         },
         {
@@ -1363,6 +1509,14 @@
         {
          "type": "item",
          "item": "kill_alpha_tusoteuthis"
+        },
+        {
+         "type": "item",
+         "item": "kill_alpha_deathworm"
+        },
+        {
+         "type": "item",
+         "item": "kill_alpha_fire_wyvern"
         }
        ]
       }
@@ -2530,6 +2684,72 @@
         {
          "type": "item",
          "item": "inv_plant_species_x_seed_x20"
+        },
+        {
+         "type": "item",
+         "item": "inv_artifact_gatekeeper"
+        },
+        {
+         "type": "item",
+         "item": "inv_artifact_crag"
+        },
+        {
+         "type": "item",
+         "item": "inv_artifact_destroyer"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_100_sulfur"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_100_silk"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_50_raw_salt"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_100_cactus_sap"
+        },
+        {
+         "type": "item",
+         "item": "inv_collect_50_propellant"
+        }
+       ]
+      },
+      {
+       "type": "array",
+       "orientation": "horizontal",
+       "content": [
+        {
+         "type": "item",
+         "item": "inv_collect_300_sand"
+        },
+        {
+         "type": "item",
+         "item": "inv_fire_talon_x2"
+        },
+        {
+         "type": "item",
+         "item": "inv_fire_talon_x10"
+        },
+        {
+         "type": "item",
+         "item": "inv_lightning_talon_x2"
+        },
+        {
+         "type": "item",
+         "item": "inv_lightning_talon_x10"
+        },
+        {
+         "type": "item",
+         "item": "inv_poison_talon_x2"
+        },
+        {
+         "type": "item",
+         "item": "inv_poison_talon_x10"
         }
        ]
       }
@@ -2643,7 +2863,7 @@
      "type": "tabbed",
      "tabs": [
       {
-       "title": "1-232",
+       "title": "1-300",
        "content": {
         "type": "array",
         "orientation": "vertical",
@@ -3032,11 +3252,141 @@
           "content": [
            {
             "type": "item",
+            "item": "dossier_dossier_deathworm"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_mantis"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_jerboa"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_jug_bug"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_moth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_rock_elemental"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_thorny_dragon"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_wyvern"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_vulture"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_morellatops"
+           },
+           {
+            "type": "item",
+            "item": "dossier_manticore_hologram_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_1_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_2_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_3_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_4_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_1_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_2_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_3_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_4_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_1_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_2_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_3_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_4_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_1_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_2_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_3_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_4_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_5_scorched_earth"
+           },
+           {
+            "type": "item",
             "item": "dossier_rockwell_note_5"
            },
            {
             "type": "item",
+            "item": "dossier_dahkeya_note_5_scorched_earth"
+           }
+          ]
+         },
+         {
+          "type": "array",
+          "orientation": "horizontal",
+          "content": [
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_5_scorched_earth"
+           },
+           {
+            "type": "item",
             "item": "dossier_nerva_note_5"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_5_scorched_earth"
            },
            {
             "type": "item",
@@ -3064,6 +3414,14 @@
            },
            {
             "type": "item",
+            "item": "dossier_helena_note_6_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_7_scorched_earth"
+           },
+           {
+            "type": "item",
             "item": "dossier_nerva_note_6"
            },
            {
@@ -3072,11 +3430,35 @@
            },
            {
             "type": "item",
+            "item": "dossier_raia_tablet_6_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_7_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_6_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_7_scorched_earth"
+           },
+           {
+            "type": "item",
             "item": "dossier_rockwell_note_6"
            },
            {
             "type": "item",
             "item": "dossier_rockwell_note_7"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_6_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_7_scorched_earth"
            },
            {
             "type": "item",
@@ -3108,6 +3490,28 @@
            },
            {
             "type": "item",
+            "item": "dossier_helena_note_8_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_8_scorched_earth"
+           }
+          ]
+         },
+         {
+          "type": "array",
+          "orientation": "horizontal",
+          "content": [
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_8_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_8_scorched_earth"
+           },
+           {
+            "type": "item",
             "item": "dossier_mei_yin_note_9"
            },
            {
@@ -3121,6 +3525,22 @@
            {
             "type": "item",
             "item": "dossier_rockwell_note_9"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_9_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_9_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_9_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_9_scorched_earth"
            },
            {
             "type": "item",
@@ -3149,13 +3569,7 @@
            {
             "type": "item",
             "item": "dossier_helena_note_10"
-           }
-          ]
-         },
-         {
-          "type": "array",
-          "orientation": "horizontal",
-          "content": [
+           },
            {
             "type": "item",
             "item": "dossier_nerva_note_10"
@@ -3163,6 +3577,22 @@
            {
             "type": "item",
             "item": "dossier_rockwell_note_10"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_10_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_10_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_10_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_10_scorched_earth"
            },
            {
             "type": "item",
@@ -3191,7 +3621,13 @@
            {
             "type": "item",
             "item": "dossier_rockwell_note_13"
-           },
+           }
+          ]
+         },
+         {
+          "type": "array",
+          "orientation": "horizontal",
+          "content": [
            {
             "type": "item",
             "item": "dossier_rockwell_note_14"
@@ -3275,13 +3711,7 @@
            {
             "type": "item",
             "item": "dossier_mei_yin_note_18"
-           }
-          ]
-         },
-         {
-          "type": "array",
-          "orientation": "horizontal",
-          "content": [
+           },
            {
             "type": "item",
             "item": "dossier_nerva_note_11"
@@ -3316,6 +3746,108 @@
            },
            {
             "type": "item",
+            "item": "dossier_helena_note_11_scorched_earth"
+           }
+          ]
+         },
+         {
+          "type": "array",
+          "orientation": "horizontal",
+          "content": [
+           {
+            "type": "item",
+            "item": "dossier_helena_note_12_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_13_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_14_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_15_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_16_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_17_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_18_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_11_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_12_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_13_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_14_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_15_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_16_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_17_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_18_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_11_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_12_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_13_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_14_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_15_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_16_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_17_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_18_scorched_earth"
+           },
+           {
+            "type": "item",
             "item": "dossier_dossier_ammonite"
            },
            {
@@ -3341,7 +3873,13 @@
            {
             "type": "item",
             "item": "dossier_dossier_ichthyornis"
-           },
+           }
+          ]
+         },
+         {
+          "type": "array",
+          "orientation": "horizontal",
+          "content": [
            {
             "type": "item",
             "item": "dossier_dossier_iguanodon"
@@ -3401,13 +3939,7 @@
            {
             "type": "item",
             "item": "dossier_helena_note_24"
-           }
-          ]
-         },
-         {
-          "type": "array",
-          "orientation": "horizontal",
-          "content": [
+           },
            {
             "type": "item",
             "item": "dossier_helena_note_25"
@@ -3467,7 +3999,13 @@
            {
             "type": "item",
             "item": "dossier_nerva_note_23"
-           },
+           }
+          ]
+         },
+         {
+          "type": "array",
+          "orientation": "horizontal",
+          "content": [
            {
             "type": "item",
             "item": "dossier_nerva_note_24"
@@ -3479,6 +4017,38 @@
            {
             "type": "item",
             "item": "dossier_nerva_note_26"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_11_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_12_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_13_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_14_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_15_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_16_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_17_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_18_scorched_earth"
            },
            {
             "type": "item",
@@ -3527,13 +4097,7 @@
            {
             "type": "item",
             "item": "dossier_nerva_note_27"
-           }
-          ]
-         },
-         {
-          "type": "array",
-          "orientation": "horizontal",
-          "content": [
+           },
            {
             "type": "item",
             "item": "dossier_nerva_note_28"
@@ -3561,7 +4125,22 @@
            {
             "type": "item",
             "item": "dossier_dossier_megalania"
-           },
+           }
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "title": "301-370",
+       "content": {
+        "type": "array",
+        "orientation": "vertical",
+        "content": [
+         {
+          "type": "array",
+          "orientation": "horizontal",
+          "content": [
            {
             "type": "item",
             "item": "dossier_dossier_yutyrannus"
@@ -3573,6 +4152,204 @@
            {
             "type": "item",
             "item": "dossier_dossier_hesperornis"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_19_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_20_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_21_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_22_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_23_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_24_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_25_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_26_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_27_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_28_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_29_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dahkeya_note_30_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_19_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_20_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_21_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_22_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_23_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_24_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_25_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_26_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_27_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_28_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_29_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_helena_note_30_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_19_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_20_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_21_scorched_earth"
+           }
+          ]
+         },
+         {
+          "type": "array",
+          "orientation": "horizontal",
+          "content": [
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_22_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_23_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_24_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_25_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_26_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_27_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_28_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_29_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_rockwell_record_30_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_19_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_20_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_21_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_22_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_23_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_24_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_25_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_26_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_27_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_28_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_29_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_raia_tablet_30_scorched_earth"
            },
            {
             "type": "item",
@@ -3596,11 +4373,29 @@
            },
            {
             "type": "item",
+            "item": "dossier_dossier_phoenix"
+           },
+           {
+            "type": "item",
             "item": "dossier_note_1_idx_508"
            },
            {
             "type": "item",
+            "item": "dossier_note_2_scorched_earth"
+           },
+           {
+            "type": "item",
             "item": "dossier_note_2_idx_511"
+           }
+          ]
+         },
+         {
+          "type": "array",
+          "orientation": "horizontal",
+          "content": [
+           {
+            "type": "item",
+            "item": "dossier_note_5_scorched_earth"
            },
            {
             "type": "item",
@@ -3608,11 +4403,27 @@
            },
            {
             "type": "item",
+            "item": "dossier_note_8_scorched_earth"
+           },
+           {
+            "type": "item",
             "item": "dossier_note_4_idx_517"
            },
            {
             "type": "item",
+            "item": "dossier_note_11_scorched_earth"
+           },
+           {
+            "type": "item",
             "item": "dossier_note_5_idx_520"
+           },
+           {
+            "type": "item",
+            "item": "dossier_note_14_scorched_earth"
+           },
+           {
+            "type": "item",
+            "item": "dossier_dossier_griffin"
            },
            {
             "type": "item",

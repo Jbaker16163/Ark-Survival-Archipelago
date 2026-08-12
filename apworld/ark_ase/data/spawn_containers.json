@@ -1,19 +1,195 @@
 {
-  "_comment": "The Island's major biome spawn containers for randomize_dino_spawns (ADDITIONS design: ConfigAddNPCSpawnEntriesContainer adds seed-picked foreign species to each container at moderate weight - natives untouched, so every species stays obtainable and no NPCReplacements chain semantics apply). Container class names scraped from ark.wiki.gg/wiki/Spawn_entries The Island section (2026-07-15). Caves + single-species utility containers (Bee/Unicorn/Titano/Quetz/etc) deliberately excluded. habitat picks which species pool invades: land containers draw land+air species, water containers draw water species ('chaos' mode draws from everything everywhere).",
+  "_comment": "Biome spawn containers for randomize_dino_spawns. The apworld emits one ConfigOverrideNPCSpawnEntriesContainer per container, which REPLACES that container's roster with the seed's hand - species are partitioned round-robin so every one still spawns somewhere and all Killed:/Tamed: checks stay obtainable. Each entry carries the MAP it belongs to and only the active maps' containers are used: an Island slot must not thin its 14 biomes by dealing the same species across another map's as well. Container class names scraped from ark.wiki.gg/wiki/Spawn_entries (Island 2026-07-15, Scorched + Ragnarok 2026-08-10). Caves, single-species utility containers (Bee/Unicorn/Titano/Quetz/Wyvern/Golem/Griffin/Iceworm/...), event spawners and POI rosters are deliberately excluded so their natives stay put. habitat picks which species pool is dealt in: land containers draw land+air species, water draw water.",
   "spawn_containers": [
-    { "container": "DinoSpawnEntriesBeach_C",        "habitat": "land"  },
-    { "container": "DinoSpawnEntriesGrassland_C",    "habitat": "land"  },
-    { "container": "DinoSpawnEntriesJungle_C",       "habitat": "land"  },
-    { "container": "DinoSpawnEntriesMountain_C",     "habitat": "land"  },
-    { "container": "DinoSpawnEntriesRedwoods_C",     "habitat": "land"  },
-    { "container": "DinoSpawnEntriesSnow_C",         "habitat": "land"  },
-    { "container": "DinoSpawnEntriesSwamp_C",        "habitat": "land"  },
-    { "container": "DinoSpawnEntries_ShallowWater_C","habitat": "water" },
-    { "container": "DinoSpawnEntries_InlandWater_C", "habitat": "water" },
-    { "container": "DinoSpawnEntries_RedwoodWater_C","habitat": "water" },
-    { "container": "DinoSpawnEntries_SwampWater_C",  "habitat": "water" },
-    { "container": "DinoSpawnEntries_DeepWater_C",   "habitat": "water" },
-    { "container": "DinoSpawnEntries_Ocean_C",       "habitat": "water" },
-    { "container": "DinoSpawnEntries_DarkWater_C",   "habitat": "water" }
+    {
+      "container": "DinoSpawnEntriesBeach_C",
+      "habitat": "land",
+      "map": "island"
+    },
+    {
+      "container": "DinoSpawnEntriesGrassland_C",
+      "habitat": "land",
+      "map": "island"
+    },
+    {
+      "container": "DinoSpawnEntriesJungle_C",
+      "habitat": "land",
+      "map": "island"
+    },
+    {
+      "container": "DinoSpawnEntriesMountain_C",
+      "habitat": "land",
+      "map": "island"
+    },
+    {
+      "container": "DinoSpawnEntriesRedwoods_C",
+      "habitat": "land",
+      "map": "island"
+    },
+    {
+      "container": "DinoSpawnEntriesSnow_C",
+      "habitat": "land",
+      "map": "island"
+    },
+    {
+      "container": "DinoSpawnEntriesSwamp_C",
+      "habitat": "land",
+      "map": "island"
+    },
+    {
+      "container": "DinoSpawnEntries_ShallowWater_C",
+      "habitat": "water",
+      "map": "island"
+    },
+    {
+      "container": "DinoSpawnEntries_InlandWater_C",
+      "habitat": "water",
+      "map": "island"
+    },
+    {
+      "container": "DinoSpawnEntries_RedwoodWater_C",
+      "habitat": "water",
+      "map": "island"
+    },
+    {
+      "container": "DinoSpawnEntries_SwampWater_C",
+      "habitat": "water",
+      "map": "island"
+    },
+    {
+      "container": "DinoSpawnEntries_DeepWater_C",
+      "habitat": "water",
+      "map": "island"
+    },
+    {
+      "container": "DinoSpawnEntries_Ocean_C",
+      "habitat": "water",
+      "map": "island"
+    },
+    {
+      "container": "DinoSpawnEntries_DarkWater_C",
+      "habitat": "water",
+      "map": "island"
+    },
+    {
+      "container": "SE_DinoSpawnEntriesDunes_C",
+      "habitat": "land",
+      "map": "scorched"
+    },
+    {
+      "container": "SE_DinoSpawnEntriesBadlands_C",
+      "habitat": "land",
+      "map": "scorched"
+    },
+    {
+      "container": "SE_DinoSpawnEntriesCanyons_C",
+      "habitat": "land",
+      "map": "scorched"
+    },
+    {
+      "container": "SE_DinoSpawnEntriesMountain_C",
+      "habitat": "land",
+      "map": "scorched"
+    },
+    {
+      "container": "SE_DinoSpawnEntriesGreenDesert_C",
+      "habitat": "land",
+      "map": "scorched"
+    },
+    {
+      "container": "SE_DinoSpawnEntriesOasis_C",
+      "habitat": "land",
+      "map": "scorched"
+    },
+    {
+      "container": "SE_DinoSpawnEntriesEZMode_C",
+      "habitat": "land",
+      "map": "scorched"
+    },
+    {
+      "container": "SE_DinoSpawnEntriesWater_C",
+      "habitat": "water",
+      "map": "scorched"
+    },
+    {
+      "container": "DinoSpawnEntriesBeach_Generic_C",
+      "habitat": "land",
+      "map": "ragnarok"
+    },
+    {
+      "container": "DinoSpawnEntriesGrassland_Generic_C",
+      "habitat": "land",
+      "map": "ragnarok"
+    },
+    {
+      "container": "DinoSpawnEntriesMountain_Generic_C",
+      "habitat": "land",
+      "map": "ragnarok"
+    },
+    {
+      "container": "DinoSpawnEntriesRedwoods_Generic_C",
+      "habitat": "land",
+      "map": "ragnarok"
+    },
+    {
+      "container": "DinoSpawnEntriesSnow_Generic_C",
+      "habitat": "land",
+      "map": "ragnarok"
+    },
+    {
+      "container": "DinoSpawnEntriesSwamp_Generic_C",
+      "habitat": "land",
+      "map": "ragnarok"
+    },
+    {
+      "container": "DinoSpawnEntriesMonsterIsland_Generic_C",
+      "habitat": "land",
+      "map": "ragnarok"
+    },
+    {
+      "container": "DinoSpawnEntriesDamiensAtoll_Generic_C",
+      "habitat": "land",
+      "map": "ragnarok"
+    },
+    {
+      "container": "DinoSpawnEntries_Ragnarok_Center_C",
+      "habitat": "land",
+      "map": "ragnarok"
+    },
+    {
+      "container": "DinoSpawnEntriesWater_Generic_C",
+      "habitat": "water",
+      "map": "ragnarok"
+    },
+    {
+      "container": "DinoSpawnEntries_InlandWater_Generic_C",
+      "habitat": "water",
+      "map": "ragnarok"
+    },
+    {
+      "container": "DinoSpawnEntries_DeepWater_Generic_C",
+      "habitat": "water",
+      "map": "ragnarok"
+    },
+    {
+      "container": "DinoSpawnEntries_DarkWater_C",
+      "habitat": "water",
+      "map": "ragnarok"
+    },
+    {
+      "container": "DinoSpawnEntries_Ragnarok_DeepWater_C",
+      "habitat": "water",
+      "map": "ragnarok"
+    },
+    {
+      "container": "DinoSpawnEntries_Ragnarok_CenterWater_C",
+      "habitat": "water",
+      "map": "ragnarok"
+    },
+    {
+      "container": "DinoSpawnEntries_Ragnarok_Jungle_C",
+      "habitat": "land",
+      "map": "ragnarok"
+    }
   ]
 }

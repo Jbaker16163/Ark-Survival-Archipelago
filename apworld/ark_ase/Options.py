@@ -6,27 +6,50 @@ from Options import (Toggle, Range, Choice, DeathLink, OptionSet, PerGameCommonO
 
 class Goal(Choice):
     """Which bosses you must defeat to win (any difficulty - Gamma, Beta, or Alpha).
-    Cumulative: each tier adds the next boss.
+
+    The first four are cumulative over THE ISLAND's bosses, and mean the same thing whatever maps
+    you run:
       broodmother                     - defeat the Broodmother
       broodmother_megapithecus        - + Megapithecus
       broodmother_megapithecus_dragon - + Dragon
       all_bosses                      - + Overseer (all four)
+
+    The last one scales with your maps instead:
+      all_bosses_all_maps             - every boss on the maps you enabled
+
+    On an Island-only slot that final option is identical to all_bosses. Add Scorched Earth and it
+    also wants the Manticore; Ragnarok's arena is the Dragon and Manticore together, so it counts
+    for both.
+
+    A boss on a map you are not running is never required - it could not be reached. On a map
+    without the Island's four, the cumulative options simply mean that map's own bosses, so
+    Scorched Earth alone is a Manticore run.
     """
     display_name = "Goal"
     option_broodmother = 0
     option_broodmother_megapithecus = 1
     option_broodmother_megapithecus_dragon = 2
     option_all_bosses = 3
+    option_all_bosses_all_maps = 4
     default = 3
 
 
 class Maps(OptionSet):
-    """Which ARK map(s) your server runs. List more than one for a CLUSTER (multiple maps linked
-    by obelisk/transmitter travel under one AP slot). ONLY "the_island" has real location/item data
-    right now - other maps are reserved for future support and add nothing yet. Quote each name:
+    """Which ARK map(s) your server runs. Any supported map can be played ON ITS OWN - you are
+    never forced to pair maps.
+
+    List more than one for a CLUSTER (maps linked by obelisk/transmitter travel under a single AP
+    slot), which pools all their content together:
         maps:
           - the_island
           - scorched_earth
+
+    Anything not listed is filtered out, so a check you cannot reach never appears - and the goal
+    only ever asks for bosses your maps actually have.
+
+    Smaller maps have fewer locations than the Island but receive the same craftable-everywhere
+    engrams, so engram grouping is raised automatically when a slot needs it (as if you had set
+    engrams_per_item yourself). Supported today: the_island, scorched_earth, ragnarok.
     """
     display_name = "Maps"
     valid_keys = {
@@ -206,6 +229,34 @@ class FoodSanity(Choice):
     default = 100
 
 
+class DeathSanity(Choice):
+    """Percent of the cause-of-death checks included as locations - the 10 'Die to a carnivore /
+    to cold / to drowning / from fall damage / to starvation ...' checks. Which ones are picked is
+    random per seed. 0 = no death checks at all, for anyone who would rather not be nudged into
+    dying on purpose.
+
+    Note these checks CAN hold progression - every cause is reachable (you can always starve or
+    drown), so nothing gets stranded, but it does mean a seed may want you to die deliberately. Set
+    this to 0 if that is not for you."""
+    display_name = "Death Sanity"
+    option_0 = 0
+    option_25 = 25
+    option_50 = 50
+    option_75 = 75
+    option_100 = 100
+    default = 100
+
+
+class DeathMilestones(Toggle):
+    """Include the cumulative death-count milestones (die once, 5, 10, 25, 40 times).
+
+    Separate from death_sanity because they are a different kind of ask: the cause-of-death checks
+    are things that happen while you play, whereas the count milestones reward dying repeatedly.
+    Turning this off leaves the individual death checks alone."""
+    display_name = "Death Milestones"
+    default = 1
+
+
 class TameSanity(Choice):
     """Percent of the per-species 'Tamed: X' checks included as locations - lower = fewer tames
     REQUIRED to finish. Which species are picked is random per seed. Every 'Tame: X' unlock item
@@ -277,14 +328,19 @@ class RandomizeDinoSpawns(Choice):
 
 
 class DossierChecks(Range):
-    """How many explorer-note locations to include as checks. The Island has 232 real collectible
-    notes; values above that harmlessly cap there (the range top stays 240 so older yamls don't
-    error). Keep near the maximum unless you know what you're doing: ARK's big pool needs most of
-    the notes plus the other locations to fit (generation errors if too low)."""
+    """How many explorer-note locations to include as checks.
+
+    Counted per SLOT, from the notes your maps actually have - the Island has 232, Scorched Earth
+    adds 137, and a value above your total harmlessly caps there. Ragnarok has none of its own.
+    Keep near the maximum unless you know what you're doing: ARK's big pool needs most of the notes
+    plus the other locations to fit, and generation fails if too low."""
     display_name = "Dossier Checks"
     range_start = 0
-    range_end = 240
-    default = 232
+    # The cap is applied AFTER the map filter, so the default simply means "every note my maps
+    # have": an Island slot still gets its 232, a cluster gets all of them. Note-count milestones
+    # scale off the real count, not this number.
+    range_end = 400
+    default = 400
 
 
 @dataclass
@@ -309,6 +365,8 @@ class ArkASAOptions(PerGameCommonOptions):
     dossier_checks: DossierChecks
     food_sanity: FoodSanity
     tame_sanity: TameSanity
+    death_sanity: DeathSanity
+    death_milestones: DeathMilestones
     bundle_structures: BundleStructures
     engrams_per_item: EngramsPerItem
     tames_per_item: TamesPerItem

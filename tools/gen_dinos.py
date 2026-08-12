@@ -17,6 +17,10 @@ import os
 import re
 import sys
 
+# NOTE: ids below are BASE + roster index - positional, with holes where creatures were excluded.
+# tools/add_map_dinos.py appends other maps' creatures ABOVE the maximum for exactly that reason,
+# and main() refuses to regenerate once it has, because renumbering would re-point the map
+# membership in data/maps.json (which stores ids by value) at the wrong creatures.
 ID_BASE = 8732001        # tame items occupy 8732001..8732xxx (between engrams 8730xxx and specials 8739xxx)
 TAME_LOC_BASE = 8753000  # per-dino "tame this species" CHECK locations
 KILL_LOC_BASE = 8755000  # per-dino "first kill of this species" CHECK locations
@@ -180,7 +184,25 @@ def saddle_class_for(tag: str, friendly: str, by_apname: dict) -> str | None:
 
 def main() -> None:
     if len(sys.argv) < 2:
-        sys.exit("usage: gen_dinos.py <dino_queue.jsonl> [more.jsonl ...]")
+        sys.exit("usage: gen_dinos.py <dino_queue.jsonl> [more.jsonl ...] [--force]")
+
+    force = "--force" in sys.argv
+    if force:
+        sys.argv = [x for x in sys.argv if x != "--force"]
+    # Ids here are positional (BASE + roster index). Another map's creatures are APPENDED above the
+    # maximum by add_map_dinos.py, and data/maps.json stores membership as raw ids - so a plain
+    # regeneration would renumber everything and silently re-point that membership.
+    if os.path.exists(OUT) and not force:
+        with open(OUT, encoding="utf-8") as fh:
+            existing = json.load(fh)
+        if "Appended:" in existing.get("_comment", ""):
+            sys.exit(
+                f"REFUSING TO REGENERATE: {OUT} has creatures appended by add_map_dinos.py "
+                f"({len(existing.get('dinos', []))} total). Rebuilding would renumber every id and "
+                f"break the map membership in data/maps.json.\n"
+                f"If you really mean to: re-run with --force, then re-run\n"
+                f"  python tools/add_map_dinos.py <harvest.jsonl ...> --maps <keys> --write\n"
+                f"  python tools/backfill_map_membership.py --write")
 
     tags = []
     seen = set()

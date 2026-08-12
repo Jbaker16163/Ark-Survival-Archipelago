@@ -174,7 +174,16 @@
     "Yutyranus": "RifleKO",
     "Bronto": "RifleKO",
     "Tapejara": "RifleKO",
-    "Titanosaur": "Smithy + Cementing Paste"
+    "Titanosaur": "Smithy + Cementing Paste",
+    "Morellatops": "BowKO | CrossbowKO | RifleKO",
+    "Thorny Dragon": "BowKO | CrossbowKO | RifleKO",
+    "Lymantria": "BowKO | CrossbowKO | RifleKO",
+    "Griffin": "CrossbowKO | RifleKO",
+    "Mantis": "CrossbowKO | RifleKO",
+    "Rock Elemental": "(Cannon + Cannon Ball) | (Rocket Launcher + Rocket Ammo)",
+    "Phoenix": "Flamethrower + Flamethrower Ammo",
+    "Wyvern": "RideArgentavis | RideQuetzal | RideTapejara | RidePteranodon | RideGriffin",
+    "Jerboa": "Sweet Veggie Cake"
   },
   "alias": {
     "Campfire": "Campfire",
@@ -249,7 +258,13 @@
     "Simple Rifle Ammo": "Simple Rifle Bullet",
     "Harpoon Launcher": "Harpoon Gun",
     "Net Projectile": "Net Gun Ammo",
-    "Cryopod": "Empty Cryopod"
+    "Cryopod": "Empty Cryopod",
+    "Cannon": "Cannon",
+    "Cannon Ball": "Cannon Ball",
+    "Flamethrower": "Flamethrower",
+    "Flamethrower Ammo": "Flamethrower Ammo",
+    "Rocket Launcher": "Rocket Launcher",
+    "Rocket Ammo": "Rocket Ammo"
   },
   "dino_alias": {
     "Compsognathus": "Compy",
@@ -334,7 +349,7 @@
     "Direwolf": "MediumFightTames | UsePistol | UseRifle | UseShotgun",
     "Dung Beetle": "BasicFightTames | UseArrows | UsePistol | UseRifle | UseShotgun | UseMelee",
     "Equus": "MediumFightTames | UseArrows | UsePistol | UseRifle | UseShotgun | (UseNet + UseAdvMelee)",
-    "Giant Queen Bee": "Dire Bear",
+    "Giant Queen Bee": "Dire Bear | UseArrows | UsePistol | UseRifle | UseShotgun",
     "Ichthyosaurus": "ShallowFightTames | (UseNet + UseMelee)",
     "Kaprosuchus": "MediumFightTames | UsePistol | UseRifle | UseShotgun | UseAdvMelee",
     "Kentrosaurus": "MediumFightTames | UsePistol | UseRifle | UseShotgun | UseAdvMelee",
@@ -381,7 +396,19 @@
     "Alpha Megalodon": "DeepFightTames | RideBasilosaurus | RideMegalodon",
     "Alpha Mosasaur": "RideMegalodon | DeepFightTames",
     "Alpha Tusoteuthis": "RideMegalodon | DeepFightTames",
-    "Alpha Leedsichthys": "RideMegalodon | RideBasilosaurus |  DeepFightTames"
+    "Alpha Leedsichthys": "RideMegalodon | RideBasilosaurus |  DeepFightTames",
+    "Jerboa": "BasicFightTames | UseArrows | Slingshot | UsePistol | UseRifle | UseShotgun",
+    "Jug Bug": "BasicFightTames | UseArrows | Slingshot | UsePistol | UseRifle | UseShotgun",
+    "Vulture": "BasicFightTames | UseArrows | Slingshot | UsePistol | UseRifle | UseShotgun",
+    "Morellatops": "BasicFightTames | UseArrows | UsePistol | UseRifle | UseShotgun",
+    "Lymantria": "BasicFightTames | UseArrows | UsePistol | UseRifle | UseShotgun",
+    "Thorny Dragon": "MediumFightTames | UseArrows | UsePistol | UseRifle | UseShotgun",
+    "Mantis": "MediumFightTames | UsePistol | UseRifle | UseShotgun | UseAdvMelee",
+    "Phoenix": "MediumFightTames | UseArrows | UseRifle | UseShotgun",
+    "Griffin": "MediumFightTames | UsePistol | UseRifle | UseShotgun",
+    "Deathworm": "StrongFightTames | UseRifle | UseShotgun",
+    "Wyvern": "StrongFightTames | UseRifle | UseShotgun",
+    "Rock Elemental": "StrongFightTames | (Cannon + Cannon Ball) | (Rocket Launcher + Rocket Ammo)"
   },
   "cave_reqs": {
     "Immune": "(Gas Mask | Scuba Tank) + Bug Repellent + UsefulImmuneTame",
@@ -393,7 +420,10 @@
     "Devourer": "UsefulDevourerTame | UseShotgun | UseAdvMelee",
     "Clever": "UsefulCleverTame | UseShotgun | UseAdvMelee",
     "Pack": "CanGrapple | UsefulPackTame",
-    "Hunter": "UsefulHunterTame | UseShotgun | UseAdvMelee"
+    "Hunter": "UsefulHunterTame | UseShotgun | UseAdvMelee",
+    "Gatekeeper": "StoreWater + (UseAdvMelee | UseShotgun | UseRifle | UsefulHunterTame)",
+    "Crag": "StoreWater + (UseAdvMelee | UseShotgun | UseRifle | UsefulHunterTame)",
+    "Destroyer": "StoreWater + (UseAdvMelee | UseShotgun | UseRifle | UsefulHunterTame)"
   },
   "boss_artifacts": {
     "Broodmother": [
@@ -411,6 +441,11 @@
       "Skylord",
       "Strong",
       "Immune"
+    ],
+    "Manticore": [
+      "Gatekeeper",
+      "Crag",
+      "Destroyer"
     ]
   },
   "overseer_bosses": [
@@ -433,7 +468,10 @@
     "Giganotosaurus Heart": "Giganotosaurus",
     "Tusoteuthis Tentacle": "Tusoteuthis",
     "Tyrannosaurus Arm": "Rex",
-    "Yutyrannus Lungs": "Yutyrannus"
+    "Yutyrannus Lungs": "Yutyrannus",
+    "Fire Talon": "Wyvern",
+    "Lightning Talon": "Wyvern",
+    "Poison Talon": "Wyvern"
   },
   "cave_tames": {
     "Dung Beetle": "Ghillie | Bug Repellent",
@@ -818,5 +856,11 @@
       "Forge",
       "Mortar And Pestle"
     ]
-  }
+  },
+  "boss_tribute_dino": {
+    "Manticore": [
+      "Wyvern"
+    ]
+  },
+  "_comment_boss_tribute_dino": "Creatures a boss's TRIBUTE items come from, ANDed into its gate on top of boss_artifacts. Manticore needs 2/10/20 Fire+Lightning+Poison Talon (gamma/beta/alpha) and every talon drops from a Wyvern, so reaching it means being able to kill one."
 }

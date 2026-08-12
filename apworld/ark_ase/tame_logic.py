@@ -56,34 +56,47 @@ class TameLogic:
     # rideable with no saddle). It maps a node -> the list of exact AP item names that must ALL be
     # held. The apworld builds it from dinos.json with the count-grouping remaps already applied,
     # which is why it is injected rather than derived here.
-    def compile(self, expr: str, remap: Callable[[str], str], free=frozenset(), direct=None) -> AST:
+    # `missing` = ap_item_names that are NOT in this slot's pool because they belong to a map the
+    # player is not running. The opposite of `free`: requiring one is impossible, so its leaf
+    # collapses to ('false',) and propagates - an OR drops it and keeps its other branches, an AND
+    # becomes false outright. Without this a Scorched-only mount inside a combat macro would still
+    # emit has(<item nobody can ever receive>) on an Island slot and strand whatever it gates.
+    def compile(self, expr: str, remap: Callable[[str], str], free=frozenset(), direct=None,
+                missing=frozenset()) -> AST:
         if not expr or not expr.strip():
             return ("true",)
-        return self._expand(_parse(expr), remap, frozenset(), free, direct or {})
+        return self._expand(_parse(expr), remap, frozenset(), free, direct or {}, missing)
 
-    def _expand(self, node: AST, remap, seen, free, direct=None) -> AST:
+    def _expand(self, node: AST, remap, seen, free, direct=None, missing=frozenset()) -> AST:
         direct = direct or {}
         kind = node[0]
         if kind in ("and", "or"):
-            kids = [self._expand(c, remap, seen, free, direct) for c in node[1]]
+            kids = [self._expand(c, remap, seen, free, direct, missing) for c in node[1]]
             if kind == "or":
                 if any(k == ("true",) for k in kids):   # a free branch makes the OR trivially true
                     return ("true",)
+                kids = [k for k in kids if k != ("false",)]   # unreachable option: try the others
+                if not kids:
+                    return ("false",)                  # every way of satisfying this is gone
             else:                                        # AND: drop always-true terms
+                if any(k == ("false",) for k in kids):
+                    return ("false",)                  # one impossible term kills the conjunction
                 kids = [k for k in kids if k != ("true",)]
             if not kids:
                 return ("true",)
             return kids[0] if len(kids) == 1 else (kind, kids)
         if kind == "name":
-            return self._expand_name(node[1], remap, seen, free, direct)
+            return self._expand_name(node[1], remap, seen, free, direct, missing)
         return ("true",)
 
-    def _expand_name(self, name: str, remap, seen, free, direct=None) -> AST:
+    def _expand_name(self, name: str, remap, seen, free, direct=None, missing=frozenset()) -> AST:
         direct = direct or {}
         if name in seen:                       # cycle guard
             return ("true",)
         seen = seen | {name}
         if name in direct:                     # RideX / bare creature -> exact AP item names
+            if any(n in missing for n in direct[name]):
+                return ("false",)              # creature is not on this slot's maps
             needed = [n for n in direct[name] if n not in free]
             if not needed:
                 return ("true",)
@@ -92,11 +105,15 @@ class TameLogic:
         parts: List[AST] = []
         if name in self.alias:                 # this node is a real gated engram
             ap = remap(self.alias[name])
+            if ap in missing:
+                return ("false",)
             if ap not in free:                 # auto-granted engrams are always available
                 parts.append(("has", ap))
         recipe = self.recipes.get(name)        # + whatever crafting/using it needs
         if recipe and recipe.strip():
-            parts.append(self._expand(_parse(recipe), remap, seen, free, direct))
+            parts.append(self._expand(_parse(recipe), remap, seen, free, direct, missing))
+        if any(p == ("false",) for p in parts):
+            return ("false",)
         parts = [p for p in parts if p != ("true",)]
         if not parts:
             return ("true",)                   # free node (crop/resource/unknown)
@@ -175,4 +192,6 @@ def eval_ast(ast: AST, state, player: int) -> bool:
         return all(eval_ast(c, state, player) for c in ast[1])
     if kind == "or":
         return any(eval_ast(c, state, player) for c in ast[1])
+    if kind == "false":
+        return False        # requires content this slot's maps do not have
     return True   # 'true'

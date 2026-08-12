@@ -8,7 +8,9 @@
       "ap_name": "Beacon: White",
       "classes": [
         "SupplyCrate_Level03_C",
-        "SupplyCrate_Level03_Double_C"
+        "SupplyCrate_Level03_Double_C",
+        "SupplyCrate_Level03_ScorchedEarth_C",
+        "SupplyCrate_Level03_Double_ScorchedEarth_C"
       ]
     },
     {
@@ -16,7 +18,9 @@
       "ap_name": "Beacon: Green",
       "classes": [
         "SupplyCrate_Level15_C",
-        "SupplyCrate_Level15_Double_C"
+        "SupplyCrate_Level15_Double_C",
+        "SupplyCrate_Level15_ScorchedEarth_C",
+        "SupplyCrate_Level15_Double_ScorchedEarth_C"
       ]
     },
     {
@@ -24,7 +28,9 @@
       "ap_name": "Beacon: Blue",
       "classes": [
         "SupplyCrate_Level25_C",
-        "SupplyCrate_Level25_Double_C"
+        "SupplyCrate_Level25_Double_C",
+        "SupplyCrate_Level30_ScorchedEarth_C",
+        "SupplyCrate_Level30_Double_ScorchedEarth_C"
       ]
     },
     {
@@ -32,7 +38,9 @@
       "ap_name": "Beacon: Purple",
       "classes": [
         "SupplyCrate_Level35_C",
-        "SupplyCrate_Level35_Double_C"
+        "SupplyCrate_Level35_Double_C",
+        "SupplyCrate_Level45_ScorchedEarth_C",
+        "SupplyCrate_Level45_Double_ScorchedEarth_C"
       ]
     },
     {
@@ -40,7 +48,9 @@
       "ap_name": "Beacon: Yellow",
       "classes": [
         "SupplyCrate_Level45_C",
-        "SupplyCrate_Level45_Double_C"
+        "SupplyCrate_Level45_Double_C",
+        "SupplyCrate_Level55_ScorchedEarth_C",
+        "SupplyCrate_Level55_Double_ScorchedEarth_C"
       ]
     },
     {
@@ -48,35 +58,41 @@
       "ap_name": "Beacon: Red",
       "classes": [
         "SupplyCrate_Level60_C",
-        "SupplyCrate_Level60_Double_C"
+        "SupplyCrate_Level60_Double_C",
+        "SupplyCrate_Level70_ScorchedEarth_C",
+        "SupplyCrate_Level70_Double_ScorchedEarth_C"
       ]
     },
     {
       "id": 8733006,
       "ap_name": "Cave Crate: Cave T1",
       "classes": [
-        "SupplyCrate_Cave_QualityTier1_C"
+        "SupplyCrate_Cave_QualityTier1_C",
+        "SupplyCrate_Cave_QualityTier1_ScorchedEarth_C"
       ]
     },
     {
       "id": 8733007,
       "ap_name": "Cave Crate: Cave T2",
       "classes": [
-        "SupplyCrate_Cave_QualityTier2_C"
+        "SupplyCrate_Cave_QualityTier2_C",
+        "SupplyCrate_Cave_QualityTier2_ScorchedEarth_C"
       ]
     },
     {
       "id": 8733008,
       "ap_name": "Cave Crate: Cave T3",
       "classes": [
-        "SupplyCrate_Cave_QualityTier3_C"
+        "SupplyCrate_Cave_QualityTier3_C",
+        "SupplyCrate_Cave_QualityTier3_ScorchedEarth_C"
       ]
     },
     {
       "id": 8733009,
       "ap_name": "Cave Crate: Cave T4",
       "classes": [
-        "SupplyCrate_Cave_QualityTier4_C"
+        "SupplyCrate_Cave_QualityTier4_C",
+        "SupplyCrate_Cave_QualityTier4_ScorchedEarth_C"
       ]
     },
     {
@@ -147,7 +163,9 @@
       "ap_name": "Deep Sea Crate",
       "classes": [
         "SupplyCrate_OceanInstant_C",
-        "SupplyCrate_OceanInstant_High_C"
+        "SupplyCrate_OceanInstant_High_C",
+        "SupplyCreate_OceanInstant_High_C",
+        "SupplyCreate_OceanInstant_C"
       ]
     }
   ],
@@ -228,6 +246,21 @@
       "classes": [
         "ArtifactCrate_11_C"
       ]
+    },
+    {
+      "id": 8752011,
+      "name": "Artifact: Gatekeeper",
+      "classes": []
+    },
+    {
+      "id": 8752012,
+      "name": "Artifact: Destroyer",
+      "classes": []
+    },
+    {
+      "id": 8752013,
+      "name": "Artifact: Crag",
+      "classes": []
     }
   ]
 }

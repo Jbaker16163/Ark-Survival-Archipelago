@@ -60,7 +60,27 @@ def main() -> None:
     ap.add_argument("dump")
     ap.add_argument("--count", type=int, default=12)
     ap.add_argument("--all", action="store_true")
+    ap.add_argument("--force", action="store_true",
+                    help="regenerate even though engrams were appended by add_map_engrams.py "
+                         "(you will have to re-append them AND re-run backfill_map_membership.py)")
     a = ap.parse_args()
+
+    # Ids here are ID_BASE + len(engrams) - sequential, no gaps. data/maps.json stores map
+    # membership as raw item ids, so regenerating renumbers every engram and silently re-points
+    # that membership at the wrong ones. Refuse when another tool has appended past this block.
+    if os.path.exists(OUT) and not a.force:
+        with open(OUT, encoding="utf-8") as fh:
+            existing = json.load(fh)
+        if "Appended:" in existing.get("_comment", ""):
+            n = len(existing.get("engrams", []))
+            raise SystemExit(
+                f"REFUSING TO REGENERATE: {OUT} has engrams appended by add_map_engrams.py "
+                f"({n} total). Rebuilding from the dump would renumber every id and break the map "
+                f"membership in data/maps.json, which stores ids by value.\n"
+                f"If you really mean to: re-run with --force, then re-run\n"
+                f"  python tools/add_map_engrams.py <dump> --roots ScorchedEarth --also-name Adobe "
+                f"--maps scorched,ragnarok --write\n"
+                f"  python tools/backfill_map_membership.py --write")
 
     with open(a.dump, encoding="utf-8") as fh:
         dump = json.load(fh)

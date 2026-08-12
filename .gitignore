@@ -47,6 +47,7 @@ Thumbs.db
 # Map support is only half-built (authoring exists, filtering does not), and these describe
 # features players cannot use yet. Remove a line here when its feature ships.
 docs/ADDING_A_MAP.md
+docs/MAP_ASSUMPTIONS.md
 docs/STATE_PERSISTENCE.md
 docs/ARKipelago_Checklist.xlsx
 data/maps.json
@@ -58,3 +59,6 @@ tools/download_ue4ss.bat
 
 # Island map image: a Wildcard game asset, kept local only
 docs/island_map.*
+# every map image is a Wildcard asset (ragnarok_map.png, scorched_map.png, ...)
+docs/*_map.*
+tools/reference/ARK_Creatures_Checklist.xlsx

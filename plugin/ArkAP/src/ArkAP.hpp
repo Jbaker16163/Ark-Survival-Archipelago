@@ -231,6 +231,7 @@ public:
         // back to the backup there resurrects the previous run's engrams, which is exactly what an
         // earlier build did.
         if (!fs::exists(state_path_, ec)) {
+            started_fresh_ = true;
             std::error_code ec2;
             if (fs::exists(BakPath(), ec2)) {
                 fs::remove(BakPath(), ec2);             // stale: never resurrect it later either
@@ -264,6 +265,10 @@ public:
 
     // Was there a problem loading? (empty = clean). The plugin surfaces this in chat + the log.
     const std::string& LoadError() const { return load_error_; }
+    // state.json was ABSENT at load - per docs/STATE_PERSISTENCE.md rule 2 that is a DELIBERATE
+    // fresh start (new save, or a reset tool), never corruption. Callers use it to decide that
+    // leftover mailbox history belongs to the previous seed.
+    bool StartedFresh() const { return started_fresh_; }
     bool ReadOnly() const { return read_only_; }
 
     void Save() const {
@@ -399,6 +404,7 @@ private:
     fs::path dir_, state_path_, seed_path_;
     Mode mode_;
     std::string load_error_;        // non-empty = surfaced in chat + the log at boot
+    bool started_fresh_ = false;    // state.json was absent -> deliberate fresh start
     bool read_only_ = false;        // corrupt load: block Save so the file on disk survives
     std::map<std::string, std::set<int>> checked_, received_;   // route -> ids
     std::map<int, int> placement_;  // offline only

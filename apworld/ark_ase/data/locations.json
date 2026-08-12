@@ -4,7 +4,7 @@
   "location_categories": {
     "dossiers": {
       "_note": "The Island collectible notes only (whitelist from ark.wiki.gg)",
-      "map": "TheIsland",
+      "map": "multiple",
       "entries": [
         {
           "id": 8740000,
@@ -457,14 +457,169 @@
           "note_index": 89
         },
         {
+          "id": 8740090,
+          "name": "Dossier: Deathworm",
+          "note_index": 90
+        },
+        {
+          "id": 8740091,
+          "name": "Dossier: Mantis",
+          "note_index": 91
+        },
+        {
+          "id": 8740092,
+          "name": "Dossier: Jerboa",
+          "note_index": 92
+        },
+        {
+          "id": 8740093,
+          "name": "Dossier: Jug Bug",
+          "note_index": 93
+        },
+        {
+          "id": 8740094,
+          "name": "Dossier: Moth",
+          "note_index": 94
+        },
+        {
+          "id": 8740095,
+          "name": "Dossier: Rock Elemental",
+          "note_index": 95
+        },
+        {
+          "id": 8740096,
+          "name": "Dossier: Thorny Dragon",
+          "note_index": 96
+        },
+        {
+          "id": 8740097,
+          "name": "Dossier: Wyvern",
+          "note_index": 97
+        },
+        {
+          "id": 8740098,
+          "name": "Dossier: Vulture",
+          "note_index": 98
+        },
+        {
+          "id": 8740099,
+          "name": "Dossier: Morellatops",
+          "note_index": 99
+        },
+        {
+          "id": 8740100,
+          "name": "Manticore Hologram (Scorched Earth)",
+          "note_index": 100
+        },
+        {
+          "id": 8740101,
+          "name": "Raia Tablet #1 (Scorched Earth)",
+          "note_index": 101
+        },
+        {
+          "id": 8740102,
+          "name": "Raia Tablet #2 (Scorched Earth)",
+          "note_index": 102
+        },
+        {
+          "id": 8740103,
+          "name": "Raia Tablet #3 (Scorched Earth)",
+          "note_index": 103
+        },
+        {
+          "id": 8740104,
+          "name": "Raia Tablet #4 (Scorched Earth)",
+          "note_index": 104
+        },
+        {
+          "id": 8740105,
+          "name": "Dahkeya Note #1 (Scorched Earth)",
+          "note_index": 105
+        },
+        {
+          "id": 8740106,
+          "name": "Dahkeya Note #2 (Scorched Earth)",
+          "note_index": 106
+        },
+        {
+          "id": 8740107,
+          "name": "Dahkeya Note #3 (Scorched Earth)",
+          "note_index": 107
+        },
+        {
+          "id": 8740108,
+          "name": "Dahkeya Note #4 (Scorched Earth)",
+          "note_index": 108
+        },
+        {
+          "id": 8740109,
+          "name": "Helena Note #1 (Scorched Earth)",
+          "note_index": 109
+        },
+        {
+          "id": 8740110,
+          "name": "Helena Note #2 (Scorched Earth)",
+          "note_index": 110
+        },
+        {
+          "id": 8740111,
+          "name": "Helena Note #3 (Scorched Earth)",
+          "note_index": 111
+        },
+        {
+          "id": 8740112,
+          "name": "Helena Note #4 (Scorched Earth)",
+          "note_index": 112
+        },
+        {
+          "id": 8740113,
+          "name": "Rockwell Record #1 (Scorched Earth)",
+          "note_index": 113
+        },
+        {
+          "id": 8740114,
+          "name": "Rockwell Record #2 (Scorched Earth)",
+          "note_index": 114
+        },
+        {
+          "id": 8740115,
+          "name": "Rockwell Record #3 (Scorched Earth)",
+          "note_index": 115
+        },
+        {
+          "id": 8740116,
+          "name": "Rockwell Record #4 (Scorched Earth)",
+          "note_index": 116
+        },
+        {
+          "id": 8740117,
+          "name": "Rockwell Record #5 (Scorched Earth)",
+          "note_index": 117
+        },
+        {
           "id": 8740118,
           "name": "Rockwell Note #5",
           "note_index": 118
         },
         {
+          "id": 8740119,
+          "name": "Dahkeya Note #5 (Scorched Earth)",
+          "note_index": 119
+        },
+        {
+          "id": 8740120,
+          "name": "Raia Tablet #5 (Scorched Earth)",
+          "note_index": 120
+        },
+        {
           "id": 8740121,
           "name": "Nerva Note #5",
           "note_index": 121
+        },
+        {
+          "id": 8740122,
+          "name": "Helena Note #5 (Scorched Earth)",
+          "note_index": 122
         },
         {
           "id": 8740123,
@@ -497,6 +652,16 @@
           "note_index": 128
         },
         {
+          "id": 8740129,
+          "name": "Helena Note #6 (Scorched Earth)",
+          "note_index": 129
+        },
+        {
+          "id": 8740130,
+          "name": "Helena Note #7 (Scorched Earth)",
+          "note_index": 130
+        },
+        {
           "id": 8740131,
           "name": "Nerva Note #6",
           "note_index": 131
@@ -507,6 +672,26 @@
           "note_index": 132
         },
         {
+          "id": 8740133,
+          "name": "Raia Tablet #6 (Scorched Earth)",
+          "note_index": 133
+        },
+        {
+          "id": 8740134,
+          "name": "Raia Tablet #7 (Scorched Earth)",
+          "note_index": 134
+        },
+        {
+          "id": 8740135,
+          "name": "Dahkeya Note #6 (Scorched Earth)",
+          "note_index": 135
+        },
+        {
+          "id": 8740136,
+          "name": "Dahkeya Note #7 (Scorched Earth)",
+          "note_index": 136
+        },
+        {
           "id": 8740137,
           "name": "Rockwell Note #6",
           "note_index": 137
@@ -515,6 +700,16 @@
           "id": 8740138,
           "name": "Rockwell Note #7",
           "note_index": 138
+        },
+        {
+          "id": 8740139,
+          "name": "Rockwell Record #6 (Scorched Earth)",
+          "note_index": 139
+        },
+        {
+          "id": 8740140,
+          "name": "Rockwell Record #7 (Scorched Earth)",
+          "note_index": 140
         },
         {
           "id": 8740141,
@@ -552,6 +747,26 @@
           "note_index": 147
         },
         {
+          "id": 8740148,
+          "name": "Helena Note #8 (Scorched Earth)",
+          "note_index": 148
+        },
+        {
+          "id": 8740149,
+          "name": "Raia Tablet #8 (Scorched Earth)",
+          "note_index": 149
+        },
+        {
+          "id": 8740150,
+          "name": "Dahkeya Note #8 (Scorched Earth)",
+          "note_index": 150
+        },
+        {
+          "id": 8740151,
+          "name": "Rockwell Record #8 (Scorched Earth)",
+          "note_index": 151
+        },
+        {
           "id": 8740152,
           "name": "Mei Yin Note #9",
           "note_index": 152
@@ -570,6 +785,26 @@
           "id": 8740155,
           "name": "Rockwell Note #9",
           "note_index": 155
+        },
+        {
+          "id": 8740156,
+          "name": "Helena Note #9 (Scorched Earth)",
+          "note_index": 156
+        },
+        {
+          "id": 8740157,
+          "name": "Raia Tablet #9 (Scorched Earth)",
+          "note_index": 157
+        },
+        {
+          "id": 8740158,
+          "name": "Dahkeya Note #9 (Scorched Earth)",
+          "note_index": 158
+        },
+        {
+          "id": 8740159,
+          "name": "Rockwell Record #9 (Scorched Earth)",
+          "note_index": 159
         },
         {
           "id": 8740160,
@@ -615,6 +850,26 @@
           "id": 8740168,
           "name": "Rockwell Note #10",
           "note_index": 168
+        },
+        {
+          "id": 8740169,
+          "name": "Helena Note #10 (Scorched Earth)",
+          "note_index": 169
+        },
+        {
+          "id": 8740170,
+          "name": "Raia Tablet #10 (Scorched Earth)",
+          "note_index": 170
+        },
+        {
+          "id": 8740171,
+          "name": "Dahkeya Note #10 (Scorched Earth)",
+          "note_index": 171
+        },
+        {
+          "id": 8740172,
+          "name": "Rockwell Record #10 (Scorched Earth)",
+          "note_index": 172
         },
         {
           "id": 8740173,
@@ -795,6 +1050,126 @@
           "id": 8740208,
           "name": "Nerva Note #18",
           "note_index": 208
+        },
+        {
+          "id": 8740209,
+          "name": "Helena Note #11 (Scorched Earth)",
+          "note_index": 209
+        },
+        {
+          "id": 8740210,
+          "name": "Helena Note #12 (Scorched Earth)",
+          "note_index": 210
+        },
+        {
+          "id": 8740211,
+          "name": "Helena Note #13 (Scorched Earth)",
+          "note_index": 211
+        },
+        {
+          "id": 8740212,
+          "name": "Helena Note #14 (Scorched Earth)",
+          "note_index": 212
+        },
+        {
+          "id": 8740213,
+          "name": "Helena Note #15 (Scorched Earth)",
+          "note_index": 213
+        },
+        {
+          "id": 8740214,
+          "name": "Helena Note #16 (Scorched Earth)",
+          "note_index": 214
+        },
+        {
+          "id": 8740215,
+          "name": "Helena Note #17 (Scorched Earth)",
+          "note_index": 215
+        },
+        {
+          "id": 8740216,
+          "name": "Helena Note #18 (Scorched Earth)",
+          "note_index": 216
+        },
+        {
+          "id": 8740217,
+          "name": "Dahkeya Note #11 (Scorched Earth)",
+          "note_index": 217
+        },
+        {
+          "id": 8740218,
+          "name": "Dahkeya Note #12 (Scorched Earth)",
+          "note_index": 218
+        },
+        {
+          "id": 8740219,
+          "name": "Dahkeya Note #13 (Scorched Earth)",
+          "note_index": 219
+        },
+        {
+          "id": 8740220,
+          "name": "Dahkeya Note #14 (Scorched Earth)",
+          "note_index": 220
+        },
+        {
+          "id": 8740221,
+          "name": "Dahkeya Note #15 (Scorched Earth)",
+          "note_index": 221
+        },
+        {
+          "id": 8740222,
+          "name": "Dahkeya Note #16 (Scorched Earth)",
+          "note_index": 222
+        },
+        {
+          "id": 8740223,
+          "name": "Dahkeya Note #17 (Scorched Earth)",
+          "note_index": 223
+        },
+        {
+          "id": 8740224,
+          "name": "Dahkeya Note #18 (Scorched Earth)",
+          "note_index": 224
+        },
+        {
+          "id": 8740225,
+          "name": "Rockwell Record #11 (Scorched Earth)",
+          "note_index": 225
+        },
+        {
+          "id": 8740226,
+          "name": "Rockwell Record #12 (Scorched Earth)",
+          "note_index": 226
+        },
+        {
+          "id": 8740227,
+          "name": "Rockwell Record #13 (Scorched Earth)",
+          "note_index": 227
+        },
+        {
+          "id": 8740228,
+          "name": "Rockwell Record #14 (Scorched Earth)",
+          "note_index": 228
+        },
+        {
+          "id": 8740229,
+          "name": "Rockwell Record #15 (Scorched Earth)",
+          "note_index": 229
+        },
+        {
+          "id": 8740230,
+          "name": "Rockwell Record #16 (Scorched Earth)",
+          "note_index": 230
+        },
+        {
+          "id": 8740231,
+          "name": "Rockwell Record #17 (Scorched Earth)",
+          "note_index": 231
+        },
+        {
+          "id": 8740232,
+          "name": "Rockwell Record #18 (Scorched Earth)",
+          "note_index": 232
         },
         {
           "id": 8740233,
@@ -997,6 +1372,46 @@
           "note_index": 272
         },
         {
+          "id": 8740273,
+          "name": "Raia Tablet #11 (Scorched Earth)",
+          "note_index": 273
+        },
+        {
+          "id": 8740274,
+          "name": "Raia Tablet #12 (Scorched Earth)",
+          "note_index": 274
+        },
+        {
+          "id": 8740275,
+          "name": "Raia Tablet #13 (Scorched Earth)",
+          "note_index": 275
+        },
+        {
+          "id": 8740276,
+          "name": "Raia Tablet #14 (Scorched Earth)",
+          "note_index": 276
+        },
+        {
+          "id": 8740277,
+          "name": "Raia Tablet #15 (Scorched Earth)",
+          "note_index": 277
+        },
+        {
+          "id": 8740278,
+          "name": "Raia Tablet #16 (Scorched Earth)",
+          "note_index": 278
+        },
+        {
+          "id": 8740279,
+          "name": "Raia Tablet #17 (Scorched Earth)",
+          "note_index": 279
+        },
+        {
+          "id": 8740280,
+          "name": "Raia Tablet #18 (Scorched Earth)",
+          "note_index": 280
+        },
+        {
           "id": 8740281,
           "name": "Dossier: Giant Bee",
           "note_index": 281
@@ -1107,6 +1522,246 @@
           "note_index": 302
         },
         {
+          "id": 8740303,
+          "name": "Dahkeya Note #19 (Scorched Earth)",
+          "note_index": 303
+        },
+        {
+          "id": 8740304,
+          "name": "Dahkeya Note #20 (Scorched Earth)",
+          "note_index": 304
+        },
+        {
+          "id": 8740305,
+          "name": "Dahkeya Note #21 (Scorched Earth)",
+          "note_index": 305
+        },
+        {
+          "id": 8740306,
+          "name": "Dahkeya Note #22 (Scorched Earth)",
+          "note_index": 306
+        },
+        {
+          "id": 8740307,
+          "name": "Dahkeya Note #23 (Scorched Earth)",
+          "note_index": 307
+        },
+        {
+          "id": 8740308,
+          "name": "Dahkeya Note #24 (Scorched Earth)",
+          "note_index": 308
+        },
+        {
+          "id": 8740309,
+          "name": "Dahkeya Note #25 (Scorched Earth)",
+          "note_index": 309
+        },
+        {
+          "id": 8740310,
+          "name": "Dahkeya Note #26 (Scorched Earth)",
+          "note_index": 310
+        },
+        {
+          "id": 8740311,
+          "name": "Dahkeya Note #27 (Scorched Earth)",
+          "note_index": 311
+        },
+        {
+          "id": 8740312,
+          "name": "Dahkeya Note #28 (Scorched Earth)",
+          "note_index": 312
+        },
+        {
+          "id": 8740313,
+          "name": "Dahkeya Note #29 (Scorched Earth)",
+          "note_index": 313
+        },
+        {
+          "id": 8740314,
+          "name": "Dahkeya Note #30 (Scorched Earth)",
+          "note_index": 314
+        },
+        {
+          "id": 8740315,
+          "name": "Helena Note #19 (Scorched Earth)",
+          "note_index": 315
+        },
+        {
+          "id": 8740316,
+          "name": "Helena Note #20 (Scorched Earth)",
+          "note_index": 316
+        },
+        {
+          "id": 8740317,
+          "name": "Helena Note #21 (Scorched Earth)",
+          "note_index": 317
+        },
+        {
+          "id": 8740318,
+          "name": "Helena Note #22 (Scorched Earth)",
+          "note_index": 318
+        },
+        {
+          "id": 8740319,
+          "name": "Helena Note #23 (Scorched Earth)",
+          "note_index": 319
+        },
+        {
+          "id": 8740320,
+          "name": "Helena Note #24 (Scorched Earth)",
+          "note_index": 320
+        },
+        {
+          "id": 8740321,
+          "name": "Helena Note #25 (Scorched Earth)",
+          "note_index": 321
+        },
+        {
+          "id": 8740322,
+          "name": "Helena Note #26 (Scorched Earth)",
+          "note_index": 322
+        },
+        {
+          "id": 8740323,
+          "name": "Helena Note #27 (Scorched Earth)",
+          "note_index": 323
+        },
+        {
+          "id": 8740324,
+          "name": "Helena Note #28 (Scorched Earth)",
+          "note_index": 324
+        },
+        {
+          "id": 8740325,
+          "name": "Helena Note #29 (Scorched Earth)",
+          "note_index": 325
+        },
+        {
+          "id": 8740326,
+          "name": "Helena Note #30 (Scorched Earth)",
+          "note_index": 326
+        },
+        {
+          "id": 8740327,
+          "name": "Rockwell Record #19 (Scorched Earth)",
+          "note_index": 327
+        },
+        {
+          "id": 8740328,
+          "name": "Rockwell Record #20 (Scorched Earth)",
+          "note_index": 328
+        },
+        {
+          "id": 8740329,
+          "name": "Rockwell Record #21 (Scorched Earth)",
+          "note_index": 329
+        },
+        {
+          "id": 8740330,
+          "name": "Rockwell Record #22 (Scorched Earth)",
+          "note_index": 330
+        },
+        {
+          "id": 8740331,
+          "name": "Rockwell Record #23 (Scorched Earth)",
+          "note_index": 331
+        },
+        {
+          "id": 8740332,
+          "name": "Rockwell Record #24 (Scorched Earth)",
+          "note_index": 332
+        },
+        {
+          "id": 8740333,
+          "name": "Rockwell Record #25 (Scorched Earth)",
+          "note_index": 333
+        },
+        {
+          "id": 8740334,
+          "name": "Rockwell Record #26 (Scorched Earth)",
+          "note_index": 334
+        },
+        {
+          "id": 8740335,
+          "name": "Rockwell Record #27 (Scorched Earth)",
+          "note_index": 335
+        },
+        {
+          "id": 8740336,
+          "name": "Rockwell Record #28 (Scorched Earth)",
+          "note_index": 336
+        },
+        {
+          "id": 8740337,
+          "name": "Rockwell Record #29 (Scorched Earth)",
+          "note_index": 337
+        },
+        {
+          "id": 8740338,
+          "name": "Rockwell Record #30 (Scorched Earth)",
+          "note_index": 338
+        },
+        {
+          "id": 8740339,
+          "name": "Raia Tablet #19 (Scorched Earth)",
+          "note_index": 339
+        },
+        {
+          "id": 8740340,
+          "name": "Raia Tablet #20 (Scorched Earth)",
+          "note_index": 340
+        },
+        {
+          "id": 8740341,
+          "name": "Raia Tablet #21 (Scorched Earth)",
+          "note_index": 341
+        },
+        {
+          "id": 8740342,
+          "name": "Raia Tablet #22 (Scorched Earth)",
+          "note_index": 342
+        },
+        {
+          "id": 8740343,
+          "name": "Raia Tablet #23 (Scorched Earth)",
+          "note_index": 343
+        },
+        {
+          "id": 8740344,
+          "name": "Raia Tablet #24 (Scorched Earth)",
+          "note_index": 344
+        },
+        {
+          "id": 8740345,
+          "name": "Raia Tablet #25 (Scorched Earth)",
+          "note_index": 345
+        },
+        {
+          "id": 8740346,
+          "name": "Raia Tablet #26 (Scorched Earth)",
+          "note_index": 346
+        },
+        {
+          "id": 8740347,
+          "name": "Raia Tablet #27 (Scorched Earth)",
+          "note_index": 347
+        },
+        {
+          "id": 8740348,
+          "name": "Raia Tablet #28 (Scorched Earth)",
+          "note_index": 348
+        },
+        {
+          "id": 8740349,
+          "name": "Raia Tablet #29 (Scorched Earth)",
+          "note_index": 349
+        },
+        {
+          "id": 8740350,
+          "name": "Raia Tablet #30 (Scorched Earth)",
+          "note_index": 350
+        },
+        {
           "id": 8740351,
           "name": "Rockwell Note #29",
           "note_index": 351
@@ -1132,9 +1787,19 @@
           "note_index": 355
         },
         {
+          "id": 8740356,
+          "name": "Dossier: Phoenix",
+          "note_index": 356
+        },
+        {
           "id": 8740508,
           "name": "??? Note #1 (idx 508)",
           "note_index": 508
+        },
+        {
+          "id": 8740509,
+          "name": "??? Note #2 (Scorched Earth)",
+          "note_index": 509
         },
         {
           "id": 8740511,
@@ -1142,9 +1807,19 @@
           "note_index": 511
         },
         {
+          "id": 8740512,
+          "name": "??? Note #5 (Scorched Earth)",
+          "note_index": 512
+        },
+        {
           "id": 8740514,
           "name": "??? Note #3 (idx 514)",
           "note_index": 514
+        },
+        {
+          "id": 8740515,
+          "name": "??? Note #8 (Scorched Earth)",
+          "note_index": 515
         },
         {
           "id": 8740517,
@@ -1152,9 +1827,24 @@
           "note_index": 517
         },
         {
+          "id": 8740518,
+          "name": "??? Note #11 (Scorched Earth)",
+          "note_index": 518
+        },
+        {
           "id": 8740520,
           "name": "??? Note #5 (idx 520)",
           "note_index": 520
+        },
+        {
+          "id": 8740521,
+          "name": "??? Note #14 (Scorched Earth)",
+          "note_index": 521
+        },
+        {
+          "id": 8741221,
+          "name": "Dossier: Griffin",
+          "note_index": 1221
         },
         {
           "id": 8741230,
@@ -1191,6 +1881,31 @@
           "tag": "Overseer_Gamma"
         },
         {
+          "id": 8750004,
+          "name": "Boss: Manticore (Gamma)",
+          "tag": "Manticore_Gamma"
+        },
+        {
+          "id": 8750005,
+          "name": "Boss: Iceworm Queen",
+          "tag": "Iceworm_Queen_Gamma"
+        },
+        {
+          "id": 8750006,
+          "name": "Boss: Lava Elemental",
+          "tag": "LavaGolem_Gamma"
+        },
+        {
+          "id": 8750007,
+          "name": "Boss: Spirit Direwolf",
+          "tag": "Direwolf_LL_Gamma"
+        },
+        {
+          "id": 8750008,
+          "name": "Boss: Spirit Dire Bear",
+          "tag": "Direbear_LL_Gamma"
+        },
+        {
           "id": 8750010,
           "name": "Boss: Broodmother (Beta)",
           "tag": "SpiderBoss_Beta"
@@ -1211,6 +1926,11 @@
           "tag": "Overseer_Beta"
         },
         {
+          "id": 8750014,
+          "name": "Boss: Manticore (Beta)",
+          "tag": "Manticore_Beta"
+        },
+        {
           "id": 8750020,
           "name": "Boss: Broodmother (Alpha)",
           "tag": "SpiderBoss_Alpha"
@@ -1229,6 +1949,11 @@
           "id": 8750023,
           "name": "Boss: Overseer (Alpha)",
           "tag": "Overseer_Alpha"
+        },
+        {
+          "id": 8750024,
+          "name": "Boss: Manticore (Alpha)",
+          "tag": "Manticore_Alpha"
         }
       ]
     },
@@ -1268,6 +1993,16 @@
           "id": 8756006,
           "name": "Killed: Alpha Tusoteuthis",
           "class_frag": "Mega_Tusoteuthis"
+        },
+        {
+          "id": 8756007,
+          "name": "Killed: Alpha Deathworm",
+          "class_frag": "MegaDeathworm"
+        },
+        {
+          "id": 8756008,
+          "name": "Killed: Alpha Fire Wyvern",
+          "class_frag": "MegaWyvern"
         }
       ]
     },
@@ -2803,6 +3538,111 @@
           "qty": 20,
           "tier": 1,
           "food": true
+        },
+        {
+          "id": 8757314,
+          "name": "Artifact: Gatekeeper",
+          "item_class": "PrimalItemArtifactSE_01",
+          "qty": 1,
+          "tier": 3
+        },
+        {
+          "id": 8757315,
+          "name": "Artifact: Crag",
+          "item_class": "PrimalItemArtifactSE_02",
+          "qty": 1,
+          "tier": 3
+        },
+        {
+          "id": 8757316,
+          "name": "Artifact: Destroyer",
+          "item_class": "PrimalItemArtifactSE_03",
+          "qty": 1,
+          "tier": 3
+        },
+        {
+          "id": 8757317,
+          "name": "Collect 100 Sulfur",
+          "item_class": "PrimalItemResource_Sulfur",
+          "qty": 100,
+          "tier": 1
+        },
+        {
+          "id": 8757318,
+          "name": "Collect 100 Silk",
+          "item_class": "PrimalItemResource_Silk",
+          "qty": 100,
+          "tier": 1
+        },
+        {
+          "id": 8757319,
+          "name": "Collect 50 Raw Salt",
+          "item_class": "PrimalItemResource_RawSalt",
+          "qty": 50,
+          "tier": 1
+        },
+        {
+          "id": 8757320,
+          "name": "Collect 100 Cactus Sap",
+          "item_class": "PrimalItemConsumable_CactusSap",
+          "qty": 100,
+          "tier": 0
+        },
+        {
+          "id": 8757321,
+          "name": "Collect 50 Propellant",
+          "item_class": "PrimalItemResource_Propellant",
+          "qty": 50,
+          "tier": 2
+        },
+        {
+          "id": 8757322,
+          "name": "Collect 300 Sand",
+          "item_class": "PrimalItemResource_Sand",
+          "qty": 300,
+          "tier": 0
+        },
+        {
+          "id": 8757323,
+          "name": "Fire Talon x2",
+          "item_class": "PrimalItemResource_ApexDrop_FireWyvern",
+          "qty": 2,
+          "tier": 2
+        },
+        {
+          "id": 8757324,
+          "name": "Fire Talon x10",
+          "item_class": "PrimalItemResource_ApexDrop_FireWyvern",
+          "qty": 10,
+          "tier": 2
+        },
+        {
+          "id": 8757325,
+          "name": "Lightning Talon x2",
+          "item_class": "PrimalItemResource_ApexDrop_LightningWyvern",
+          "qty": 2,
+          "tier": 2
+        },
+        {
+          "id": 8757326,
+          "name": "Lightning Talon x10",
+          "item_class": "PrimalItemResource_ApexDrop_LightningWyvern",
+          "qty": 10,
+          "tier": 2
+        },
+        {
+          "id": 8757327,
+          "name": "Poison Talon x2",
+          "item_class": "PrimalItemResource_ApexDrop_PoisonWyvern",
+          "qty": 2,
+          "tier": 2
+        },
+        {
+          "id": 8757328,
+          "name": "Poison Talon x10",
+          "item_class": "PrimalItemResource_ApexDrop_PoisonWyvern",
+          "qty": 10,
+          "tier": 2
         }
       ]
     },

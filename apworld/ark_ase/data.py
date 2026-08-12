@@ -129,6 +129,18 @@ def load_tame_logic_data() -> Dict[str, Any]:
         return {}
 
 
+def load_map_data() -> Dict[str, Any]:
+    """Map registry + which maps each id belongs to (data/maps.json).
+
+    Membership is many-to-many: most creatures and every engram exist on several maps, so an id
+    appears under each. "any" is not a map - it marks content not tied to one and is never
+    filtered out. Missing file = no map filtering at all, which is the pre-map behaviour."""
+    try:
+        return _load("maps.json")
+    except FileNotFoundError:
+        return {}
+
+
 def load_explore_data() -> Dict[str, Any]:
     """Exploration areas measured in-game with /dumppos (data/explore_areas.json).
 

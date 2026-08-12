@@ -331,7 +331,7 @@ private:
     // ---------------- one live session: recv loop + pump thread ----------------
     bool PumpSession() {
         // fresh per-connection protocol state (AP resends everything on reconnect)
-        receivedIdx_.clear();
+        { ApGuard g(itemsMx_); receivedIdx_.clear(); pendingItems_.clear(); }
         players_.clear();
         connectedOk_ = false;
         goaled_ = false;
@@ -394,16 +394,18 @@ private:
         } else if (cmd == "ReceivedItems") {
             int base = msg.value("index", 0);
             int i = 0;
-            for (auto& it : msg.value("items", json::array())) {
-                int idx = base + i++;
-                if (!receivedIdx_.insert(idx).second) continue;
-                json rec = { {"item_id", it.value("item", 0)},
-                             {"from", players_.count(it.value("player", -1))
-                                        ? players_[it.value("player", -1)] : std::string()},
-                             {"index", idx} };
-                std::ofstream f(cfg_.mailbox / "items_in.jsonl", std::ios::app);
-                if (f) f << rec.dump() << "\n";
+            {   ApGuard g(itemsMx_);
+                for (auto& it : msg.value("items", json::array())) {
+                    int idx = base + i++;
+                    if (receivedIdx_.count(idx)) continue;
+                    pendingItems_.push_back({ idx,
+                        json{ {"item_id", it.value("item", 0)},
+                              {"from", players_.count(it.value("player", -1))
+                                         ? players_[it.value("player", -1)] : std::string()},
+                              {"index", idx} } });
+                }
             }
+            FlushPendingItems();
         } else if (cmd == "RoomUpdate") {
             if (msg.contains("hint_points")) { hintPoints_ = msg.value("hint_points", 0); WriteHintStatus(); }
         } else if (cmd == "Bounced") {
@@ -507,6 +509,14 @@ private:
         for (auto& l : msg.value("checked_locations", json::array()))
             sentChecks_.insert(l.get<int>());
 
+        // Every location id this slot actually has. Reporting anything outside it is a NO-OP on the
+        // server - the check vanishes, no item is placed there, and nothing says so. That is what a
+        // note collected past your dossier_checks limit looks like in game: the plugin logs REPORT,
+        // the counter ticks down, and Archipelago never heard of it.
+        slotLocs_.clear();
+        for (auto& l : msg.value("checked_locations", json::array())) slotLocs_.insert(l.get<int>());
+        for (auto& l : msg.value("missing_locations", json::array())) slotLocs_.insert(l.get<int>());
+
         connectedOk_ = true;
         remaining_ = (int)msg.value("missing_locations", json::array()).size();
         PublishRemaining();
@@ -534,6 +544,31 @@ private:
     }
 
     // ---------------- pump: mailbox files -> AP (every 500ms) ----------------
+    // An item counts as DELIVERED only once its line is on disk. The index used to be consumed
+    // before the write was confirmed, which lost items permanently: a failed open (or a failed
+    // flush) left no line behind, the index looked spent, and AP's resend on the next reconnect
+    // carried the SAME index - which the plugin had by then watermarked past, so PollMailbox
+    // skipped it. The player saw the item awarded on the AP server and absolutely nothing in
+    // game, with /send (a fresh index) the only way to recover. Buffer the batch instead, write
+    // it through ONE stream, and consume the indices only after flush() reports success.
+    // PumpOnce retries whatever is still queued, so a transient lock costs a second, not an item.
+    void FlushPendingItems() {
+        ApGuard g(itemsMx_);
+        if (pendingItems_.empty()) return;
+        {   std::ofstream f(cfg_.mailbox / "items_in.jsonl", std::ios::app);
+            if (f) { for (auto& p : pendingItems_) f << p.rec.dump() << "\n"; f.flush(); }
+            if (!f || !f.good()) {
+                // Duplicate lines from a partial write are harmless (the plugin dedups by index),
+                // so a retry is always safe - dropping the item never is.
+                SetStatus("items_in.jsonl write FAILED for " +
+                          std::to_string(pendingItems_.size()) + " item(s) - will retry");
+                return;                      // nothing consumed; they stay queued
+            }
+        }
+        for (auto& p : pendingItems_) receivedIdx_.insert(p.idx);
+        pendingItems_.clear();
+    }
+
     void PumpLoop(std::atomic<bool>* pumpStop) {
         while (!*pumpStop && !stop_) {
             try { PumpOnce(); } catch (...) {}
@@ -543,6 +578,7 @@ private:
     }
     void PumpOnce() {
         if (!connectedOk_) return;
+        FlushPendingItems();                 // retry any item whose line never reached disk
         // checks_out.jsonl -> LocationChecks (whole-file read; dedup via sentChecks_)
         std::vector<int> fresh;
         { std::ifstream f(cfg_.mailbox / "checks_out.jsonl");
@@ -552,7 +588,20 @@ private:
               if (p == std::string::npos) continue;
               int loc = 0;
               try { loc = std::stoi(line.substr(line.find(':', p) + 1)); } catch (...) { continue; }
-              if (sentChecks_.insert(loc).second) fresh.push_back(loc);
+              if (!sentChecks_.insert(loc).second) continue;
+              // A location this slot does not have is silently dropped by the server. Say so, once
+              // per id, and do NOT count it against `remaining_` - a counter that ticks down for
+              // checks the server ignored is worse than no counter, because it looks like progress.
+              if (!slotLocs_.empty() && !slotLocs_.count(loc)) {
+                  cfg_.log("APC CHECK loc=" + std::to_string(loc) + " IS NOT IN THIS SLOT - the "
+                           "server will ignore it. Usually dossier_checks is lower than the number "
+                           "of notes your maps have, so the location was never created. Regenerate "
+                           "with a higher dossier_checks.");
+                  QueueMsg("AP: that check is not in your slot (loc " + std::to_string(loc) +
+                           ") - raise dossier_checks and regenerate.");
+                  continue;
+              }
+              fresh.push_back(loc);
           } }
         if (!fresh.empty()) {
             SendJson({ {"cmd", "LocationChecks"}, {"locations", fresh} });
@@ -703,8 +752,15 @@ private:
     bool goaled_ = false;
     int  mySlot_ = -1;
     int  hintCostPct_ = 10, hintPoints_ = 0, totalLocs_ = 0, remaining_ = 0;
-    std::set<int> receivedIdx_;                 // item indices written this connection
+    // items_in.jsonl bookkeeping. Touched by BOTH the receive thread (_handle) and the pump
+    // thread (PumpOnce retry), so it needs the lock - SRWLOCK, never std::mutex: the ancient
+    // msvcp140 in the ARK process crashes on the first std::mutex::lock().
+    struct PendingItem { int idx; json rec; };
+    mutable ApLock itemsMx_;
+    std::vector<PendingItem> pendingItems_;     // written to disk but not yet confirmed
+    std::set<int> receivedIdx_;                 // item indices CONFIRMED on disk this connection
     std::set<int> sentChecks_;                  // persists across reconnects (AP reseeds it too)
+    std::set<int> slotLocs_;                    // every location id this slot HAS (from Connected)
     std::set<std::string> goalBossTags_;        // required boss base-tags (goal via boss_out.jsonl)
     std::map<int, std::string> players_;
     // cross-game naming (from GetDataPackage) so "X sent <item> to Y" / hints read properly

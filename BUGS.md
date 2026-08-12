@@ -1,32 +1,234 @@
-## Added 2026-07-26: 270-generation fuzz sweep (2 passes)
-
-- Sweep #1 (160 gens, all solo): fuzzed goal/tiers/lock_taming/lock_crates/bundle_saddles/
-  free_starter/bundle_structures/engrams+tames_per_item/trap%/dossier/food+tame_sanity/
-  randomize_spawns/early_dino/station_placement/5 mod combos.
-- Sweep #2 (110 gens = 70 solo + 40 MULTIWORLD with 2-4 ARK slots each): covered what #1 missed -
-  extra_early_items, start_inventory_from_pool, tier0_add/tier0_remove, dossier_checks 0, all-8-mods,
-  and several ARK slots sharing one multiworld (#1 was 100% solo).
-- Checks were not just "did it error": an offline compile of every kill/tame/cave rule produced a
-  location -> required-items map, and each spoiler was scanned for SELF-GATING (an item placed on a
-  check whose own rule requires it - the "Collect 100 Sparkpowder unlocks Engram: Sparkpowder" class
-  of bug). Also sphere-collapse and per-slot multiworld reachability.
-- RESULT: 0 crashes, 0 accessibility failures, 0 self-gating, 0 multiworld slot issues, 0 sphere
-  collapses. Spheres ranged 3-12, clustering 5-6. 16 of 270 hit the intended pool-vs-locations guard.
-- FALSE POSITIVE in my own harness worth remembering: a "gate order" check comparing the PLAYTHROUGH
-  SPHERE of Forge/Anvil Bench/Fabricator flags cases that are perfectly valid. The sphere of a gate
-  item is where it is FOUND, not the tier it opens; Fabricator landing on a Tier 0 check (Collect 300
-  Stone) is legal. The real invariant (cannot reach a tier's checks without its gate) is enforced by
-  the region graph and already verified by AP's accessibility sweep.
-- FINDING - the shipped default has THIN headroom (measured margins):
-    default as shipped ............ OK
-    + food_sanity: 0 .............. FAIL (-10)
-    + dossier_checks: 200 ......... FAIL (-23)
-    + tame_sanity: 25 ............. FAIL (-65)
-  So any single location-reducing option tips the DEFAULT config over. Adding either
-  bundle_structures: true or engrams_per_item: 2 fixes all of them. The error message already names
-  the levers, but consider shipping one of those on by default if testers keep hitting it.
-
 # Known bugs / open items
+
+## Added 2026-08-11: v151's give-up made a TEMPORARY refusal permanent (FIXED, v159)
+
+Reported as "why did the tranq arrows fail to unlock". The log answered it, and the answer was a
+regression I shipped in v151:
+
+    [02:35:11] grant REFUSED ... PrimalItemAmmo_ArrowTranq_C (attempt 1)
+    [02:35:19] !! GIVING UP ... the game has no engram ENTRY for this class
+
+That diagnosis is wrong. `registry fallback: recovered=2` means only two classes came from the
+BPLoadClass fallback, yet TEN gave up - so at least eight had real engram entries. The ten:
+
+    ArrowTranq · BallistaArrow · Boulder_Fire · RefinedTranqDart · SimpleShotgunBullet
+    TranqSpearBolt · Parachute · CureLow · Narcotic · WeaponTripwireC4
+
+Every one is an engram with PREREQUISITE ENGRAMS. `ServerUnlockEngram(bForce=true)` bypasses the
+level and engram-point costs; it does NOT bypass prerequisites. Tranq Arrow needs Stone Arrow +
+Narcotic, Narcotic needs Mortar And Pestle, Refined Tranq Dart needs Tranq Dart, Tripwire C4 needs
+C4. Those are separate AP items that may arrive much later - so the refusal is TEMPORARY and
+nothing is wrong with the class, the registry or the data.
+
+v151 blacklisted the class after 10 failures, so when the prerequisite finally arrived the retry
+that would have fixed it had been switched off. Retrying forever was noisy; blacklisting was
+silently unrecoverable, which is worse. This also means the earlier "40 engrams could never be
+unlocked" entry was partly wrong - most were waiting on prerequisites, not broken.
+
+## Added 2026-08-10: every slot generated ONE item over its location count (FIXED)
+
+Reproducible on all three maps with the shipped default, and on every option combination tried:
+
+    the_island      items 747  locations 746     Unplaced items(1): [(Trap) Chain Bola'd]
+    scorched_earth  items 547  locations 546
+    ragnarok        items 516  locations 515
+
+Generation still wrote a seed, so it read as a warning - but the process exited non-zero and one
+filler item silently did not exist.
+
+Instrumenting `create_items` is what found it, because the apworld's own numbers were consistent:
+
+    ARKDIAG pool=742 n_locations=742 n_excluded=85 headroom=657
+
+AP saw +4 locations and +5 items on top of that. The +4 are the boss "X Defeated" EVENT locations
+and their event items - they cancel out. The odd one is the **HARD_PLACED Campfire**: `pre_fill`
+locks it straight onto a `Killed: X` location, and `_nonpool_names()` correctly keeps it out of
+the pool - but nothing reserved the LOCATION it consumes, so `create_items` padded filler all the
+way up to `n_locations` and the fill ended one item over.
+
+Fix: `_hard_placed_names()` returns the engrams pre_fill will actually lock (same conditions:
+in the item table, not already free via `free_starter_engrams`, and a host kill exists), and
+`create_items` pads to `n_locations - len(...)`. Verified rc=0 with no unplaced items on all three
+maps, with `randomize_dino_spawns` both off and grouped.
+
+Worth noting for the next one of these: adding a filler location would also have made the numbers
+balance, and would have permanently burned a datapackage id to hide a real accounting bug.
+
+## Added 2026-08-09: a "successful" engram grant that was only half done (FIXED, v156)
+
+v155 log, Lurch missing Pike and Bookshelf, both logged as verified grants to a LIVE controller -
+no `(skipped N disconnected)`, so v154's ghost-controller theory was wrong:
+
+    [20:07:20] APPLY id=8730151 new=1 engram=1 from=Lurch [Lurch]
+    [20:07:20] grant: ...PrimalItemStructure_Bookshelf_C controllers=1 already=0 granted=1 [Lurch]
+    [20:07:20] APPLY id=8730158 new=1 engram=1 from=Lurch [Lurch]
+    [20:07:20] grant: ...PrimalItem_WeaponPike_C controllers=1 already=0 granted=1 [Lurch]
+
+`ServerUnlockEngram` does TWO things: it records the class in the survivor's PERSISTENT stats
+(`FPrimalPersistentCharacterStatsStruct::PlayerState_EngramBlueprints`) and it adds the craftable
+blueprint to the CURRENT character's inventory. `HasEngram` only reads the first. So:
+
+- the record lands, `HasEngram` answers true, the grant verifies, the log says `granted=1`
+- the craftable never appears, so the player cannot build it
+- Reassert is permanently satisfied by `HasEngram` and never retries
+- a relog does not help, because the record is already there
+
+Every report fits: each missing engram landed seconds either side of a death (Fabricator +13s,
+Pike/Bookshelf +16s, Grappling Hook and C4 Ammo while dead outright) - exactly when the character
+and its inventory are being swapped out.
+
+Fixes in `GrantEngramToPlayers`:
+- **No body, no grant.** A controller with no `GetPlayerCharacter()` is skipped and counted, so
+  the unlock is deferred to a tick that can complete BOTH halves instead of locking in the record.
+  Reported as `(skipped N with no body)`.
+- **Push the craftable explicitly** via `AddEngramBlueprintToPlayerInventory`, rather than trusting
+  the unlock to have done it.
+- **Re-push on respawn.** A new character means a new inventory, so `g_bodyForRoute` /
+  `g_bpPushed` track which classes have been pushed to WHICH body and clear on change
+  (`BODY new for <route> ...`). Re-pushes are silent; only a genuinely new unlock is logged.
+
+Note for the existing seed: this DOES self-heal. State already records the items, Reassert walks
+every owned engram every tick, and it will now push the missing craftables on the next tick after
+the player has a body.
+
+
+## Added 2026-08-09: items were delivered to absent survivors (FIXED, v154/v155)
+
+Two reports - Lurch never got the Grappling Hook, then never got the Fabricator - where the log
+said the delivery SUCCEEDED. The Fabricator line even carried a verified grant:
+
+    [19:44:42] APPLY id=8730258 new=1 engram=1 from=Ghios [Lurch]
+    [19:44:42] grant: ...PrimalItemStructure_Fabricator_C controllers=1 already=0 granted=1 [Lurch]
+
+Since v151 `granted` only counts after `HasEngram` returns true, so the game confirmed it. The
+unlock landed - on the wrong player state.
+
+**Ghost controllers (v154).** A disconnected player's controller LINGERS in
+`PlayerControllerList` with its survivor name intact, so `RouteFor()` still matches it.
+`DoGreetJoiners` already filtered on `NetConnectionField()` for exactly this reason;
+`GrantEngramToPlayers` and `PcsForRoute` did not. An unlock applied to a lingering controller's
+player state verifies as a success, logs `granted=1`, reaches nobody, and leaves Reassert
+permanently satisfied so it never retries. `IsLivePc()` now excludes them everywhere, and skipped
+ghosts are named in the log: `(skipped 1 disconnected)`.
+
+**Waiting instead of deferring (v155).** Deferring only the EFFECT was never enough - ownership,
+the chat announcement and the engram unlock all still fired while the survivor was dead or gone.
+`PollMailbox` now holds the WHOLE mailbox for a route with no live, spawned survivor: nothing is
+drained, the watermark is not advanced, and the file replays intact when they are back on their
+feet. `RouteReady()` requires a controller with a NetConnection AND a spawned character, because
+a survivor on the respawn screen has the first without the second. Logged as a transition, not
+per tick: `MAILBOX held: Lurch ...` / `MAILBOX resumed: Lurch ...`.
+
+## Added 2026-08-09: "_unnamed" was a real, deliverable route (FIXED, v154/v155)
+
+`SanitizeRoute` falls back to `_unnamed` when a survivor name cannot be read (mid-spawn, respawn
+screen, a half-torn-down controller). `/connect` already refused to bind a session there, but
+everything else treated it as an ordinary route. Live-hit in one session:
+
+    [19:44:54] LEVEL 60/30 -> milestone_killlevel_hi
+    [19:44:54] REPORT loc=8751051 [_unnamed] -> checks_out.jsonl
+    [19:44:54] REPORT loc=8751052 [_unnamed] -> checks_out.jsonl
+
+Both milestones were marked checked against a route no AP client reads and written to a phantom
+`ipc\_unnamed` mailbox - destroyed, since a kill milestone is one-shot. `MailboxRoutes()` then
+enumerated that folder and polled it every tick for the rest of the boot.
+
+Now: `ReportLocation` refuses it and does NOT mark it, so the rescan re-reports under the real
+survivor once the name resolves; `DoPlayerDeath` refuses it rather than broadcasting a DeathLink
+nobody receives; `RouteReady()` is false for it; and `MailboxRoutes()` skips the folder with a
+one-time warning saying it is debris and safe to delete.
+
+
+## Added 2026-08-09: babies could not be claimed - "Taming is locked" (FIXED, v151)
+
+Beeno tamed two Megatherium, bred them, and could not claim the baby. His log
+(`ArkAP_debug (5).log`, `multiplayer=1`) shows the whole cycle repeating:
+
+    [13:29:54] BREED mate tag=Megatherium female=1
+    [13:35:11] TAME tag=Megatherium              <- birth, NO "by=" -> route unresolved
+    [13:41:36] TAME tag=Megatherium by=Beeno     <- his claim attempt
+
+The game calls `APrimalDinoCharacter::TameDino` with `ForPC = NULL` for a birth (and for a cryopod
+or soul-ball release, and for an admin tame). `RouteFor(null)` is `""`, and in MULTIPLAYER `""` is
+the root mailbox, which owns nothing by design - so `HasItem("", Tame: Megatherium)` was false and
+the gate refused. Solo never hit it, because there `""` IS the player's route.
+
+Fixed by `TamePcFor()`: with no controller, attribute by the dino's TARGETING TEAM (the same way
+kills are already attributed), used by both the gate and the "Tamed: X" check queue. If even that
+cannot name a player, the tame is ALLOWED - an unattributable tame must never be silently refused.
+
+## Added 2026-08-09: 40 engrams could never be unlocked, and retried forever (FIXED, v151)
+
+Same log: **1,001,589** `grant REFUSED by the game for ...` lines, 238 MB, roughly half the file.
+40 distinct classes, retried by `ReassertEngrams` every tick for every player, forever. Among them
+`PrimalItemConsumable_Stimulant` (19,175 refusals) - which is the "Engram: Stimulant is still
+locked" report, not a lost delivery.
+
+`UPrimalGameData` keeps engrams in three lists and `DoBuildRegistry` walked only
+`EngramBlueprintEntries`. Everything absent from it fell through to the BPLoadClass fallback -
+which maps the class fine, but a class loaded BY PATH has no engram ENTRY behind it, and
+`ServerUnlockEngram` works off entries. So the call was a silent no-op: item delivered, log said
+granted, `HasEngram` stayed false, engram locked forever.
+
+- `DoBuildRegistry` now also walks `EngramBlueprintClasses` and `AdditionalEngramBlueprintClasses`
+  (CDO -> `BluePrintEntry`), which ARE the game's own entries, before falling back to BPLoadClass.
+  Logs how many were reachable only that way.
+- A class that fails a VERIFIED grant `kGrantGiveUpAfter` (10) times is marked ungrantable, named
+  once with what to do about it, and skipped from then on. First 3 attempts still log.
+- `/apstatus` reports `UNGRANTABLE=n`.
+- A failed grant no longer counts toward `granted`, so the "grant:" line stops claiming successes
+  that did not happen.
+
+
+## Added 2026-08-09: an item could be awarded by Archipelago and NEVER reach the game (FIXED, v150)
+
+Reported as "occasionally unlocking an item does not send out the check in-game". Seen live on
+Engram: Stimulant and Tame: Otter: the AP server logged the item as sent, in game there was no
+chat line at all, and the engram/tame gate still said "still locked". `/send` fixed it.
+
+Root cause is a two-part failure, and neither part logged anything:
+
+1. `APClient.hpp` marked an item index as delivered BEFORE its line reached disk:
+   `if (!receivedIdx_.insert(idx).second) continue;` ran first, then `std::ofstream(...)` was
+   opened per item with only `if (f)` checked and no flush check. A failed open or a failed
+   flush left no line behind and no error, while the index looked spent.
+2. `PollMailbox` then made that permanent. AP resends the whole item list on every reconnect, so
+   the lost line DOES come back - with its original index. But the watermark had already moved
+   past it (the items after it wrote fine), so the line hit `idx <= watermark` and was skipped.
+   The `!backfilled` re-own only covers the FIRST non-empty pass of a boot, so it never ran.
+   `/send` worked because it is a NEW index, above the watermark.
+
+Fixes:
+- `APClient::FlushPendingItems()` buffers the batch, writes it through ONE stream, flushes, and
+  consumes the indices only after `good()`. `PumpOnce` retries whatever is left, so a transient
+  file lock costs a second instead of an item. Same write-then-record fix in the Python connector.
+- `PollMailbox` re-owns any `idx <= watermark` line this route does not actually own, not just on
+  the first pass. That turns a lost item into a "REOWN ... (state had lost it)" log line the next
+  time Archipelago resends, i.e. the next reconnect.
+- `ReownItem` now expands structure and mod bundles when state had lost the rep, which it did not
+  before - re-owning the rep alone would have unlocked nothing.
+- STALE WATERMARK GUARD: the watermark is only ever set from an index present in items_in.jsonl,
+  so it can never legitimately exceed the file's highest index. When it does, the mailbox was
+  reset without its watermark, and every item of the new seed up to the old mark was being eaten.
+  It is now cleared with a log line.
+- The Python connector's seed reset was deleting the wrong watermark path
+  (`dirname(ipc_root)`, which lands on the ipc folder when `--ipc-dir` has a trailing slash) and
+  never wrote the `seed_reset.json` marker `DoProcessSeedReset` waits for, so the old seed's
+  received set survived into the new one. Both fixed.
+
+## Added 2026-08-09: mod engram dumps are incomplete (Awesome Teleporters yielded 3)
+
+`DoDumpEngrams` walked only `UPrimalGameData::EngramBlueprintEntries`. That list is not a
+reliable index of the game's engrams - the same gap made 30 VANILLA engrams invisible (see
+`DoBuildRegistry`'s second pass, which recovers those via BPLoadClass). A dump has no such
+fallback, because discovering unknown classes is the whole point of it.
+
+v150 also walks `EngramBlueprintClasses` and `AdditionalEngramBlueprintClasses` (the field mods
+append to), reading each class's CDO, and de-duplicates by item class. Entries carry a `source`
+field naming which list they came from. RE-DUMP AND REGENERATE any mod catalog authored before
+v150; `tools/gen_mod.py` keeps already-shipped ids stable, so this is additive. New engrams mean
+new item ids, so an existing seed will not gain them - regenerate the multiworld.
+
 
 ## Added 2026-07-26: TIER_GATES order was INVERTED (Forge vs Smithy)
 

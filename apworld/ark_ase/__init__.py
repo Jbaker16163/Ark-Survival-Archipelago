@@ -18,11 +18,11 @@ from worlds.generic.Rules import add_rule
 from .data import (load_engram_data, load_location_data, load_dino_data, load_crate_data,
                    load_filler_data, load_tek_data, load_spawn_class_data,
                    load_spawn_container_data, load_tame_logic_data, load_mod_catalog,
-                   load_explore_data)
+                   load_explore_data, load_map_data)
 from .Items import (ArkItem, build_item_table, FILLER_NAME, FILLER_ID,
                     STRUCTURE_BUNDLES, structure_bundle_members)
 from .Locations import ArkLocation, build_location_table
-from .Options import ArkASAOptions, StationPlacement
+from .Options import ArkASAOptions, StationPlacement, Goal
 from .tame_logic import TameLogic, eval_ast
 
 GAME = "ARK Survival Evolved"
@@ -167,6 +167,17 @@ class ArkASAWorld(World):
     # exploration checks: polygons measured in-game. Map-scoped - the datapackage holds every
     # mapped region, _used_locations keeps only the ones for the maps this slot enabled.
     _explore = load_explore_data().get("regions", {})
+    # id -> the maps that carry it, from data/maps.json. Class level, like every other data table:
+    # the datapackage must be identical for every player in a multiworld, so this NEVER filters
+    # location_name_to_id / item_name_to_id. It only narrows the per-slot pool.
+    _map_data = load_map_data()
+    _map_content = _map_data.get("content", {})
+    # key -> can this map carry a slot on its own? Only the Island can today. The ~549 "any" items
+    # (engrams, craftable everywhere) go to EVERY slot, but locations are map-specific, and no
+    # other map has a location count in that range - Ragnarok has no explorer notes at all, so it
+    # never gets the 232 note checks that carry the pool. Enforced in generate_early so the player
+    # gets a sentence naming the fix instead of a raw headroom failure from create_items.
+    _map_standalone = {m["key"]: m.get("standalone", True) for m in _map_data.get("maps", [])}
     # Tek engrams: never in the AP pool - the plugin grants each boss's set on its first kill.
     _tek_names = {n for grants in load_tek_data().get("grants", {}).values() for n in grants}
     _filler_names = {f["ap_name"] for f in _filler.get("filler", [])} | {FILLER_NAME}
@@ -214,10 +225,88 @@ class ArkASAWorld(World):
                 "extinction": "extinction", "genesis_part_1": "genesis1",
                 "genesis_part_2": "genesis2", "the_center": "center", "ragnarok": "ragnarok",
                 "valguero": "valguero", "crystal_isles": "crystalisles",
-                "lost_island": "lostisland", "fjordur": "fjordur"}
+                "lost_island": "lostisland", "fjordur": "fjordur",
+                "lost_colony": "lostcolony", "astraeos": "astraeos"}
 
     def _active_map_keys(self) -> set:
         return {self._MAP_KEY.get(m, m) for m in self.options.maps.value}
+
+    def _check_maps_can_carry_a_slot(self) -> None:
+        """A cluster-only map picked on its own cannot fill a pool. Say so plainly.
+
+        Without this the player gets create_items' headroom error, which talks about engrams_per_item
+        and dossier_checks - none of which can fix the real problem, because the shortfall is the
+        map choice itself."""
+        if not self._map_standalone:                     # no registry = nothing to enforce
+            return
+        active = self._active_map_keys()
+        if any(self._map_standalone.get(k, True) for k in active):
+            return
+        to_yaml = {v: k for k, v in self._MAP_KEY.items()}
+        picked = ", ".join(sorted(to_yaml.get(k, k) for k in active))
+        carriers = ", ".join(sorted(to_yaml.get(k, k) for k, ok in self._map_standalone.items()
+                                    if ok and k != "any"))
+        raise OptionError(
+            f"ARK: maps [{picked}] cannot fill a slot on their own. These maps are supported as "
+            f"part of a CLUSTER - they share most of their content with the Island but have far "
+            f"fewer locations of their own (Ragnarok has no explorer notes at all), so the item "
+            f"pool has nowhere to go. Add a map that can carry a slot ({carriers}) to your 'maps' "
+            f"list, e.g. maps: [the_island, {sorted(to_yaml.get(k, k) for k in active)[0]}].")
+
+    def _check_rules_reachable(self) -> None:
+        """A location this slot KEEPS whose rule compiled to ('false',) can never be reached.
+
+        That happens when a requirement names content from a map this slot is not running - a cave
+        whose only listed mounts are Scorched creatures, say. The location filter cannot catch it,
+        because the location itself is on a map we ARE running; only the rule is impossible.
+
+        Left alone, AP surfaces this much later as an unfillable seed or a stranded item. Fail here
+        instead, naming the location, so the fix (widen the macro, or tag the location to the map
+        whose creatures it actually requires) is obvious. Costs nothing when nothing is missing."""
+        if not self._missing_items():
+            return
+        impossible = []
+        for name in self._used_locations():
+            if name.startswith("Tamed: "):
+                ast = self._tame_ast(name[len("Tamed: "):])
+            elif name.startswith("Killed: "):
+                ast = self._kill_ast(name[len("Killed: "):])
+            elif name.startswith("Artifact: "):
+                ast = self._cave_ast(name[len("Artifact: "):])
+            elif name.startswith("Boss: "):
+                ast = self._boss_ast(name[len("Boss: "):].split(" (")[0])
+            else:
+                continue
+            if ast == ("false",):
+                impossible.append(name)
+        if impossible:
+            shown = ", ".join(sorted(impossible)[:8])
+            more = f" (+{len(impossible) - 8} more)" if len(impossible) > 8 else ""
+            raise OptionError(
+                f"ARK: {len(impossible)} location(s) kept for your maps but gated on content those "
+                f"maps do not have: {shown}{more}. Either widen the requirement in tame_logic.json "
+                f"so it lists a creature these maps do have, or tag the location to the map whose "
+                f"content it really needs (Map column, docs/ADDING_A_MAP.md).")
+
+    def _map_filter(self, kind: str):
+        """Returns a predicate: is this id usable by THIS slot?
+
+        FAIL-OPEN by design. An id maps.json has never heard of is kept, because the alternative -
+        dropping anything untagged - turns "we forgot to tag a new category" into a silent content
+        loss that generation reports as a headroom failure somewhere else entirely. Mod content and
+        exploration regions are deliberately untagged here: mods are chosen by mod_ids, and regions
+        carry their own per-entry "map" field, so both must survive this filter untouched."""
+        buckets = self._map_content
+        if not buckets:                                  # no maps.json = no filtering (pre-map behaviour)
+            return lambda _i: True
+        active = self._active_map_keys() | {"any"}
+        allowed, known = set(), set()
+        for key, bucket in buckets.items():
+            ids = bucket.get(kind, ())
+            known.update(ids)
+            if key in active:
+                allowed.update(ids)
+        return lambda i: i in allowed or i not in known
 
     def _used_explore(self) -> dict:
         """region key -> entry, for the maps THIS slot runs. A region for a map the player is not
@@ -251,6 +340,23 @@ class ArkASAWorld(World):
                            if e.get("food"))
             keep = round(len(foods) * pct / 100)
             excluded |= set(foods) - set(self.random.sample(foods, keep))
+        # death_sanity: the cause-of-death checks. Same shape as the two above - a random subset per
+        # seed - so 0 removes them entirely for anyone who would rather not be nudged into dying.
+        pct = self.options.death_sanity.value
+        if pct < 100:
+            deaths = sorted(e["name"] for e in
+                            self._locations["location_categories"].get("deaths", {})
+                            .get("entries", []))
+            keep = round(len(deaths) * pct / 100)
+            excluded |= set(deaths) - set(self.random.sample(deaths, keep))
+        # death_milestones: the cumulative "die N times" set. Deliberately its own option rather
+        # than part of death_sanity - the cause checks happen while you play, whereas these reward
+        # dying over and over, which is a different thing to opt out of.
+        if not self.options.death_milestones.value:
+            excluded |= {m["name"] for m in
+                         self._locations["location_categories"].get("milestones", {})
+                         .get("entries", [])
+                         if m.get("tag", "").startswith("milestone_deaths_")}
         self._sanity_excluded_cache = excluded
         return excluded
 
@@ -260,14 +366,24 @@ class ArkASAWorld(World):
     def _used_locations(self) -> Dict[str, int]:
         cats = self._locations["location_categories"]
         used: Dict[str, int] = {}
-        for e in cats["dossiers"]["entries"][: self.options.dossier_checks.value]:
+        # Take the first N notes THIS SLOT CAN REACH. The list holds every map's notes interleaved
+        # by note index, so slicing before filtering would hand an Island player a window full of
+        # Scorched notes, drop them again at the end, and quietly leave them with far fewer than N
+        # locations - which surfaces much later as a headroom failure.
+        keep_note = self._map_filter("locations")
+        notes = [x for x in cats["dossiers"]["entries"] if keep_note(x["id"])][
+            : self.options.dossier_checks.value]
+        for e in notes:
             used[e["name"]] = e["id"]
         # NOTE: "bosses" is intentionally NOT here - boss kills are the goal (via boss_out.jsonl),
         # not item-bearing checks, so nothing gets stranded behind a boss kill.
         # "Collect N Explorer Notes" milestones scale with dossier_checks: you can't collect more
         # notes than exist as checks. dossier_checks=0 (notes off) drops them all, so a player who
         # turned notes off isn't stuck with impossible note-count milestones.
-        n_notes = self.options.dossier_checks.value
+        # Gate the "Collect N Explorer Notes" milestones on the notes this slot ACTUALLY has, not on
+        # the raw option. The option is a cap, and the real count is min(option, notes on your maps)
+        # - so an Island slot asking for 400 still only has 232, and "Collect 250" must not appear.
+        n_notes = len(notes)
         for key in ("milestones", "levels", "alpha_kills", "inventory_checks", "deaths"):
             for e in cats.get(key, {}).get("entries", []):
                 tag = e.get("tag", "")
@@ -295,7 +411,11 @@ class ArkASAWorld(World):
             used["Explore: " + r["name"]] = r["id"]
         for name in self._sanity_excluded():             # tame_sanity / food_sanity drops
             used.pop(name, None)
-        return used
+        # Finally drop anything that belongs only to a map this slot is not running. A Scorched
+        # note or a Ragnarok-only tame is unreachable on an Island server, and an unreachable
+        # location either fails generation or strands an item behind it.
+        keep = self._map_filter("locations")
+        return {n: i for n, i in used.items() if keep(i)}
 
     # saddle engram ap_names removed from the pool when bundle_saddles is on (granted with the tame).
     def _bundled_saddle_names(self) -> set:
@@ -424,6 +544,47 @@ class ArkASAWorld(World):
             self._auto_grant_cache = cache
         return cache
 
+    # Caches that depend on how engrams are grouped. _fit_pool_to_locations drops these when it
+    # changes the factor. Everything ELSE is left alone on purpose - _sanity_excluded_cache in
+    # particular must never be dropped, because it is a per-seed random sample that create_regions
+    # has already used to decide which locations exist; re-rolling it here would desync the two.
+    _GROUPING_CACHES = ("_engram_groups_cache", "_tame_groups_cache", "_bundle_remap_cache",
+                        "_tame_rep_cache", "_auto_grant_cache", "_free_items_cache",
+                        "_group_forced_prog_cache", "_direct_cache", "_ride_map_cache",
+                        "_tame_req_cache", "_ccg_cache")
+
+    def _build_pool_names(self) -> list:
+        """The item names this slot would pool at the current grouping factor."""
+        skip = (self._nonpool_names() | self._engram_group_members() | self._tame_group_members())
+        bundles = (structure_bundle_members(self._slot_engrams(), self._active_mod_engrams())
+                   if self.options.bundle_structures.value else {})
+        skip_bundle_items = ({b for b, m in bundles.items() if not m} if bundles
+                             else set(STRUCTURE_BUNDLES))
+        keep_item = self._map_filter("items")
+        return [name for name, iid in self.item_name_to_id.items()
+                if name not in self._filler_names and name not in skip
+                and name not in skip_bundle_items and keep_item(iid)]
+
+    def _fit_pool_to_locations(self, headroom: int) -> None:
+        """Raise engram grouping until the pool fits the slot's locations.
+
+        A map's locations are its own, but the ~549 "any" items - almost all engrams, craftable
+        everywhere - go to EVERY slot. So a smaller map starts with more items than places to put
+        them, and previously that was a hard error telling the player to set engrams_per_item
+        themselves. Doing it for them is what lets any map be played on its own.
+
+        Only ever tightens, never loosens: a slot that already fits keeps the player's setting."""
+        if len(self._build_pool_names()) <= headroom:
+            return
+        start = self._engrams_per_item()
+        for n in range(max(2, start + 1), 5):                # option range tops out at 4
+            self._engrams_per_item_override = n
+            for c in self._GROUPING_CACHES:
+                self.__dict__.pop(c, None)
+            if len(self._build_pool_names()) <= headroom:
+                return
+        # Out of grouping headroom - leave the highest factor set so the error names the real gap.
+
     def create_items(self) -> None:
         pool = []
         # _nonpool_names() = saddles / starters / tek / inactive-mod / wrong-variant / auto-grant /
@@ -436,7 +597,7 @@ class ArkASAWorld(World):
         # server sends precollected items on connect, so the plugin grants them in-game.
         for name in self._auto_grant_names():
             self.multiworld.push_precollected(self.create_item(name))
-        bundles = (structure_bundle_members(self._engrams, self._active_mod_engrams())
+        bundles = (structure_bundle_members(self._slot_engrams(), self._active_mod_engrams())
                    if self.options.bundle_structures.value else {})
         # bundle items are pooled only when bundling is ON *and* the bundle actually has members -
         # Adobe/Glass only exist in building mods, so a vanilla slot must not carry a dead item.
@@ -445,27 +606,39 @@ class ArkASAWorld(World):
         # (player-picked starting items: use the standard start_inventory_from_pool yaml option -
         #  AP core precollects them + swaps filler into the pool.)
         # one of each progression item (skip every filler/trap entry + any bundled saddles)
-        for name in self.item_name_to_id:
+        # An item for a map this slot is not running has nothing to unlock - a Wyvern tame item on
+        # an Island server is a dead progression item that eats a location and can gate a rule.
+        keep_item = self._map_filter("items")
+        for name, iid in self.item_name_to_id.items():
             if name in self._filler_names or name in skip or name in skip_bundle_items:
+                continue
+            if not keep_item(iid):
                 continue
             pool.append(self.create_item(name))
         # pad to location count with a mix of traps and neutral filler (trap_percentage).
-        n_locations = len(self._used_locations())
+        # minus the locations pre_fill will lock a HARD_PLACED engram onto - they are not in the
+        # pool, but they do take a slot.
+        n_locations = len(self._used_locations()) - len(self._hard_placed_names())
         # The real budget is NOT just pool <= locations. Every EXCLUDED location (holograms, alphas,
         # big grind milestones, high levels, hard notes - see _regions_flat) can only hold
         # non-progression, so the pool must leave that many FILLER slots or AP fails later with
         # "Not enough filler items for excluded locations". Check it here, where we can name the
         # cause and the fix, instead of surfacing as a bare FillError.
-        n_excluded = len(self._excluded_progression_names())
+        # Count only the excluded names that are ACTUALLY locations in this slot. The set is built
+        # from the whole data table, so it lists names for content other maps have - and counting
+        # those shrinks the headroom for a map that never had them. Adding two Scorched alphas cost
+        # an Island slot two usable slots before this was intersected.
+        n_excluded = len(self._excluded_progression_names() & set(self._used_locations()))
         headroom = n_locations - n_excluded
         if len(pool) > headroom:
             mods = ", ".join(d["name"] for d in self._active_mods().values()) or "none"
             raise ValueError(
                 f"ARK: {len(pool)} items but only {headroom} usable slots "
                 f"({n_locations} locations - {n_excluded} that must hold filler). "
-                f"Active mods: {mods}. Fix by shrinking the pool (engrams_per_item: 2 frees the most, "
-                f"then bundle_structures: true, bundle_saddles: true, free_starter_engrams: true, "
-                f"tames_per_item: 2), dropping a large mod from mod_ids, or ADDING locations "
+                f"Active mods: {mods}. Engram grouping was already raised automatically to "
+                f"{self._engrams_per_item()} and it still does not fit. Shrink the pool further "
+                f"(bundle_structures: true, bundle_saddles: true, free_starter_engrams: true, "
+                f"tames_per_item: 2), drop a large mod from mod_ids, or ADD locations "
                 f"(raise dossier_checks / tame_sanity / food_sanity).")
         traps = [f["ap_name"] for f in self._filler.get("filler", []) if f.get("trap")]
         goods = [f["ap_name"] for f in self._filler.get("filler", []) if not f.get("trap")] or [FILLER_NAME]
@@ -478,12 +651,47 @@ class ArkASAWorld(World):
         self.multiworld.itempool += pool
 
     # boss-defeat goal: "Broodmother Defeated" etc, derived from the boss location names.
+    # A boss tag is "<base>_<difficulty>", and the plugin recovers the base by cutting at the LAST
+    # underscore - so "Iceworm_Queen_Gamma" is the boss "Iceworm_Queen". Splitting on the FIRST
+    # underscore instead yields "Iceworm", which matches nothing the plugin ever reports.
+    @staticmethod
+    def _boss_base(tag: str) -> str:
+        return tag.rsplit("_", 1)[0] if "_" in tag else tag
+
     def _boss_events(self) -> Dict[str, str]:
+        """Defeat events for bosses THIS SLOT can reach. Unfiltered, a Scorched-only slot would be
+        asked to kill the Island's four and the seed is unbeatable."""
+        keep = self._map_filter("locations")
         events: Dict[str, str] = {}
         for b in self._locations["location_categories"]["bosses"]["entries"]:
+            if not keep(b["id"]):
+                continue
             short = b["name"].replace("Boss: ", "").split(" (")[0]   # "Broodmother"
             events[short + " Defeated"] = b["name"]
         return events
+
+    def _boss_base_order(self) -> list:
+        """Base tags of this slot's reachable bosses, first-seen order (= location id order)."""
+        keep = self._map_filter("locations")
+        order, seen = [], set()
+        for b in self._locations["location_categories"]["bosses"]["entries"]:
+            base = self._boss_base(b["tag"])
+            if base not in seen and keep(b["id"]):
+                seen.add(base)
+                order.append(base)
+        return order
+
+    def _goal_event_names(self) -> list:
+        """The "X Defeated" events the goal requires - same bosses fill_slot_data sends the plugin,
+        so the win condition and what the plugin counts can never disagree."""
+        keep = self._map_filter("locations")
+        short_of = {}
+        for b in self._locations["location_categories"]["bosses"]["entries"]:
+            base = self._boss_base(b["tag"])
+            if keep(b["id"]) and base not in short_of:
+                short_of[base] = b["name"].replace("Boss: ", "").split(" (")[0]
+        return [short_of[t] + " Defeated"
+                for t in self._goal_boss_tags(self._boss_base_order()) if t in short_of]
 
     # real note location names (Dossier: X / Helena Note #N / Hologram: X / etc - NOT the generic
     # "Explorer Note N" placeholder, which stopped matching anything after the Island rebalance).
@@ -573,7 +781,7 @@ class ArkASAWorld(World):
             m = {}
             if self.options.bundle_structures.value:
                 for bundle, members in structure_bundle_members(
-                        self._engrams, self._active_mod_engrams()).items():
+                        self._slot_engrams(), self._active_mod_engrams()).items():
                     for mem in members:
                         m[mem] = bundle
             for rep, members in self._engram_groups().items():   # member engram -> its group rep
@@ -595,7 +803,7 @@ class ArkASAWorld(World):
                 | {n for n in HARD_PLACED if n in self.item_name_to_id})   # locked onto early kills
         if self.options.bundle_structures.value:
             for members in structure_bundle_members(
-                    self._engrams, self._active_mod_engrams()).values():
+                    self._slot_engrams(), self._active_mod_engrams()).values():
                 skip |= members
         for mod in self._active_mods().values():
             for b in mod.get("bundles", []):
@@ -646,10 +854,15 @@ class ArkASAWorld(World):
 
     # rep ap_name -> [folded member ap_names]. Engrams chunked in id order (= dump / tech-tree /
     # progression order), so a group holds progression-adjacent engrams.
+    # The grouping factor actually in force. Normally the yaml option, but create_items raises it
+    # when a slot has fewer locations than items - see _fit_pool_to_locations.
+    def _engrams_per_item(self) -> int:
+        return getattr(self, "_engrams_per_item_override", None) or self.options.engrams_per_item.value
+
     def _engram_groups(self) -> dict:
         cache = getattr(self, "_engram_groups_cache", None)
         if cache is None:
-            n = self.options.engrams_per_item.value
+            n = self._engrams_per_item()
             cache = {}
             if n > 1:
                 skip = self._nonpool_names()
@@ -768,7 +981,7 @@ class ArkASAWorld(World):
                 out[str(m)] = int(rep_id)
         if self.options.bundle_structures.value:                       # material structure bundles
             for bundle, members in structure_bundle_members(
-                    self._engrams, self._active_mod_engrams()).items():
+                    self._slot_engrams(), self._active_mod_engrams()).items():
                 if members:
                     for m in members:
                         add(m, bundle)
@@ -805,13 +1018,42 @@ class ArkASAWorld(World):
             self._free_items_cache = m
         return m
 
-    # AST rule for taming a roster dino ('true' = no requirement).
+    def _slot_engrams(self) -> dict:
+        """self._engrams narrowed to the engrams this slot's maps actually have.
+
+        Structure bundles are computed from THIS, not the full table. Adobe pieces are real vanilla
+        engrams on Scorched Earth, so once they exist in engrams.json the Adobe bundle would stop
+        being empty for everyone - and an Island-only slot would pool a bundle item that unlocks
+        nothing it can reach. Filtering here keeps that bundle empty where it should be, and
+        create_items already refuses to pool an empty bundle."""
+        cached = getattr(self, "_slot_engrams_cache", None)
+        if cached is None:
+            keep = self._map_filter("items")
+            cached = dict(self._engrams)
+            cached["engrams"] = [e for e in self._engrams["engrams"] if keep(e["id"])]
+            self._slot_engrams_cache = cached
+        return cached
+
+    def _missing_items(self) -> frozenset:
+        """AP item names this slot can never receive because they belong to another map.
+
+        The mirror of _free_items(): free items are always held, these are never held. Both have to
+        be known to the compiler, because both turn a has() leaf into a constant - and a leaf left
+        as has(<unreachable item>) silently strands whatever it gates."""
+        cached = getattr(self, "_missing_items_cache", None)
+        if cached is None:
+            keep = self._map_filter("items")
+            cached = frozenset(n for n, i in self.item_name_to_id.items() if not keep(i))
+            self._missing_items_cache = cached
+        return cached
+
+    # AST rule for taming a roster dino ('true' = no requirement, 'false' = not on this slot's maps).
     def _tame_ast(self, short: str):
         tl = self._tame()
         if not tl:
             return ("true",)
         return tl.compile(tl.dino_expr(short, self._dino_tier(short)), self._bundle_remap(),
-                          self._free_items(), self._direct_nodes())
+                          self._free_items(), self._direct_nodes(), self._missing_items())
 
     def _compile_expr(self, expr: str):
         # `direct` must be passed here too: the sheet's CAVE requirements use the same Ride<X> /
@@ -819,7 +1061,7 @@ class ArkASAWorld(World):
         # compiles caves, bosses, tributes and note-caves.
         tl = self._tame()
         return tl.compile(expr, self._bundle_remap(), self._free_items(),
-                          self._direct_nodes()) if tl else ("true",)
+                          self._direct_nodes(), self._missing_items()) if tl else ("true",)
 
     # ---- KILL gating (realism): water creatures need diving gear, apex predators a real weapon ----
     # Reuses spawn_classes.json (habitat/danger). A tiny manual map fixes the few creatures the two
@@ -946,7 +1188,8 @@ class ArkASAWorld(World):
             expr = f"({expr}) + ({floor})" if expr else floor
         if not expr:
             return ("true",)
-        return tl.compile(expr, self._bundle_remap(), self._free_items(), self._direct_nodes())
+        return tl.compile(expr, self._bundle_remap(), self._free_items(), self._direct_nodes(),
+                          self._missing_items())
 
     def _kill_expr(self, short: str, tag: str = "") -> str:
         m = getattr(self, "_kill_expr_map", None)
@@ -971,6 +1214,16 @@ class ArkASAWorld(World):
         arts = self._tame_logic_data.get("boss_artifacts", {}).get(boss_short)
         if arts:
             kids = [k for k in (self._cave_ast(a) for a in arts) if k != ("true",)]
+            # Some bosses also demand TRIBUTE items on top of the artifacts, and those come off a
+            # creature. The Manticore's portal wants 2/10/20 Fire + Lightning + Poison Talon
+            # (gamma/beta/alpha) as well as its three artifacts, and every talon drops from a
+            # Wyvern - so "can reach the Manticore" means "can kill a Wyvern", which the artifact
+            # caves alone never implied. Uses _tame_ast, not _compile_expr: a creature name is not
+            # an item name, and _compile_expr would silently collapse an unknown token to true.
+            for dino in self._tame_logic_data.get("boss_tribute_dino", {}).get(boss_short, []):
+                k = self._tame_ast(dino)
+                if k and k != ("true",):
+                    kids.append(k)
             return ("and", kids) if len(kids) > 1 else (kids[0] if kids else ("true",))
         if boss_short in self._tame_logic_data.get("overseer_bosses", []) or boss_short == "Overseer":
             if boss_short == "Overseer":
@@ -1077,6 +1330,14 @@ class ArkASAWorld(World):
     def generate_early(self) -> None:
         self._active_mods()          # validate mod_ids HERE so a bad option fails fast and clearly,
                                      # instead of surfacing as a stack trace mid-create_regions
+        self._check_maps_can_carry_a_slot()
+        self._check_rules_reachable()
+        # Fit the pool to this slot's locations BEFORE create_regions runs. The tier gates cache
+        # their engram names through _bundle_remap while regions are built, so regrouping later
+        # would leave a gate naming an engram that is no longer in the pool - the region then never
+        # opens and the fill dies with "no more spots" rather than anything informative.
+        used = self._used_locations()
+        self._fit_pool_to_locations(len(used) - len(self._excluded_progression_names() & set(used)))
         glob = self.options.station_placement.value == StationPlacement.option_global_early
         target = self.multiworld.early_items if glob else self.multiworld.local_early_items
         for name in self._extra_early_names():
@@ -1087,6 +1348,19 @@ class ArkASAWorld(World):
     # in this world (never wait on a friend) and correctly ordered. Only kills/levels are eligible:
     # notes are tedious to hunt, and TAMES are locked behind a Tame: X item (lock_taming), so a gate
     # on a tame wouldn't be reachable early.
+    # HARD_PLACED engrams are locked straight onto a location in pre_fill, so each one CONSUMES a
+    # location without ever being in the pool. create_items has to reserve those slots or it pads
+    # filler right up to the location count and the fill ends one item over - which is exactly what
+    # every seed did: "items 747, locations 746, Unplaced items(1)". Generation still finished, so
+    # it read as a warning rather than the off-by-one it was.
+    def _hard_placed_names(self) -> set:
+        used = self._used_locations()
+        if not any(f"Killed: {h}" in used for h in EARLY_KILL_HOSTS):
+            return set()                       # no host to lock onto - pre_fill will skip them all
+        already_free = self._free_starter_names()
+        return {n for n in HARD_PLACED
+                if n in self.item_name_to_id and n not in already_free}
+
     def pre_fill(self) -> None:
         # HARD_PLACED core engrams (Campfire): not free, not a random-pool item - lock each onto an
         # easy early-dino KILL so it's trivially early but still earned in-world. Killed: X on a weak
@@ -1294,8 +1568,30 @@ class ArkASAWorld(World):
     def _goal_bosses(self) -> int:
         return self.options.goal.value + 1     # 1..4 cumulative (BM, +MP, +Dragon, +Overseer)
 
+    def _goal_boss_tags(self, order: list) -> list:
+        """Which boss base-tags this slot must defeat, from the bosses it can actually reach.
+
+        The historical options are cumulative over the Island's four. `all_bosses_all_maps` instead
+        means every boss on the maps you enabled - which on an Island-only slot is exactly the same
+        four, so the option is safe to pick without knowing your map list."""
+        if self.options.goal.value >= Goal.option_all_bosses_all_maps:
+            return order
+        # Keep the historical order for the cumulative options: Broodmother, Megapithecus, Dragon,
+        # Overseer. Sorting `order` by that list keeps them first even on a cluster, so a Scorched
+        # cluster with goal=all_bosses still means the Island four, not "the first four found".
+        rank = {t: i for i, t in enumerate(
+            ["SpiderBoss", "GorillaBoss", "DragonBoss", "Overseer"])}
+        ranked = sorted(order, key=lambda t: rank.get(t, 99))
+        return ranked[: self._goal_bosses()]
+
     def set_rules(self) -> None:
-        excluded = self._sanity_excluded()
+        # Every "skip this one" test below reads `excluded`, so fold the map filter into it rather
+        # than guarding a dozen get_location() calls individually. The loops here walk the FULL data
+        # tables (all dinos, all milestones), not this slot's location set - so without this, a
+        # creature belonging to another map raises KeyError: 'Tamed: Griffin' on an Island slot,
+        # because the location was correctly never created.
+        excluded = self._sanity_excluded() | (set(self.location_name_to_id) -
+                                              set(self._used_locations()))
         # Crafted "Collect N <resource>" checks require the engram/station that makes the resource -
         # you can't hold 100 sparkpowder without the Sparkpowder engram. Blocks the self-circular fill
         # (Engram: Sparkpowder landing on Collect Sparkpowder). Remapped for count-grouping.
@@ -1458,9 +1754,10 @@ class ArkASAWorld(World):
                 if ast != ("true",):
                     add_rule(self.multiworld.get_location(name, self.player),
                              lambda state, a=ast: eval_ast(a, state, self.player))
-        # Goal = defeat the first N bosses (collect their defeat events). Boss order matches
-        # loc-id order: Broodmother, Megapithecus, Dragon, Overseer.
-        events = list(self._boss_events())[: self._goal_bosses()]
+        # Goal = defeat the bosses this slot can actually reach, in the same set fill_slot_data
+        # hands the plugin. Taking "the first N of every boss in the file" made a Scorched-only
+        # slot require the Island's four, which is unbeatable by construction.
+        events = self._goal_event_names()
         self.multiworld.completion_condition[self.player] = \
             lambda state: all(state.has(n, self.player) for n in events)
 
@@ -1480,14 +1777,25 @@ class ArkASAWorld(World):
     # land apexes (Carcha/Rex/Giga...) were overpopulating; this thins them to rare encounters.
     DANGER_WEIGHT = {"apex": 0.1, "mid": 0.5, "docile": 1.0}
 
+    # Containers belong to a MAP, and only the maps this slot runs may be dealt into. Two reasons:
+    # a container that does not exist on the running map is a dead override line, and - the real
+    # problem - dealing the same species across another map's containers as well THINS every biome
+    # it does reach. An Island slot has 14 containers; letting Scorched's 8 and Ragnarok's 17 join
+    # the round-robin would cut each Island biome's roster by two thirds.
+    def _slot_containers(self) -> list:
+        active = {self._MAP_KEY.get(m, m) for m in self.options.maps.value} or {"island"}
+        return [c for c in self._spawn_containers
+                if not c.get("map") or c["map"] in active]
+
     def _spawn_overrides(self) -> list:
         mode = self.options.randomize_dino_spawns.value
-        if not mode or not self._spawn_classes or not self._spawn_containers:
+        containers = self._slot_containers()
+        if not mode or not self._spawn_classes or not containers:
             return []
         if mode == 2:      # chaos: one big deal across every container, equal weights
             weight = {e["class"]: 1.0 for e in self._spawn_classes}
             pools = {"all": [e["class"] for e in self._spawn_classes]}
-            groups = {"all": [c["container"] for c in self._spawn_containers]}
+            groups = {"all": [c["container"] for c in containers]}
         else:              # grouped: land+air species -> land containers, water -> water
             weight = {e["class"]: self.DANGER_WEIGHT.get(e.get("danger", "docile"), 1.0)
                       for e in self._spawn_classes}
@@ -1496,7 +1804,7 @@ class ArkASAWorld(World):
                 "water": [e["class"] for e in self._spawn_classes if e["habitat"] == "water"],
             }
             groups = {"land": [], "water": []}
-            for c in self._spawn_containers:
+            for c in containers:
                 groups.setdefault(c["habitat"], []).append(c["container"])
         assign: Dict[str, list] = {}
         for key, containers in groups.items():
@@ -1532,15 +1840,13 @@ class ArkASAWorld(World):
         # Boss KILLS are no longer AP check locations (nothing can get stranded behind a hard or
         # near-impossible boss kill). The plugin signals each defeat by base-tag to boss_out.jsonl;
         # the client sends the AP goal once every required tag has appeared.
-        order: list = []
-        seen: set = set()
-        for b in self._locations["location_categories"]["bosses"]["entries"]:
-            base = b["tag"].split("_")[0]
-            if base not in seen:
-                seen.add(base)
-                order.append(base)
+        # MAP-FILTERED. A boss on a map this slot is not running can never be defeated, so putting
+        # it in the goal makes the seed unwinnable. The Island's four are the historical order;
+        # Scorched's Manticore only appears here for a slot that actually runs Scorched or
+        # Ragnarok (whose arena is the Dragon and Manticore together).
+        order = self._boss_base_order()
         return {"goal_bosses": self._goal_bosses(),
-                "goal_boss_tags": order[: self._goal_bosses()],
+                "goal_boss_tags": self._goal_boss_tags(order),
                 "bundle_saddles": bool(self.options.bundle_saddles.value),
                 "free_starter_engrams": bool(self.options.free_starter_engrams.value),
                 "death_link": bool(self.options.death_link.value),

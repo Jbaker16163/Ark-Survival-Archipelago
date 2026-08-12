@@ -30,6 +30,19 @@ EXCLUDE = (
     "MegaRaptor", "MegaCarno", "MegaRex", "MegaMegalodon", "Mega_", "_Mega", "Alpha",
     "Retrieve", "Summon", "Baby", "Gen2", "Bog", "STA_", "Race", "Hunt", "Mission",
     "Titanosaur", "Bee_Queen", "Bee_Character",  # map-limited mega spawn / hive mechanic
+    # Scorched/Ragnarok bosses and minibosses. None of them contain "Boss", so they have to be
+    # named: a shuffled Lava Elemental or Iceworm Queen in a beach roster is not a fauna change,
+    # it is a dead new player. "_LL_" is the Ragnarok Spirit pair (Direbear_LL / Direwolf_LL).
+    "LavaGolem", "Iceworm", "_LL_",
+    # alphas whose prefix the "Mega_"/"_Mega" patterns miss (no underscore after Mega)
+    "MegaWyvern", "MegaDeathworm",
+    # Aberration-only; it turned up in a Ragnarok harvest via a mod and must never be dealt
+    # into an ASE biome roster.
+    "Basilisk",
+    # Kraken's Better Dinos re-skins and mod-only species. The re-skins duplicate a vanilla
+    # species already in the list, and the mod-only ones would be shuffled onto servers that do
+    # not run the mod. Both are wrong; the vanilla class covers the check either way.
+    "BDCoel", "BDDragonfly", "BDPiranha", "BDStygi", "BDStyrac", "BDWild", "BDBionic",
 )
 
 # The Island's cave roster - kept OUT of the shuffle entirely (their spawns stay vanilla).
@@ -51,12 +64,16 @@ CAVE_CLASSES = (
 # danger classification (grouped mode down-weights predators so zones aren't predator-saturated:
 # apex EntryWeight 0.2, mid 0.5, docile 1.0 - the weights themselves live in the apworld).
 APEX_STEMS = ("Rex_", "Gigant_", "Carcha_", "Spino_", "Allo_", "Yutyrannus", "Therizino",
-              "Mosa_", "Plesiosaur", "Tusoteuthis", "Rhynio", "Leeds", "Liopleurodon")
+              "Mosa_", "Plesiosaur", "Tusoteuthis", "Rhynio", "Leeds", "Liopleurodon",
+              # Scorched / Ragnarok
+              "Wyvern", "Golem", "Deathworm")
 MID_STEMS = ("Carno_", "Raptor_", "Sarco_", "Kaprosuchus", "Baryonyx", "Direbear", "Direwolf",
              "Thylacoleo", "Purlovia", "TerrorBird", "Saber_", "Hyaenodon", "Daeodon", "Troodon",
              "Bigfoot", "Chalico", "Argent_", "Quetz", "Dimorph", "Microraptor", "FlyingAnt",
              "Megalodon", "Dunkle", "Angler", "Eel_", "Cnidaria", "Piranha", "Manta",
-             "Euryp")
+             "Euryp",
+             # Scorched / Ragnarok
+             "Griffin", "Mantis", "SpineyLizard")
 
 
 def danger(cls: str) -> str:
@@ -77,7 +94,13 @@ WATER_KEYS = (
 AIR_KEYS = (
     "Ptero", "Argent", "Pela", "Dimorph", "Bat", "Ichthyornis", "Quetz", "Tapejara", "Rhynio",
     "Vulture", "Microraptor", "Archa", "FlyingAnt",   # Microraptor/Archa glide - treat as air-ish
+    "Wyvern", "Griffin", "Phoenix",
 )
+
+# EXACT class names, for species whose name is a substring of another species'. Lymantria is
+# "Moth_Character_BP_C" and "Mammoth_Character_BP_C" ENDS with that, so no substring key can
+# separate them - a bare "Moth" or even "Moth_Character" files the Mammoth as a flyer.
+AIR_CLASSES = ("Moth_Character_BP_C",)
 
 # rare/cave/deep spawns that a normal harvest pass often misses, but whose class names are
 # verified against ark.wiki.gg blueprint paths (2026-07-14 audit). Appended if not harvested.
@@ -98,6 +121,8 @@ WIKI_CONFIRMED_EXTRA = (
 
 
 def habitat(cls: str) -> str:
+    if cls in AIR_CLASSES:
+        return "air"
     low = cls.lower()
     if any(k.lower() in low for k in WATER_KEYS):
         return "water"

@@ -210,8 +210,16 @@ class Bridge:
             pass
         if not self._seed or self._seed == last:
             return
+        # The plugin keeps the ROOT watermark in its own folder and every other route's INSIDE
+        # that route's mailbox. Only the root one used to be cleared, and via
+        # dirname(ipc_root) - which lands on the ipc folder instead of the plugin folder the
+        # moment --ipc-dir is passed with a trailing slash. Either way a surviving watermark
+        # silently swallowed every item of the new seed up to the old high-water mark, with no
+        # log line and no way back except /send. Clear both, and let the plugin's own stale
+        # watermark guard catch whatever a wrong path still misses.
         for f in (self.items_in, self.boss_out,
-                  os.path.join(os.path.dirname(self.ipc_root), "applied_index.json")):
+                  os.path.join(self.ipc_dir, "applied_index.json"),
+                  os.path.join(os.path.dirname(self.ipc_root.rstrip("/\\")), "applied_index.json")):
             try:
                 if os.path.exists(f):
                     os.remove(f)
@@ -220,6 +228,15 @@ class Bridge:
         self.received.clear()
         try:
             json.dump({"seed": self._seed}, open(sess, "w", encoding="utf-8"))
+        except Exception:
+            pass
+        # The plugin cannot touch State from its poll thread on a whim, so a new seed is handed
+        # over as a marker file it picks up on the game thread. Without it the previous seed's
+        # checked/received sets survive, and every item id the old seed also had arrives as
+        # "already owned" - ApplyItem returns early, so no chat line and no grant.
+        try:
+            with open(os.path.join(self.ipc_dir, "seed_reset.json"), "w", encoding="utf-8") as fh:
+                json.dump({"seed": self._seed}, fh)
         except Exception:
             pass
         print(f"[connector] new seed '{self._seed}' - cleared items_in.jsonl + applied_index.json")
@@ -233,15 +250,26 @@ class Bridge:
         key = index if index is not None else item_id
         if key in self.received:
             return
-        self.received.add(key)
         where = f" from {self.loc_name(location_id)}" if location_id else ""
         by = f" ({source})" if source else ""
-        print(f"[connector] received {self.item_name(item_id)}{where}{by} -> items_in.jsonl")
         rec = {"item_id": item_id, "from": source}
         if index is not None:
             rec["index"] = index
-        with open(self.items_in, "a", encoding="utf-8") as fh:
-            fh.write(json.dumps(rec) + "\n")
+        # Mark the index spent only once the line is ON DISK. Marking it first meant a failed
+        # write left no line, the index looked delivered, and AP's resend on the next reconnect
+        # carried the same index - which the plugin had already watermarked past. The item was
+        # gone for good, with /send (a fresh index) the only recovery.
+        try:
+            with open(self.items_in, "a", encoding="utf-8") as fh:
+                fh.write(json.dumps(rec) + "\n")
+                fh.flush()
+                os.fsync(fh.fileno())
+        except OSError as exc:
+            print(f"[connector] FAILED to write {self.item_name(item_id)} to items_in.jsonl "
+                  f"({exc}) - will retry when Archipelago resends")
+            return
+        self.received.add(key)
+        print(f"[connector] received {self.item_name(item_id)}{where}{by} -> items_in.jsonl")
 
     # ---- main loop (auto-reconnects; AP re-sends state on each connect, plugin dedups via the
     # item index watermark, and deaths_sent/hints_sent live on this instance so an in-process

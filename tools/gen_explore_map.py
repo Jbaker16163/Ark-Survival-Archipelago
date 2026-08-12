@@ -113,7 +113,8 @@ DEPTH_REGIONS = OrderedDict([
 # lands within 0.1 degrees of their published positions - so the overlay no longer needs a
 # calibration point, and --calib is only there to override a map whose constants differ.
 #     key -> (divisor, shift)
-MAP_TRANSFORM = {"island": (8000.0, 50.0)}
+MAP_TRANSFORM = {"island": (8000.0, 50.0), "ragnarok": (13009.4, 49.99),
+                 "scorched": (8000.0, 50.0)}
 
 EXPLORE_ID_BASE = 8758000        # own block, after inventory checks (8757xxx)
 MIN_POINTS = 3                   # fewer than 3 samples is not a polygon

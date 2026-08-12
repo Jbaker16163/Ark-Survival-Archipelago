@@ -1,0 +1,396 @@
+<meta charset="utf-8">
+<title>ARK:ipelago - draw exploration regions</title>
+<style>
+ body{margin:0;padding:16px;background:#12161c;color:#e8edf3;
+      font:14px/1.5 ui-sans-serif,system-ui,"Segoe UI",sans-serif}
+ .wrap{max-width:1500px;margin:0 auto;display:grid;grid-template-columns:1fr 390px;gap:16px}
+ h1{font-size:18px;margin:0 0 4px} h2{font-size:14px;margin:16px 0 6px;color:#8b98a8}
+ p{color:#8b98a8;margin:0 0 10px}
+ .stage{position:relative;border:1px solid #2a323d;border-radius:8px;overflow:hidden;
+        background:#0d1b2a;aspect-ratio:1/1}
+ /* Everything that represents the map lives in .pan so one transform zooms them together. Clicks
+    stay correct for free: at() reads svg.getBoundingClientRect(), which already reflects it. */
+ .pan{position:absolute;inset:0;transform-origin:0 0}
+ .stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;
+            -webkit-user-drag:none;user-select:none}
+ .stage svg{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair}
+ .grid{position:absolute;inset:0;pointer-events:none;
+       background-image:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),
+                        linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px);
+       background-size:10% 10%}
+ polygon{fill:rgba(8,11,16,.45);stroke:#e4ebf2;stroke-width:.3;vector-effect:non-scaling-stroke}
+ polygon.fur{fill:rgba(6,20,44,.5);stroke:#8dbcff}
+ polygon.scuba{fill:rgba(3,30,29,.5);stroke:#5fe0ce}
+ /* Regions already in data/explore_areas.json. Shown for reference so a new shape can be placed
+    against what exists, but dashed and excluded from the export - editing one here would not
+    round-trip, because the importer skips a key it already has. */
+ polygon.live{fill:rgba(120,200,140,.10);stroke:#7fd6a0;stroke-dasharray:1.5 1}
+ text.live{fill:#9fe0bb}
+ polyline{fill:rgba(255,214,102,.14);stroke:#ffd666;stroke-width:.35;
+          vector-effect:non-scaling-stroke;stroke-dasharray:1.2 .8}
+ circle{fill:#ffd666}
+ text{fill:#e8edf3;font:2.1px ui-sans-serif,sans-serif;text-anchor:middle;
+      paint-order:stroke;stroke:#000;stroke-width:.6px;pointer-events:none}
+ label{display:block;margin:8px 0 3px;color:#8b98a8;font-size:12px}
+ input,select,textarea,button{width:100%;box-sizing:border-box;background:#1a212a;color:#e8edf3;
+      border:1px solid #2a323d;border-radius:6px;padding:7px 9px;font:13px ui-sans-serif,sans-serif}
+ textarea{font:11px ui-monospace,Consolas,monospace;height:150px;white-space:pre}
+ button{cursor:pointer;background:#243040;margin-top:8px}
+ button:hover{background:#2d3b4e}
+ button.primary{background:#2b6cb0;border-color:#2b6cb0}
+ .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+ .hint{font-size:12px;color:#8b98a8;background:rgba(91,192,222,.08);border-left:3px solid #5bc0de;
+       padding:8px 11px;border-radius:0 6px 6px 0;margin:10px 0}
+ .warn{border-left-color:#e0a458;background:rgba(224,164,88,.10);color:#e8d3b4}
+ .list{max-height:200px;overflow:auto;border:1px solid #2a323d;border-radius:6px;margin-top:8px}
+ .list div{padding:6px 9px;border-bottom:1px solid #232a33;display:flex;justify-content:space-between;
+           gap:8px;font-size:12px}
+ .list div:last-child{border-bottom:0}
+ .del{color:#ff8f8f;cursor:pointer;flex:none}
+ code{background:rgba(255,255,255,.08);padding:1px 5px;border-radius:4px;
+      font:12px ui-monospace,Consolas,monospace}
+ #gps{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.65);padding:4px 8px;
+      border-radius:5px;font:12px ui-monospace,monospace;pointer-events:none}
+ #tally{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.65);padding:4px 8px;
+        border-radius:5px;font:12px ui-monospace,monospace;pointer-events:none}
+ /* Below this the side panel and a square map cannot share a row without shrinking the map to
+    something you cannot place a vertex on accurately. Stack instead. */
+ @media (max-width:1040px){
+   .wrap{grid-template-columns:1fr}
+   #tally,#gps{position:static;display:inline-block;margin:6px 6px 0 0;background:none;padding:0}
+ }
+</style>
+<div class="wrap">
+<div>
+  <h1>Draw exploration regions</h1>
+  <p>Click to place vertices. <b>Double-click</b> or <b>Enter</b> closes the shape.
+     <b>Backspace</b> undoes a point, <b>Esc</b> abandons it.
+     <b>Scroll</b> to zoom, <b>right-drag</b> to pan
+     (<span id="zoomlbl">1.0x</span>, <a href="#" id="resetview" style="color:#5bc0de">reset</a>).</p>
+  <div class="stage" id="stage">
+    <div class="pan" id="pan">
+      <img id="map" alt="" hidden>
+      <svg id="svg" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+      <div class="grid"></div>
+    </div>
+    <div id="tally">-</div>
+    <div id="gps">lat -, lon -</div>
+  </div>
+  <div class="hint">
+    Coordinates are ARK GPS (0-100 across any map), read from where you click - so the image must be
+    edge to edge with no border. Check the 10-degree grid lines up with the in-game map first.
+  </div>
+</div>
+<div>
+  <label>Map</label>
+  <select id="mapkey"></select>
+  <div id="calnote"></div>
+
+  <label>Map image (drag onto the map, or pick a file)</label>
+  <input type="file" id="file" accept="image/*">
+
+  <h2>Current region</h2>
+  <div class="row">
+    <div><label>Key</label><input id="key" placeholder="dunes" spellcheck="false"></div>
+    <div><label>Gate</label><select id="gate">
+      <option value="">none</option><option>Fur</option><option>Scuba</option></select></div>
+  </div>
+  <label>Display name</label>
+  <input id="name" placeholder="The Dunes" spellcheck="false">
+
+  <h2>Regions on this map (<span id="count">0</span>)</h2>
+  <div class="row">
+    <button id="hideall">Hide all</button>
+    <button id="showall">Show all</button>
+  </div>
+  <div class="list" id="list"></div>
+  <div class="row">
+    <button id="importlive">Import from live build</button>
+    <button id="clear">Clear drawn regions</button>
+  </div>
+  <input type="file" id="livefile" accept=".json" hidden>
+
+  <h2>Export</h2>
+  <button class="primary" id="copy">Copy JSON to clipboard</button>
+  <button id="dl">Download &lt;map&gt;_regions.json</button>
+  <textarea id="out" readonly spellcheck="false"></textarea>
+  <div class="hint">
+    <code>python tools/import_drawn_regions.py ragnarok_regions.json --write</code>
+  </div>
+</div>
+</div>
+<script>
+// Mirrors data/maps.json (minus "any", which is not a place). `cal` marks maps whose world-unit
+// transform is already recorded in import_drawn_regions.KNOWN - drawing on the others will import
+// only once someone calibrates them.
+const MAPS = [
+  {key:"island", name:"The Island", cal:true},
+  {key:"scorched", name:"Scorched Earth", cal:true},
+  {key:"ragnarok", name:"Ragnarok", cal:true},
+  {key:"aberration", name:"Aberration", cal:false},
+  {key:"extinction", name:"Extinction", cal:false},
+  {key:"genesis1", name:"Genesis: Part 1", cal:false},
+  {key:"genesis2", name:"Genesis: Part 2", cal:false},
+  {key:"center", name:"The Center", cal:false},
+  {key:"valguero", name:"Valguero", cal:false},
+  {key:"crystalisles", name:"Crystal Isles", cal:false},
+  {key:"lostisland", name:"Lost Island", cal:false},
+  {key:"fjordur", name:"Fjordur", cal:false},
+  {key:"lostcolony", name:"Lost Colony", cal:false},
+  {key:"astraeos", name:"Astraeos", cal:false},
+];
+
+const svg = document.getElementById('svg'), img = document.getElementById('map');
+const stage = document.getElementById('stage'), out = document.getElementById('out');
+const sel = document.getElementById('mapkey');
+
+// Work is kept PER MAP so switching back and forth never loses a shape, and survives a reload -
+// drawing 40 regions is too much effort to lose to a stray refresh.
+let store = {};            // mapKey -> [ {key,name,gate,pts} ]
+let cur = [];              // vertices in progress (not yet a region)
+
+function mapKey(){ return sel.value; }
+function regions(){ return store[mapKey()] || (store[mapKey()] = []); }
+
+function save(){
+  try { localStorage.setItem('arkap_regions', JSON.stringify(store)); } catch (e) {}
+}
+function load(){
+  try { store = JSON.parse(localStorage.getItem('arkap_regions') || '{}'); } catch (e) { store = {}; }
+}
+function saveImage(key, dataUrl){
+  // Images are megabytes and localStorage is a few, so this is best-effort: if it does not fit,
+  // the drawing still works, you just re-drag the image next time.
+  try { localStorage.setItem('arkap_img_' + key, dataUrl); } catch (e) {}
+}
+
+// Click -> GPS. The viewBox is 0..100 so this is a direct read of the fraction across the element,
+// and because it measures the LIVE rect it stays correct at any zoom or pan without extra maths.
+// Two decimals, not one: zooming in to place a vertex precisely is pointless if the value is then
+// rounded to 0.1 degrees (800 world units on the Island - about 8 metres).
+function at(ev){
+  const r = svg.getBoundingClientRect();
+  return [Math.round((ev.clientY - r.top) / r.height * 10000) / 100,
+          Math.round((ev.clientX - r.left) / r.width * 10000) / 100];
+}
+function draw(){
+  const gs = regions();
+  let s = '';
+  for (const g of gs){
+    if (g.hidden) continue;                       // per-region visibility
+    const pts = g.pts.map(p => `${p[1]},${p[0]}`).join(' ');
+    const cx = g.pts.reduce((a,p)=>a+p[1],0)/g.pts.length;
+    const cy = g.pts.reduce((a,p)=>a+p[0],0)/g.pts.length;
+    const cls = (g.live ? 'live ' : '') +
+                (g.gate === 'Fur' ? 'fur' : g.gate === 'Scuba' ? 'scuba' : '');
+    s += `<polygon class="${cls}" points="${pts}"><title>${g.name}</title></polygon>`;
+    s += `<text class="${g.live ? 'live' : ''}" x="${cx.toFixed(2)}" y="${cy.toFixed(2)}">${g.name}</text>`;
+  }
+  if (cur.length){
+    s += `<polyline points="${cur.map(p=>`${p[1]},${p[0]}`).join(' ')}"/>`;
+    for (const p of cur) s += `<circle cx="${p[1]}" cy="${p[0]}" r="0.5"/>`;
+  }
+  svg.innerHTML = s;
+  document.getElementById('count').textContent = gs.length;
+  document.getElementById('tally').textContent =
+    `${MAPS.find(m=>m.key===mapKey()).name}: ${gs.length} region${gs.length===1?'':'s'}`
+    + (cur.length ? `  (drawing: ${cur.length} pts)` : '');
+  document.getElementById('list').innerHTML = gs.map((g,i) =>
+    `<div style="${g.hidden ? 'opacity:.45' : ''}">`
+    + `<span><b>${g.name}</b>${g.live ? ' <span style="color:#7fd6a0">live</span>' : ''} `
+    + `<span style="color:#8b98a8">${g.key}${g.gate?' · '+g.gate:''} · ${g.pts.length} pts</span></span>`
+    + `<span><a href="#" class="vis" data-i="${i}" style="color:#5bc0de">${g.hidden ? 'show' : 'hide'}</a>`
+    + ` &nbsp;<span class="del" data-i="${i}">remove</span></span></div>`).join('');
+  // Live regions are reference only - they already exist in explore_areas.json, and the importer
+  // skips a key it already has, so exporting them would imply edits that cannot land.
+  const mine = gs.filter(g => !g.live);
+  out.value = JSON.stringify({
+    map: mapKey(),
+    regions: Object.fromEntries(mine.map(g => [g.key, {name:g.name, gate:g.gate, latlon:g.pts}]))
+  }, null, 2);
+  save();
+}
+function finish(){
+  if (cur.length < 3){ cur = []; draw(); return; }
+  const key = document.getElementById('key').value.trim();
+  const name = document.getElementById('name').value.trim();
+  if (!key || !name){ alert('Give the region a key and a display name first.'); return; }
+  if (regions().some(g => g.key === key)){ alert('That key is already used on this map.'); return; }
+  regions().push({key, name, gate: document.getElementById('gate').value, pts: cur});
+  cur = [];
+  document.getElementById('key').value = '';
+  document.getElementById('name').value = '';
+  draw();
+}
+function showMap(){
+  const m = MAPS.find(x => x.key === mapKey());
+  document.getElementById('calnote').innerHTML = m.cal
+    ? `<div class="hint">Transform known - <code>import_drawn_regions.py</code> needs no extra flags.</div>`
+    : `<div class="hint warn"><b>Not calibrated yet.</b> You can draw, but importing needs a
+       transform first: collect a few explorer notes and run
+       <code>calibrate_from_notes.py</code>.</div>`;
+  // Prefer docs/<map>_map.png next to the repo - the real map images, gitignored as Wildcard
+  // assets - and fall back to whatever was dragged in before. Probed on a DETACHED image: assigning
+  // then clearing src on the live element fires its own error event, which re-enters this handler.
+  const key = mapKey();
+  const dragged = localStorage.getItem('arkap_img_' + key);
+  const show = src => { if (mapKey() !== key) return;      // user switched again while loading
+                        if (src){ img.src = src; img.hidden = false; }
+                        else { img.removeAttribute('src'); img.hidden = true; } };
+  // The wiki's higher-resolution maps are JPEGs, so try every sensible extension rather than
+  // making anyone convert a file. First one that loads wins; if none do, fall back to a dragged
+  // image, then to the bare grid.
+  const exts = ['png', 'jpg', 'jpeg', 'webp'];
+  (function tryNext(i){
+    if (i >= exts.length) return show(dragged || '');
+    const probe = new Image();
+    probe.onload = () => show(probe.src);
+    probe.onerror = () => tryNext(i + 1);
+    probe.src = '../docs/' + key + '_map.' + exts[i];
+  })(0);
+  cur = [];
+  draw();
+}
+
+MAPS.forEach(m => {
+  const o = document.createElement('option');
+  o.value = m.key;
+  o.textContent = m.name + (m.cal ? '' : '  (not calibrated)');
+  sel.appendChild(o);
+});
+sel.onchange = showMap;
+
+svg.addEventListener('click', e => { cur.push(at(e)); draw(); });
+svg.addEventListener('dblclick', e => { e.preventDefault(); cur.pop(); finish(); });
+svg.addEventListener('mousemove', e => {
+  const [lat, lon] = at(e);
+  document.getElementById('gps').textContent = `lat ${lat.toFixed(1)}, lon ${lon.toFixed(1)}`;
+});
+addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (e.key === 'Enter') finish();
+  else if (e.key === 'Backspace'){ e.preventDefault(); cur.pop(); draw(); }
+  else if (e.key === 'Escape'){ cur = []; draw(); }
+});
+document.getElementById('list').addEventListener('click', e => {
+  if (e.target.classList.contains('del')){ regions().splice(+e.target.dataset.i, 1); draw(); }
+  else if (e.target.classList.contains('vis')){
+    e.preventDefault();
+    const g = regions()[+e.target.dataset.i];
+    g.hidden = !g.hidden;
+    draw();
+  }
+});
+document.getElementById('hideall').onclick = () => { regions().forEach(g => g.hidden = true);  draw(); };
+document.getElementById('showall').onclick = () => { regions().forEach(g => g.hidden = false); draw(); };
+document.getElementById('clear').onclick = () => {
+  // Only removes what YOU drew - imported live regions are reference and come back on re-import.
+  const gs = regions().filter(g => !g.live);
+  if (!gs.length){ alert('Nothing drawn on this map yet.'); return; }
+  if (confirm(`Remove the ${gs.length} region(s) you drew on ${MAPS.find(m=>m.key===mapKey()).name}?`
+              + `\n(Imported live regions are kept.)`)){
+    store[mapKey()] = regions().filter(g => g.live);
+    cur = [];
+    draw();
+  }
+};
+
+// ---- import what is already in the build ----------------------------------------------------
+// explore_areas.json stores polygons in WORLD units, so they have to be converted back to GPS with
+// the same per-map transform the importer uses. Mirrors import_drawn_regions.KNOWN - a map missing
+// here cannot be shown, and guessing would place every region in the wrong spot.
+const TRANSFORMS = { island: [8000.0, 50.0], scorched: [8000.0, 50.0], ragnarok: [13009.4, 49.99] };
+
+function ingestLive(data){
+  const key = mapKey();
+  const t = TRANSFORMS[key];
+  if (!t){ alert(`No world-unit transform known for ${key}, so live regions cannot be placed.`); return; }
+  const [div, shift] = t;
+  const existing = new Set(regions().map(g => g.key));
+  let n = 0, skipped = 0;
+  for (const [rkey, r] of Object.entries((data && data.regions) || {})){
+    if ((r.map || 'island') !== key) continue;
+    if (!r.polygon || r.polygon.length < 3){ skipped++; continue; }   // depth regions have no shape
+    if (existing.has(rkey)) continue;
+    regions().push({
+      key: rkey, name: r.name || rkey, gate: r.gate || '', live: true, hidden: false,
+      pts: r.polygon.map(([x, y]) => [Math.round((y / div + shift) * 100) / 100,
+                                      Math.round((x / div + shift) * 100) / 100])
+    });
+    n++;
+  }
+  draw();
+  alert(n ? `Imported ${n} live region(s) for ${key}.`
+          + (skipped ? `\n${skipped} depth region(s) skipped - they have no polygon.` : '')
+          : `No live regions found for ${key}.`);
+}
+document.getElementById('importlive').onclick = () => {
+  // Works over the local server; a file:// page cannot fetch JSON, so fall back to a picker.
+  fetch('../data/explore_areas.json')
+    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(ingestLive)
+    .catch(() => document.getElementById('livefile').click());
+};
+document.getElementById('livefile').onchange = e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => { try { ingestLive(JSON.parse(r.result)); }
+                     catch (err) { alert('That file is not valid explore_areas.json'); } };
+  r.readAsText(f);
+};
+document.getElementById('copy').onclick = () => { out.select(); document.execCommand('copy'); };
+document.getElementById('dl').onclick = () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([out.value], {type:'application/json'}));
+  a.download = mapKey() + '_regions.json'; a.click();
+};
+function loadFile(f){
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => { img.src = r.result; img.hidden = false; saveImage(mapKey(), r.result); };
+  r.readAsDataURL(f);
+}
+document.getElementById('file').onchange = e => loadFile(e.target.files[0]);
+stage.addEventListener('dragover', e => e.preventDefault());
+stage.addEventListener('drop', e => { e.preventDefault(); loadFile(e.dataTransfer.files[0]); });
+
+// ---- zoom / pan ---------------------------------------------------------------------------
+// The public map images top out around 1024px, so tracing a coastline at 1:1 is guesswork. Zooming
+// does not add detail, but it does let you place a vertex on the pixel you mean - and combined with
+// two-decimal GPS that is roughly a metre of precision instead of eight.
+const pan = document.getElementById('pan');
+let zoom = 1, panX = 0, panY = 0;
+function applyView(){
+  pan.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+  document.getElementById('zoomlbl').textContent = zoom.toFixed(1) + 'x';
+}
+stage.addEventListener('wheel', e => {
+  e.preventDefault();
+  const r = stage.getBoundingClientRect();
+  const mx = e.clientX - r.left, my = e.clientY - r.top;
+  const next = Math.min(12, Math.max(1, zoom * (e.deltaY < 0 ? 1.2 : 1 / 1.2)));
+  // keep the point under the cursor stationary
+  panX = mx - (mx - panX) * (next / zoom);
+  panY = my - (my - panY) * (next / zoom);
+  zoom = next;
+  if (zoom === 1){ panX = panY = 0; }        // snap back so it cannot drift off-centre at 1x
+  applyView();
+}, {passive:false});
+// Right-drag pans; left stays free for drawing.
+let dragging = null;
+stage.addEventListener('contextmenu', e => e.preventDefault());
+stage.addEventListener('mousedown', e => {
+  if (e.button === 2){ dragging = {x:e.clientX - panX, y:e.clientY - panY}; e.preventDefault(); }
+});
+addEventListener('mousemove', e => {
+  if (!dragging) return;
+  panX = e.clientX - dragging.x; panY = e.clientY - dragging.y; applyView();
+});
+addEventListener('mouseup', () => { dragging = null; });
+document.getElementById('resetview').onclick = () => { zoom = 1; panX = panY = 0; applyView(); };
+
+load();
+showMap();
+applyView();
+</script>
