@@ -193,7 +193,7 @@ namespace fs = std::filesystem;
 // Which dll is actually loaded. Declared up here rather than beside Load() because the JOIN greet
 // and /apstatus both quote it: "what version are they running?" was answered by asking someone to
 // find a log file on the server box, which is no answer at all when the report comes from a player.
-static const char* ARKAP_BUILD = "v174-mod-gate-no-failopen";
+static const char* ARKAP_BUILD = "v175-child-crate-gate";
 
 // the plugin's own folder: ArkApi/Plugins/ArkAP
 static fs::path PluginDir() {
@@ -708,13 +708,31 @@ static bool DoCrateHook(APrimalStructureItemContainer_SupplyCrate* crate) {
     auto gate = g_crateGateClassToItem.find(name);
     if (gate != g_crateGateClassToItem.end()) {
         gateItem = gate->second;
-    } else if (!CrateHasLevelToken(name)) {                    // DLC variant of a NON-beacon crate
-        auto alt = g_crateGateNormToItem.find(NormalizeCrateClass(name));
-        if (alt != g_crateGateNormToItem.end()) gateItem = alt->second;
-        static std::set<std::string> matchedLogged;
-        if (matchedLogged.insert(name).second && gateItem)
-            DebugLog("CRATE map-variant matched by suffix: " + name + " -> item " +
-                     std::to_string(gateItem));
+    } else {
+        // MOD crate variants insert "_Child" before the _C (stacking mods etc.):
+        // SupplyCrate_Level03_Child_C, SupplyCrate_Cave_QualityTier1_Child_C,
+        // SupplyCrate_Level15_Double_Child_C. Strip it and match the BASE class exactly - this
+        // covers beacon variants too, which the suffix path below deliberately skips (Level token).
+        size_t ci = name.find("_Child");
+        if (ci != std::string::npos) {
+            std::string bare = name; bare.erase(ci, 6);        // remove "_Child"
+            auto g2 = g_crateGateClassToItem.find(bare);
+            if (g2 != g_crateGateClassToItem.end()) {
+                gateItem = g2->second;
+                static std::set<std::string> childLogged;
+                if (childLogged.insert(name).second)
+                    DebugLog("CRATE _Child variant matched: " + name + " -> " + bare +
+                             " -> item " + std::to_string(gateItem));
+            }
+        }
+        if (!gateItem && !CrateHasLevelToken(name)) {          // DLC variant of a NON-beacon crate
+            auto alt = g_crateGateNormToItem.find(NormalizeCrateClass(name));
+            if (alt != g_crateGateNormToItem.end()) gateItem = alt->second;
+            static std::set<std::string> matchedLogged;
+            if (matchedLogged.insert(name).second && gateItem)
+                DebugLog("CRATE map-variant matched by suffix: " + name + " -> item " +
+                         std::to_string(gateItem));
+        }
     }
     // BEAVER DAMS are not supply drops. Ragnarok's (and the Island's) Giant Beaver Dams are built
     // from SupplyCrateBaseBP_Instantaneous_DamLogs/DenLogs classes, so they arrive here looking

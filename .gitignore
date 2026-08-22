@@ -8,6 +8,9 @@ venv/
 *.apworld
 dist/
 
+# PopTracker pack - maintained and distributed EXTERNALLY now, not tracked here.
+poptracker/
+
 # PyInstaller build output for the connector exe
 connector/build/
 connector/dist/

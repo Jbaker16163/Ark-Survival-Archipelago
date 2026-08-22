@@ -971,6 +971,15 @@ class ArkASAWorld(World):
     # it errors with "item doesn't exist in the multiworld". This covers EVERY fold the apworld does:
     # count-groups, S+ variant pairs, material structure bundles, curated mod groups, and saddles
     # bundled with their tame. The plugin uses it to redirect the hint to the item you should chase.
+    def _included_items_slotdata(self) -> list:
+        """Every item id PRESENT in this slot - poolable OR granted (starters, saddles, bundle
+        members, active-mod variants). Only the truly ABSENT are dropped: content from a mod this
+        slot did not enable, the wrong fork's variants, and items belonging to a map not run. The
+        tracker's item map is static/full, so it uses this to hide items this slot can never see."""
+        keep = self._map_filter("items")
+        absent = self._inactive_mod_names() | self._wrong_variant_names()
+        return sorted(i for n, i in self.item_name_to_id.items() if keep(i) and n not in absent)
+
     def _tracker_groups_slotdata(self) -> dict:
         """rep item id -> [every member item id it unlocks], for the TRACKER.
 
@@ -1880,27 +1889,38 @@ class ArkASAWorld(World):
                 # rep item id -> EVERY member id it unlocks (count-groups + structure/mod/saddle
                 # bundles). PopTracker reads this to light up all engrams when one bundle item lands.
                 "tracker_groups": self._tracker_groups_slotdata(),
+                # every location id ACTUALLY created for this slot (after map filter, tame/food
+                # sanity, and the dossier_checks cap). The tracker's location map is static/full, so
+                # it uses this to hide the checks this slot does not have. One key covers every
+                # filter at once.
+                "included_locations": sorted(set(self._used_locations().values())),
+                # every item id PRESENT in this slot (poolable or granted). The tracker hides items
+                # not in this list (inactive-mod content, wrong fork's variants, other maps' items).
+                "included_items": self._included_items_slotdata(),
                 "engrams_per_item": self.options.engrams_per_item.value,
                 "tames_per_item": self.options.tames_per_item.value,
                 # Every player-selectable shuffle setting, for the tracker. Toggles -> bool, Range/
                 # Choice -> int (.value), OptionSet -> sorted list. Goal/bundle_*/death_link/mods/
                 # engrams_per_item/tames_per_item/extra_early_items are already sent above.
+                # Choice options send their KEY NAME (.current_key), not the enum int, so the tracker
+                # reads "all_bosses" / "tiered" / "chaos" etc. The percent choices send the number as
+                # a string ("50"). Toggles -> bool, Range -> int, OptionSet -> sorted list.
                 "maps": sorted(self.options.maps.value),
-                "goal": self.options.goal.value,
+                "goal": self.options.goal.current_key,
                 "lock_taming": bool(self.options.lock_taming.value),
                 "lock_supply_crates": bool(self.options.lock_supply_crates.value),
                 "trap_percentage": self.options.trap_percentage.value,
                 "early_dino_checks": bool(self.options.early_dino_checks.value),
                 "progression_tiers": bool(self.options.progression_tiers.value),
-                "station_placement": self.options.station_placement.value,
+                "station_placement": self.options.station_placement.current_key,
                 "tier0_add": sorted(self.options.tier0_add.value),
                 "tier0_remove": sorted(self.options.tier0_remove.value),
                 "dossier_checks": self.options.dossier_checks.value,
-                "food_sanity": self.options.food_sanity.value,
-                "tame_sanity": self.options.tame_sanity.value,
-                "death_sanity": self.options.death_sanity.value,
+                "food_sanity": self.options.food_sanity.current_key,
+                "tame_sanity": self.options.tame_sanity.current_key,
+                "death_sanity": self.options.death_sanity.current_key,
                 "death_milestones": bool(self.options.death_milestones.value),
-                "randomize_dino_spawns": self.options.randomize_dino_spawns.value,
+                "randomize_dino_spawns": self.options.randomize_dino_spawns.current_key,
                 "npc_replacements": [],           # legacy key (permutation design retired)
                 "spawn_additions": [],            # legacy key (additions design superseded)
                 "spawn_overrides": self._spawn_overrides()}

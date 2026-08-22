@@ -1,3 +1,31 @@
+## Added 2026-07-26: 270-generation fuzz sweep (2 passes)
+
+- Sweep #1 (160 gens, all solo): fuzzed goal/tiers/lock_taming/lock_crates/bundle_saddles/
+  free_starter/bundle_structures/engrams+tames_per_item/trap%/dossier/food+tame_sanity/
+  randomize_spawns/early_dino/station_placement/5 mod combos.
+- Sweep #2 (110 gens = 70 solo + 40 MULTIWORLD with 2-4 ARK slots each): covered what #1 missed -
+  extra_early_items, start_inventory_from_pool, tier0_add/tier0_remove, dossier_checks 0, all-8-mods,
+  and several ARK slots sharing one multiworld (#1 was 100% solo).
+- Checks were not just "did it error": an offline compile of every kill/tame/cave rule produced a
+  location -> required-items map, and each spoiler was scanned for SELF-GATING (an item placed on a
+  check whose own rule requires it - the "Collect 100 Sparkpowder unlocks Engram: Sparkpowder" class
+  of bug). Also sphere-collapse and per-slot multiworld reachability.
+- RESULT: 0 crashes, 0 accessibility failures, 0 self-gating, 0 multiworld slot issues, 0 sphere
+  collapses. Spheres ranged 3-12, clustering 5-6. 16 of 270 hit the intended pool-vs-locations guard.
+- FALSE POSITIVE in my own harness worth remembering: a "gate order" check comparing the PLAYTHROUGH
+  SPHERE of Forge/Anvil Bench/Fabricator flags cases that are perfectly valid. The sphere of a gate
+  item is where it is FOUND, not the tier it opens; Fabricator landing on a Tier 0 check (Collect 300
+  Stone) is legal. The real invariant (cannot reach a tier's checks without its gate) is enforced by
+  the region graph and already verified by AP's accessibility sweep.
+- FINDING - the shipped default has THIN headroom (measured margins):
+    default as shipped ............ OK
+    + food_sanity: 0 .............. FAIL (-10)
+    + dossier_checks: 200 ......... FAIL (-23)
+    + tame_sanity: 25 ............. FAIL (-65)
+  So any single location-reducing option tips the DEFAULT config over. Adding either
+  bundle_structures: true or engrams_per_item: 2 fixes all of them. The error message already names
+  the levers, but consider shipping one of those on by default if testers keep hitting it.
+
 # Known bugs / open items
 
 ## Added 2026-08-11: v151's give-up made a TEMPORARY refusal permanent (FIXED, v159)
@@ -24,6 +52,149 @@ v151 blacklisted the class after 10 failures, so when the prerequisite finally a
 that would have fixed it had been switched off. Retrying forever was noisy; blacklisting was
 silently unrecoverable, which is worse. This also means the earlier "40 engrams could never be
 unlocked" entry was partly wrong - most were waiting on prerequisites, not broken.
+
+### The real refusal cause: character LEVEL, waived at the entry (2026-08-12, v167)
+
+CORRECTION: v166 blamed negative engram points. Wrong - the user confirmed the long-term run ran
+with the same negative points and unlocked fine. The distinguishing variable is character LEVEL.
+
+The hook and the `ServerUnlockEngram(engram, true, true)` call are byte-identical to v75, and the
+class passed maps to a real entry (v164's ItemEngramMap lookup confirms it). So identity and the
+call are not the difference. What differs is that `bForce=true` does NOT waive the character-LEVEL
+gate on this build: Lurch tested at level 1, Narcotic needs level 6, so `MeetsEngramRequirements`
+returned false and the unlock silently did nothing. The long-term run never hit this because the
+character always out-levelled the engrams (AllEngrams respects level for the same reason).
+
+v167: waive the requirement at its SOURCE. The engram ENTRY exposes RequiredCharacterLevel and
+RequiredEngramPoints as writable int& fields. Zero both across the single unlock call, then restore
+them, so only THIS grant is forced and the entry the player sees in the UI is unchanged. No player
+stat is mutated, no blueprint item is minted; the engram is learned the normal way and stays gated
+only by its crafting materials. This is the literal ask: do not check level, points, or chain.
+
+(Superseded points theory below, kept for the trail.)
+
+### The negative-points theory (2026-08-12, v166 - SUPERSEDED)
+
+The v164 diagnostic caught it on Lurch's level-1 test:
+
+```
+WHY: "Narcotic" level=1/6 points=-21/6 manuallyUnlockable=1 meetsAll=0 levelOK=0 ...
+```
+
+`ServerUnlockEngram` DEDUCTS the engram-point cost even with `bForce=true`. bForce waives the
+"can you afford it" GATE, not the deduction itself. So a batch of AP engram unlocks on a low-level
+survivor drives `FreeEngramPoints` progressively negative, and once it is far enough under (here
+-21) the unlock silently stops taking. A normally-levelled character has points to spare, which is
+why the long-term run never hit it and why "it worked in the past".
+
+This was never a prerequisite problem (the earlier v159/v160 theory). The chain check reported no
+prereqs; the block was purely the point balance.
+
+v166: before each unlock, top `FreeEngramPoints` up to the cost (as AllEngrams' RefundUsedEngramPoints
+does), let the call deduct it back toward zero, then unlock normally. AP engrams fund themselves and
+never pull the player's own point budget below zero. Level is still waived by bForce, as in v75.
+No blueprint item is minted - the engram is learned the normal way, craftable only once the player
+has the materials, which is the intended behaviour.
+
+### The blueprint push was never needed (2026-08-12, v162)
+
+`AddEngramBlueprintToPlayerInventory` is gone. It was added in v156 on the theory that
+`ServerUnlockEngram` has an "inventory half" that goes missing. **It does not.** An engram is the
+entry in the survivor's persistent stats, full stop; a blueprint ITEM is a separate lootable thing
+(`UPrimalItem` keeps `bIsBlueprint` and `bIsEngram` as different flags). So that call was minting a
+real item every time it ran.
+
+Two independent references confirm one call is sufficient:
+
+- **v75 of this plugin** (commit `968aa5e`) grants with `HasEngram` check -> `ServerUnlockEngram(engram, true, true)`
+  and nothing else. It has no `AddEngramBlueprintToPlayerInventory` anywhere, and it ran a full
+  long-term playthrough with engrams unlocking, craftable, and never duplicated.
+- **ArkServerApi's own AllEngrams plugin** (`vendor/ASE-Plugins/AllEngrams`) does the same:
+  `if (!player_state->HasEngram(e.engram)) player_state->ServerUnlockEngram(e.engram, false, true);`
+
+v156 -> v161 chased symptoms of a problem that only existed because of the extra call:
+v156 added it, v160 made it fire for prereq-blocked engrams (unbounded duplicates), v161 capped it
+at one per body. v162 deletes it. `g_bpPushed` and `g_bodyForRoute` went with it.
+
+Also worth noting from AllEngrams: it passes `engram_entry->BluePrintEntryField()` - the class taken
+from a real `UPrimalEngramEntry`. Our registry's third pass (`BPLoadClass` by path) yields classes
+with no entry behind them, on which `ServerUnlockEngram` is a silent no-op. Only 2 classes came from
+that path on Lurch's server, so it does not explain the 10 refusals, but it is the reason to keep
+entry-derived classes preferred.
+
+### v160 REGRESSION - duplicate engram blueprints, one per tick (2026-08-12, FIXED in v161)
+
+v160 added `ForceLearnEngram`, writing the engram class straight into
+`FPrimalPersistentCharacterStatsStruct::PlayerState_EngramBlueprints` to bypass ARK's prerequisite
+check. **That array is not what `HasEngram` reads.** `AddEngramBlueprintToPlayerInventory` honours
+it, `HasEngram` does not - so:
+
+- `recorded = HasEngram(...)` stayed **false** forever for a prereq-blocked engram;
+- the guard `if (recorded && pushed) continue;` therefore never closed;
+- every Reassert tick pushed another craftable into the inventory - one item per second.
+
+In v159 the identical push was harmless: with the engram genuinely not learned the game rejected
+it, so it was a silent no-op. v160 made the push succeed while leaving the guard open. A player's
+inventory filled with dozens of identical blueprints.
+
+v161:
+- **`ForceLearnEngram` removed.** Its premise was wrong and it is not coming back until the array
+  `HasEngram` actually reads is identified. The prerequisite gate is honoured again, as in v159.
+- **The push is now gated on `nowHas && !pushed`** - only for an engram the game agrees the player
+  has, and only once per body. This was a latent bug in v159 too; it only ever hid behind the
+  game's own rejection.
+
+Open: bypassing prerequisites is still the desired behaviour. Needs the real `HasEngram` backing
+store found first (candidates: a second copy of the stats struct on `AShooterPlayerState` itself,
+or an engram-entry index rather than the item-class list).
+
+### Earlier v159 notes
+
+Fixes:
+- **v160: the prerequisite gate is now bypassed outright.** A granted engram is LEARNED, full stop.
+  When `ServerUnlockEngram` refuses, `ForceLearnEngram` writes the class straight into
+  `FPrimalPersistentCharacterStatsStruct::PlayerState_EngramBlueprints` - the same array
+  `HasEngram` reads and the same one that saves with the profile, so it survives death and relog
+  like any normally-learned engram. Crafting is still gated by the ingredients, which is the real
+  requirement; only the "you may not LEARN this yet" rule is dropped, because Archipelago already
+  decided the player has it.
+- **No blacklist.** Reassert retries every tick, forever, as it did before v151.
+- Logging backs off (1, 2, 3, then roughly x3 each time) so a stuck engram stays visible without
+  the 1,001,589-line / 238 MB flood that motivated the give-up in the first place.
+- The refusal line now names the real cause instead of asserting a missing engram entry.
+- `ENGRAM deferred` used to say "nobody in-world" even when a body WAS found and the game refused -
+  that sent this investigation down the wrong path for a while. It now distinguishes the two.
+- `/apstatus` reports `AWAITING PREREQS=n` (currently refusing, still retrying) rather than a
+  permanent `UNGRANTABLE`.
+
+
+## Added 2026-08-10: import_checklist.py DELETED every exploration region's map tag (FIXED)
+
+Found by flipping `in_pool` and then running the validator. `import_checklist.py --check` reads
+the WORKBOOK, not the data files, and reported it would rewrite `maps.json`. Running it did - and
+took all 113 exploration region ids with it:
+
+    island    regions in explore_areas= 45   tagged in maps.json=  0   MISSING=45
+    scorched  regions in explore_areas= 31   tagged in maps.json=  0   MISSING=31
+    ragnarok  regions in explore_areas= 37   tagged in maps.json=  0   MISSING=37
+
+Regions are NOT authored on the workbook - they are drawn in `region_drawer.html` and written by
+`import_drawn_regions.py`, which tags their ids into `maps.json` itself. `import_checklist.py`
+rebuilds `content` purely from the sheets, so anything the sheets do not know about is dropped.
+
+The failure mode is quiet, which is what makes it nasty: an untagged id FAILS OPEN, so instead of
+vanishing, every map's regions get offered to every slot. An Island player would be handed
+Scorched's 31 and Ragnarok's 37 as reachable locations. The Island's own 45 had been stripped at
+some earlier import too - this was not new today.
+
+Fix: `import_checklist.py` re-merges region ids from `explore_areas.json` (the file that owns
+them) after building content from the sheets. Verified idempotent - a second `--check` reports
+"no changes" - and locations are back to island 514 / scorched 304 / ragnarok 288 with 45/31/37
+regions tagged in both data mirrors.
+
+General lesson for the next data file: anything NOT on a workbook sheet must be re-merged in
+`import_checklist.py`, or the next import silently deletes it.
+
 
 ## Added 2026-08-10: every slot generated ONE item over its location count (FIXED)
 

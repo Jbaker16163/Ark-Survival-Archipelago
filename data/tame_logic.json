@@ -354,7 +354,7 @@
     "Direwolf": "MediumFightTames | UsePistol | UseRifle | UseShotgun | Crossbow | ((Bola | UseNet) + UseMelee)",
     "Dung Beetle": "BasicFightTames | UseArrows | UsePistol | UseRifle | UseShotgun | UseMelee",
     "Equus": "MediumFightTames | Crossbow | UsePistol | UseRifle | UseShotgun | (UseNet + UseAdvMelee)",
-    "Giant Queen Bee": "RideDireBear",
+    "Giant Queen Bee": "RideDireBear | Bug Repellent",
     "Ichthyosaurus": "ShallowFightTames | (UseNet + UseMelee)",
     "Kaprosuchus": "MediumFightTames | UsePistol | UseRifle | UseShotgun | UseAdvMelee | Crossbow | (UseNet + UseMelee)",
     "Kentrosaurus": "MediumFightTames | UsePistol | UseRifle | UseShotgun | UseAdvMelee",

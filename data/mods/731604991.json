@@ -61,17 +61,6 @@
       ]
     },
     {
-      "id": 8810005,
-      "ap_name": "Engram: Animal Tender",
-      "engram_class": "BlueprintGeneratedClass /Game/Mods/StructuresPlusMod/Misc/AnimalTender/PrimalItemStructure_AnimalTender.PrimalItemStructure_AnimalTender_C",
-      "engram_classes": [
-        "BlueprintGeneratedClass /Game/Mods/StructuresPlusMod/Misc/AnimalTender/PrimalItemStructure_AnimalTender.PrimalItemStructure_AnimalTender_C"
-      ],
-      "variants": [
-        "1999447172"
-      ]
-    },
-    {
       "id": 8810006,
       "ap_name": "Engram: Auto Crafter",
       "engram_class": "BlueprintGeneratedClass /Game/Mods/StructuresPlusMod/Misc/AutoCrafter/PrimalItemStructure_AutoCrafter.PrimalItemStructure_AutoCrafter_C",
@@ -3487,17 +3476,6 @@
       ]
     },
     {
-      "id": 8810294,
-      "ap_name": "Engram: Sheep Herder",
-      "engram_class": "BlueprintGeneratedClass /Game/Mods/StructuresPlusMod/Misc/SheepHerder/PrimalItemStructure_SheepHerder.PrimalItemStructure_SheepHerder_C",
-      "engram_classes": [
-        "BlueprintGeneratedClass /Game/Mods/StructuresPlusMod/Misc/SheepHerder/PrimalItemStructure_SheepHerder.PrimalItemStructure_SheepHerder_C"
-      ],
-      "variants": [
-        "1999447172"
-      ]
-    },
-    {
       "id": 8810295,
       "ap_name": "Engram: Shield Post",
       "engram_class": "BlueprintGeneratedClass /Game/Mods/StructuresPlusMod/Misc/ShieldFence/PrimalItemStructure_ShieldPost.PrimalItemStructure_ShieldPost_C",
@@ -5754,7 +5732,6 @@
         "Engram: Item Collector",
         "Engram: Item Translocator",
         "Engram: Preserving Bin Plus",
-        "Engram: Sheep Herder",
         "Engram: Storage Large",
         "Engram: Storage Small",
         "Engram: Vault Plus"
@@ -5764,7 +5741,6 @@
       "id": 8819014,
       "ap_name": "Bundle: S+ Dino Care",
       "members": [
-        "Engram: Animal Tender",
         "Engram: Dino Uplink",
         "Engram: Egg Incubator SS",
         "Engram: Feeding Trough Plus",

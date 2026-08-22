@@ -86,15 +86,18 @@ def main():
 
     print("[1/6] Regenerating data-derived artifacts...")
     run(os.path.join("tools", "build_apworld.py"))
-    run(os.path.join("tools", "gen_poptracker.py"))
+    # PopTracker is maintained externally now - do NOT regenerate it here, or we would clobber the
+    # other maintainer's hand-edited pack. Re-enable gen_poptracker only if that changes.
+    # run(os.path.join("tools", "gen_poptracker.py"))
 
     print("[2/6] Example player yaml...")
     shutil.copyfile(os.path.join(ROOT, "apworld", "ark_ase", "ark.yaml"),
                      os.path.join(DIST, "ark.yaml"))
 
-    print("[3/6] PopTracker pack zip...")
-    zip_dir(os.path.join(ROOT, "poptracker"),
-            os.path.join(DIST, "ark_survival_evolved_ap.zip"))
+    # [3/6] PopTracker pack zip - SKIPPED. The pack is maintained and distributed externally now;
+    # zipping our copy here would ship a stale pack. Re-enable if we take PopTracker back in-house.
+    # zip_dir(os.path.join(ROOT, "poptracker"),
+    #         os.path.join(DIST, "ark_survival_evolved_ap.zip"))
 
     print("[4/6] Server plugin bundle (DLL + data + install bat)...")
     dll = os.path.join(ROOT, "plugin", "ArkAP", "x64", "Release", "ArkAP.dll")
