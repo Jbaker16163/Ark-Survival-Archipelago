@@ -1,0 +1,298 @@
+{
+  "_comment": "Lethal's Reusables (1967741708). Reusable variants of vanilla tools/consumables. Built from the mod's item blueprint paths (folder /Game/Mods/LethalReusable). The ' LR' suffix folds a variant into its vanilla base (see VARIANT_SUFFIXES); items with no vanilla engram in our set stay standalone.",
+  "mod_id": "1967741708",
+  "id_base": 8840000,
+  "auto_grant": [],
+  "engrams": [
+    {
+      "id": 8840000,
+      "ap_name": "Engram: Blood Extractor LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/BloodExtractor_LR.BloodExtractor_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/BloodExtractor_LR.BloodExtractor_LR_C"
+      ]
+    },
+    {
+      "id": 8840001,
+      "ap_name": "Engram: Bola LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/Bola_LR.Bola_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/Bola_LR.Bola_LR_C"
+      ]
+    },
+    {
+      "id": 8840002,
+      "ap_name": "Engram: Boomerang LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/Boomerang_LR.Boomerang_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/Boomerang_LR.Boomerang_LR_C"
+      ]
+    },
+    {
+      "id": 8840003,
+      "ap_name": "Engram: Camera LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/Camera_LR.Camera_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/Camera_LR.Camera_LR_C"
+      ]
+    },
+    {
+      "id": 8840004,
+      "ap_name": "Engram: Camera Purple Dye LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/CameraPurpleDye_LR.CameraPurpleDye_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/CameraPurpleDye_LR.CameraPurpleDye_LR_C"
+      ]
+    },
+    {
+      "id": 8840005,
+      "ap_name": "Engram: Climbing Pick LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/ClimbingPick_LR.ClimbingPick_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/ClimbingPick_LR.ClimbingPick_LR_C"
+      ]
+    },
+    {
+      "id": 8840006,
+      "ap_name": "Engram: Converter Well LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/ConverterWell_LR.ConverterWell_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/ConverterWell_LR.ConverterWell_LR_C"
+      ]
+    },
+    {
+      "id": 8840007,
+      "ap_name": "Engram: Delivery Crate LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/DeliveryCrate_LR.DeliveryCrate_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/DeliveryCrate_LR.DeliveryCrate_LR_C"
+      ]
+    },
+    {
+      "id": 8840008,
+      "ap_name": "Engram: Fish Basket LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/FishBasket_LR.FishBasket_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/FishBasket_LR.FishBasket_LR_C"
+      ]
+    },
+    {
+      "id": 8840009,
+      "ap_name": "Engram: Fishing Net LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/FishingNet_LR.FishingNet_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/FishingNet_LR.FishingNet_LR_C"
+      ]
+    },
+    {
+      "id": 8840010,
+      "ap_name": "Engram: Flare Gun LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/FlareGun_LR.FlareGun_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/FlareGun_LR.FlareGun_LR_C"
+      ]
+    },
+    {
+      "id": 8840011,
+      "ap_name": "Engram: Gas Mask LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/GasMask_LR.GasMask_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/GasMask_LR.GasMask_LR_C"
+      ]
+    },
+    {
+      "id": 8840012,
+      "ap_name": "Engram: Glider LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/Glider_LR.Glider_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/Glider_LR.Glider_LR_C"
+      ]
+    },
+    {
+      "id": 8840013,
+      "ap_name": "Engram: Glow Stick LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/GlowStick_LR.GlowStick_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/GlowStick_LR.GlowStick_LR_C"
+      ]
+    },
+    {
+      "id": 8840014,
+      "ap_name": "Engram: Grappling Bow LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/GrapplingBow_LR.GrapplingBow_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/GrapplingBow_LR.GrapplingBow_LR_C"
+      ]
+    },
+    {
+      "id": 8840015,
+      "ap_name": "Engram: Hazard Boots LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/HazardBoots_LR.HazardBoots_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/HazardBoots_LR.HazardBoots_LR_C"
+      ]
+    },
+    {
+      "id": 8840016,
+      "ap_name": "Engram: Hazard Gloves LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/HazardGloves_LR.HazardGloves_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/HazardGloves_LR.HazardGloves_LR_C"
+      ]
+    },
+    {
+      "id": 8840017,
+      "ap_name": "Engram: Hazard Helmet LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/HazardHelmet_LR.HazardHelmet_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/HazardHelmet_LR.HazardHelmet_LR_C"
+      ]
+    },
+    {
+      "id": 8840018,
+      "ap_name": "Engram: Hazard Pants LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/HazardPants_LR.HazardPants_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/HazardPants_LR.HazardPants_LR_C"
+      ]
+    },
+    {
+      "id": 8840019,
+      "ap_name": "Engram: Hazard Shirt LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/HazardShirt_LR.HazardShirt_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/HazardShirt_LR.HazardShirt_LR_C"
+      ]
+    },
+    {
+      "id": 8840020,
+      "ap_name": "Engram: Lasso LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/Lasso_LR.Lasso_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/Lasso_LR.Lasso_LR_C"
+      ]
+    },
+    {
+      "id": 8840021,
+      "ap_name": "Engram: Mind Wipe Tonic LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/MindWipe_LR.MindWipe_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/MindWipe_LR.MindWipe_LR_C"
+      ]
+    },
+    {
+      "id": 8840022,
+      "ap_name": "Engram: Miners Helmet LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/MinersHelmet_LR.MinersHelmet_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/MinersHelmet_LR.MinersHelmet_LR_C"
+      ]
+    },
+    {
+      "id": 8840023,
+      "ap_name": "Engram: Night Vision Goggles LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/NightVisionGoggles_LR.NightVisionGoggles_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/NightVisionGoggles_LR.NightVisionGoggles_LR_C"
+      ]
+    },
+    {
+      "id": 8840024,
+      "ap_name": "Engram: Parachute LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/Parachute_LR.Parachute_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/Parachute_LR.Parachute_LR_C"
+      ]
+    },
+    {
+      "id": 8840025,
+      "ap_name": "Engram: Pliers LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/Pliers_LR.Pliers_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/Pliers_LR.Pliers_LR_C"
+      ]
+    },
+    {
+      "id": 8840026,
+      "ap_name": "Engram: Re-Fertilizer LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/ReFertilizer_LR.ReFertilizer_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/ReFertilizer_LR.ReFertilizer_LR_C"
+      ]
+    },
+    {
+      "id": 8840027,
+      "ap_name": "Engram: Scissors LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/Scissors_LR.Scissors_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/Scissors_LR.Scissors_LR_C"
+      ]
+    },
+    {
+      "id": 8840028,
+      "ap_name": "Engram: Scuba Tank LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/ScubaTank_LR.ScubaTank_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/ScubaTank_LR.ScubaTank_LR_C"
+      ]
+    },
+    {
+      "id": 8840029,
+      "ap_name": "Engram: Soap LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/Soap_LR.Soap_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/Soap_LR.Soap_LR_C"
+      ]
+    },
+    {
+      "id": 8840030,
+      "ap_name": "Engram: Spear LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/Spear_LR.Spear_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/Spear_LR.Spear_LR_C"
+      ]
+    },
+    {
+      "id": 8840031,
+      "ap_name": "Engram: Taxidermy Tool LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/TaxidermyTool_LR.TaxidermyTool_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/TaxidermyTool_LR.TaxidermyTool_LR_C"
+      ]
+    },
+    {
+      "id": 8840032,
+      "ap_name": "Engram: Tent LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/Tent_LR.Tent_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/Tent_LR.Tent_LR_C"
+      ]
+    },
+    {
+      "id": 8840033,
+      "ap_name": "Engram: Torch LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/Torch_LR.Torch_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/Torch_LR.Torch_LR_C"
+      ]
+    },
+    {
+      "id": 8840034,
+      "ap_name": "Engram: Water Tank LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/WaterTank_LR.WaterTank_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/WaterTank_LR.WaterTank_LR_C"
+      ]
+    },
+    {
+      "id": 8840035,
+      "ap_name": "Engram: Whip LR",
+      "engram_class": "BlueprintGeneratedClass /Game/Mods/LethalReusable/Whip_LR.Whip_LR_C",
+      "engram_classes": [
+        "BlueprintGeneratedClass /Game/Mods/LethalReusable/Whip_LR.Whip_LR_C"
+      ]
+    }
+  ],
+  "bundles": [],
+  "dinos": []
+}

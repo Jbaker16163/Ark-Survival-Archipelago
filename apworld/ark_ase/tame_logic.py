@@ -15,6 +15,7 @@ import re
 from typing import Callable, Dict, List, Tuple
 
 # AST node forms:  ('has', ap_item_name) | ('and', [nodes]) | ('or', [nodes]) | ('true',)
+#                | ('atleast', n, [ap_item_name, ...])   -- have at least n of the listed items
 AST = tuple
 
 # deep-water dinos (roster short names) whose tame realistically needs scuba gear ("Deep Dive").
@@ -33,6 +34,10 @@ class TameLogic:
         self.dino_raw: Dict[str, str] = data.get("dino_tame_raw", {})  # sheet dino -> expr
         self.dino_alias: Dict[str, str] = data.get("dino_alias", {})   # roster short -> sheet name
         self.cave_tames: Dict[str, str] = data.get("cave_tames", {})   # cave dweller -> cave-floor override
+        # "have at least n of these items" macros - a token that expands to an ('atleast', ...) node.
+        # Used for the fur-count caves, mirroring Lurch's PopTracker Lua (furcount >= 4 / >= 3 over
+        # the five fur engrams + the Otter tame). "of" holds FINAL ap_item_names, so no remap is done.
+        self.count_macros: Dict[str, dict] = data.get("count_macros", {})
 
     # ---- requirement expression for a roster dino (cave override > sheet > DINO_TIER fallback) ----
     def dino_expr(self, roster_short: str, tier: int) -> str:
@@ -94,6 +99,24 @@ class TameLogic:
         if name in seen:                       # cycle guard
             return ("true",)
         seen = seen | {name}
+        if name in self.count_macros:          # "n of these items" -> ('atleast', n, pool)
+            spec = self.count_macros[name]
+            n = int(spec.get("n", 1))
+            pool: List[str] = []
+            for x in spec.get("of", []):
+                if x in missing:
+                    continue                   # can't ever hold it (wrong map) - drop from the pool
+                if x in free:
+                    n -= 1                     # auto-granted: always counts, so it lowers the bar
+                    continue
+                pool.append(x)
+            if n <= 0:
+                return ("true",)               # enough are free-granted to satisfy it outright
+            if len(pool) < n:
+                return ("false",)              # not enough obtainable items left to reach n
+            if n == len(pool):                 # "all of them" - a plain AND is clearer to the solver
+                return ("and", [("has", x) for x in pool])
+            return ("atleast", n, pool)
         if name in direct:                     # RideX / bare creature -> exact AP item names
             if any(n in missing for n in direct[name]):
                 return ("false",)              # creature is not on this slot's maps
@@ -179,6 +202,8 @@ def _tokenize(expr: str) -> List[str]:
 def _collect(ast: AST, out: set) -> None:
     if ast[0] == "has":
         out.add(ast[1])
+    elif ast[0] == "atleast":
+        out.update(ast[2])
     elif ast[0] in ("and", "or"):
         for c in ast[1]:
             _collect(c, out)
@@ -192,6 +217,8 @@ def eval_ast(ast: AST, state, player: int) -> bool:
         return all(eval_ast(c, state, player) for c in ast[1])
     if kind == "or":
         return any(eval_ast(c, state, player) for c in ast[1])
+    if kind == "atleast":
+        return state.has_from_list(ast[2], player, ast[1])
     if kind == "false":
         return False        # requires content this slot's maps do not have
     return True   # 'true'

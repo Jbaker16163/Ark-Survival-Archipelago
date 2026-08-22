@@ -99,10 +99,16 @@ static std::map<std::string, std::map<int, int>> g_routeHintRedirect;
 // that slot enabled the mod. Unknown route (no flags yet) -> allow, so nothing silently vanishes.
 static bool ItemAllowedForRoute(const std::string& route, int item_id) {
     auto oit = g_tables.item_to_mod.find(item_id);
-    if (oit == g_tables.item_to_mod.end() || oit->second.empty()) return true;   // base game
+    if (oit == g_tables.item_to_mod.end() || oit->second.empty()) return true;   // base game - always
     auto rit = g_routeMods.find(route);
-    if (rit == g_routeMods.end() || rit->second.empty()) return true;            // unknown -> allow
-    return rit->second.count(oit->second) > 0;
+    // NOT loaded yet (key absent) -> allow, so a mod item isn't dropped in the brief window before
+    // flags.json is read. But a LOADED, EMPTY set means this slot enabled ZERO mods - a real
+    // answer, not "unknown" - so a mod item must be DENIED. Conflating the two (the old
+    // `|| empty()`) leaked every S+ structure variant onto a no-mod player in multiplayer: the
+    // structure bundle walks the GLOBAL engram registry (S+ is loaded server-wide), and this gate
+    // was the only thing meant to keep S+ out of a non-S+ slot.
+    if (rit == g_routeMods.end()) return true;                                   // flags not loaded yet
+    return rit->second.count(oit->second) > 0;                                   // enabled this mod?
 }
 
 // trap filler: item id -> dino spawn spec (effect = spawn wild dinos at <distance> in front)
@@ -187,7 +193,7 @@ namespace fs = std::filesystem;
 // Which dll is actually loaded. Declared up here rather than beside Load() because the JOIN greet
 // and /apstatus both quote it: "what version are they running?" was answered by asking someone to
 // find a log file on the server box, which is no answer at all when the report comes from a player.
-static const char* ARKAP_BUILD = "v165-fresh-start-clears-mailboxes";
+static const char* ARKAP_BUILD = "v174-mod-gate-no-failopen";
 
 // the plugin's own folder: ArkApi/Plugins/ArkAP
 static fs::path PluginDir() {
@@ -438,9 +444,20 @@ static int MaxWildLevel() {
 static void ReportLevelMilestones(APrimalDinoCharacter* dino, const std::string& route,
                                   const char* hiTag, const char* vhiTag) {
     if (!dino) return;
+    // AbsoluteBaseLevel is the level a WILD creature spawned at - the number a player recognises.
+    // But it reads 0 on some modded creatures (BetterDinos on Lurch's server), and the old code
+    // returned right here on lvl<=0, so it NEVER computed max level and NEVER fired the high-level
+    // milestone - silently, with nothing in the log. Fall back to the status component's own level
+    // getter, which is the game's authoritative value and is populated for every creature.
     int lvl = dino->AbsoluteBaseLevelField();
+    int absl = lvl;
+    if (lvl <= 0)
+        if (auto* csc = dino->MyCharacterStatusComponentField()) lvl = csc->GetCharacterLevel();
+    const int maxw = MaxWildLevel();
+    DebugLog("DINOLEVEL abs=" + std::to_string(absl) + " used=" + std::to_string(lvl) +
+             " max=" + std::to_string(maxw) + " tag=" + hiTag);
     if (lvl <= 0) return;
-    const double pct = (double)lvl / (double)MaxWildLevel();
+    const double pct = (double)lvl / (double)maxw;
     auto fire = [&](const char* tag) {
         auto it = g_tables.milestone_tag_to_loc.find(tag);
         if (it != g_tables.milestone_tag_to_loc.end()) ReportLocation(route, it->second);
@@ -754,7 +771,38 @@ static void HarvestDinoClass(const std::string& name, const std::string& rawTag)
              << canon << "\", \"mapped\": " << (KnownDinoTag(canon) ? "true" : "false") << "}\n";
 }
 
-static void DoBossDeath(APrimalDinoCharacter* dino, AActor* damageCauser) {
+// Resolve the SPECIFIC player behind a kill. PcForTeam alone returns just the FIRST member of a
+// team, so two same-tribe players (who share one team) both resolved to the same player: every kill
+// piled onto one of them, and the per-route "first kill" dedup then swallowed the other's first
+// kill of a species entirely. Match the actual killer by identity instead - only fall back to team
+// when the kill genuinely can't be pinned to one player (an unridden pet, a trap).
+static AShooterPlayerController* ResolveKillerPc(AController* killer, AActor* causer) {
+    UWorld* world = ArkApi::GetApiUtils().GetWorld();
+    if (!world) return nullptr;
+    // 1. on-foot kill: the Killer controller IS a connected player (gun / bow / melee).
+    if (killer)
+        for (TWeakObjectPtr<APlayerController> wpc : world->PlayerControllerListField())
+            if (wpc.Get() == killer) return static_cast<AShooterPlayerController*>(killer);
+    // 2. match the causer against each player's OWN body or the dino they are RIDING. Pointer
+    //    compares only - `causer` is never cast to a dino (a wrong-offset read if it is actually a
+    //    player character or a wild creature); RidingDino is read off the player's own character.
+    if (causer)
+        for (TWeakObjectPtr<APlayerController> wpc : world->PlayerControllerListField()) {
+            auto* pc = static_cast<AShooterPlayerController*>(wpc.Get());
+            if (!pc) continue;
+            AShooterCharacter* body = pc->GetPlayerCharacter();
+            if (!body) continue;
+            if ((AActor*)body == causer) return pc;                        // 2a. this player, on foot
+            APrimalDinoCharacter* mount = body->RidingDinoField().Get();
+            if (mount && (AActor*)mount == causer) return pc;              // 2b. riding the killer dino
+        }
+    // 3. fallback: attribute by team (ambiguous when same-tribe members share a team, but better
+    //    than nothing for an unridden pet's kill).
+    if (causer) return PcForTeam(static_cast<APrimalCharacter*>(causer)->TargetingTeamField());
+    return nullptr;
+}
+
+static void DoBossDeath(APrimalDinoCharacter* dino, AController* killer, AActor* damageCauser) {
     FString fn; dino->GetFullName(&fn, nullptr);
     std::string full = fn.ToString();
     std::string name = full.substr(0, full.find(' '));          // class name prefix
@@ -774,13 +822,9 @@ static void DoBossDeath(APrimalDinoCharacter* dino, AActor* damageCauser) {
             return;
         }
     }
-    // first-kill-of-species CHECK: attribute by the damage causer's team (a player or their dino),
-    // then route to the connected player on that team.
-    AShooterPlayerController* killerPc = nullptr;
-    if (damageCauser) {
-        auto* c = static_cast<APrimalCharacter*>(damageCauser);   // player char or a tamed dino
-        if (c) killerPc = PcForTeam(c->TargetingTeamField());
-    }
+    // first-kill-of-species CHECK: attribute to the SPECIFIC killer (same-tribe safe), then route
+    // to that player. See ResolveKillerPc.
+    AShooterPlayerController* killerPc = ResolveKillerPc(killer, damageCauser);
     if (!killerPc) return;                                      // wild-on-wild / unattributable
     std::string route = RouteFor(killerPc);
     QueueCountEvent("kill", route);                             // collective kill count
@@ -838,16 +882,19 @@ void Hook_APrimalDinoCharacter_DoMate(APrimalDinoCharacter* _this, APrimalDinoCh
 // you would just be killing your own bred stock).
 static void DoDinoLevelKill(APrimalDinoCharacter* dino, AController* killer, AActor* causer) {
     if (!dino || dino->TargetingTeamField() >= 50000) return;   // >= 50000 = a tamed/tribe creature
-    AShooterPlayerController* pc = nullptr;
-    if (killer) pc = static_cast<AShooterPlayerController*>(killer);
-    std::string route = pc ? RouteFor(pc) : std::string();
-    ReportLevelMilestones(dino, route, "milestone_killlevel_hi", "milestone_killlevel_vhi");
+    // Attribute to the SPECIFIC killer (same-tribe safe), and fire ONLY on a real player kill. The
+    // old code blind-cast `killer` and fired regardless, so a wild-on-wild death reported the
+    // milestone to route "" = the player's mailbox. Before v169 the AbsoluteBaseLevel=0 short-
+    // circuit hid this; now that levels resolve, every ambient death in range was granting it.
+    AShooterPlayerController* killerPc = ResolveKillerPc(killer, causer);
+    if (!killerPc) return;                                       // wild-on-wild / environmental - not a player kill
+    ReportLevelMilestones(dino, RouteFor(killerPc), "milestone_killlevel_hi", "milestone_killlevel_vhi");
 }
 
 bool Hook_APrimalDinoCharacter_Die(APrimalDinoCharacter* _this, float KillingDamage,
         FDamageEvent* DamageEvent, AController* Killer, AActor* DamageCauser) {
     bool ret = APrimalDinoCharacter_Die_original(_this, KillingDamage, DamageEvent, Killer, DamageCauser);
-    __try { DoBossDeath(_this, DamageCauser); } __except (EXCEPTION_EXECUTE_HANDLER) {}
+    __try { DoBossDeath(_this, Killer, DamageCauser); } __except (EXCEPTION_EXECUTE_HANDLER) {}
     __try { DoDinoLevelKill(_this, Killer, DamageCauser); } __except (EXCEPTION_EXECUTE_HANDLER) {}
     g_trapDinos.erase(_this);   // dead trap dino: drop the pointer so a reused address can't
                                 // falsely flag a fresh legit dino as a trap
@@ -1098,9 +1145,45 @@ static bool ShouldLogGrantFailure(int n) {
 // prerequisite". MeetsEngramRequirements is asked three ways to separate the causes: the full
 // check, level-only, and the full check with prerequisites waived - whichever flips tells us which
 // rule is doing the blocking.
+// PINPOINT probe (read-only). The refusal is NOT level, points, or prerequisites - the user
+// confirmed above-level engrams unlocked fine on the long-term run with the same negative points.
+// Same hook, same call, same class-maps-to-entry as v75. The one thing that differs between a
+// working server and Lurch's is the game-data itself: ~30 vanilla engrams (Narcotic among them)
+// are absent from EngramBlueprintEntries on his modded server. This reports, from one line, which
+// store the class is and is not in, so the next fix is grounded instead of guessed:
+//   inMap        - the class IS a key in ItemEngramMap (entry exists)         -> known true
+//   inEntriesLst - the class is in EngramBlueprintEntries                     -> the suspect list
+//   inPersistent - after the unlock call, the class is in the survivor's      -> did the WRITE land?
+//                  PlayerState_EngramBlueprints
+//   hasEngram    - what HasEngram returns right now                           -> does the READ agree?
+// inPersistent=1 hasEngram=0 -> HasEngram reads a different store than ServerUnlockEngram writes.
+// inPersistent=0            -> ServerUnlockEngram wrote nothing (its internal entry lookup failed,
+//                              consistent with the entry missing from EngramBlueprintEntries).
+static std::string EngramStoreProbe(AShooterPlayerState* ps, UClass* engramClass) {
+    TSubclassOf<UPrimalItem> engram; engram.uClass = engramClass;
+    bool inMap = false, inList = false, inPersistent = false;
+    if (auto* gd = GameData()) {
+        auto m = gd->ItemEngramMapField();
+        inMap = m.Find(engramClass) != nullptr;
+        for (UPrimalEngramEntry* e : gd->EngramBlueprintEntriesField())
+            if (e && e->BluePrintEntryField().uClass == engramClass) { inList = true; break; }
+    }
+    if (auto* pd = ps->MyPlayerDataStructField())
+        if (auto* st = pd->MyPersistentCharacterStatsField()) {
+            auto& learned = st->PlayerState_EngramBlueprintsField();
+            for (int i = 0; i < learned.Num(); ++i)
+                if (learned[i].uClass == engramClass) { inPersistent = true; break; }
+        }
+    return "inMap=" + std::string(inMap ? "1" : "0") +
+           " inEntriesLst=" + std::string(inList ? "1" : "0") +
+           " inPersistent=" + std::string(inPersistent ? "1" : "0") +
+           " hasEngram=" + std::string(ps->HasEngram(engram) ? "1" : "0");
+}
+
 static void DiagnoseGrantFailure(AShooterPlayerState* ps, UClass* engramClass,
                                  const std::string& route) {
     const std::string who = route.empty() ? "" : " [" + route + "]";
+    DebugLog("  PROBE: " + ClassShortName(engramClass) + " " + EngramStoreProbe(ps, engramClass));
     auto eit = g_classToEntry.find(engramClass);
     if (eit == g_classToEntry.end() || !eit->second) {
         DebugLog("  WHY: no UPrimalEngramEntry is registered for this class, so ServerUnlockEngram "
@@ -1200,9 +1283,35 @@ static bool GrantEngramToPlayers(const std::string& route, UClass* engramClass,
         // for an entire long-term run; ArkServerApi's own AllEngrams plugin does not make it either
         // (vendor/ASE-Plugins/AllEngrams: HasEngram check, then ServerUnlockEngram, done).
         if (ps->HasEngram(engram)) { ++had; continue; }
+        // AP has DECIDED this player gets the engram, so learn it unconditionally - no level, no
+        // engram points, no prerequisite chain. bForce=true was supposed to do that, but on this
+        // build it does not waive the character-LEVEL gate (a level-1 survivor could not receive
+        // Narcotic, which needs level 6, even though the long-term run "just learned" everything -
+        // that run was simply always high enough level). ArkServerApi's own AllEngrams respects
+        // level for the same reason.
+        //
+        // So waive the requirement at its SOURCE: the engram ENTRY carries the level and point cost
+        // as writable fields. Zero them across the single unlock call, then restore, so the entry
+        // the player sees in the UI is unchanged and only THIS grant is forced. No player stat is
+        // touched and no blueprint item is minted - the engram is learned the normal way and stays
+        // gated by its crafting materials, which is the real requirement.
+        UPrimalEngramEntry* ent = nullptr;
+        if (auto ceit = g_classToEntry.find(engramClass); ceit != g_classToEntry.end())
+            ent = ceit->second;
+        int savedLvl = 0, savedPts = 0;
+        if (ent) {
+            savedLvl = ent->RequiredCharacterLevelField();
+            savedPts = ent->RequiredEngramPointsField();
+            ent->RequiredCharacterLevelField() = 0;
+            ent->RequiredEngramPointsField()   = 0;
+        }
         g_applying = true;
         ps->ServerUnlockEngram(engram, true, true);
         g_applying = false;
+        if (ent) {
+            ent->RequiredCharacterLevelField() = savedLvl;
+            ent->RequiredEngramPointsField()   = savedPts;
+        }
         // verify it landed. Silent failures here are permanent for the player (ApplyItem dedups
         // by id), so a refusal has to end up in the log rather than nowhere. Reassert retries it
         // every tick regardless, which covers the "player not fully spawned yet" case.
@@ -1546,6 +1655,20 @@ static void ApplyModBundle(const std::string& route, int bundle_id,
              "/" + std::to_string(members.size()));
 }
 
+// bundle_saddles: grant the saddle that rides along with ONE tame item. Factored out because a
+// tames_per_item group folds several tames into one AP item, and EACH of them - the representative
+// AND every folded member - carries its own saddle. The member loop used to grant only member
+// engrams, so the 2nd/3rd tame in a group got its dino but never its saddle. Call this per tame id.
+static void GrantBundledSaddle(const std::string& route, int tameItemId) {
+    auto sit = g_tameItemToSaddleItem.find(tameItemId);
+    if (sit == g_tameItemToSaddleItem.end()) return;
+    g_state->AddItem(route, sit->second);                  // record so the gate + reassert keep it
+    auto eit = g_itemToEngram.find(sit->second);
+    if (eit != g_itemToEngram.end())
+        for (UClass* c : eit->second) GrantEngramToPlayers(route, c);
+    DebugLog("BUNDLE saddle item=" + std::to_string(sit->second) + " with tame=" + std::to_string(tameItemId));
+}
+
 void ApplyItem(const std::string& route, int item_id, const std::string& from) {
     bool is_new = g_state->AddItem(route, item_id);
     bool is_engram = g_itemToEngram.count(item_id) > 0;
@@ -1594,6 +1717,14 @@ void ApplyItem(const std::string& route, int item_id, const std::string& from) {
                     std::string n = ItemNameOf(member);
                     if (!n.empty() && std::find(extras.begin(), extras.end(), n) == extras.end())
                         extras.push_back(n);
+                    if (FlagFor(g_routeBundleSaddles, route)) {      // a folded tame's saddle rides along too
+                        auto ms = g_tameItemToSaddleItem.find(member);
+                        if (ms != g_tameItemToSaddleItem.end()) {
+                            std::string sn = ItemNameOf(ms->second);
+                            if (!sn.empty() && std::find(extras.begin(), extras.end(), sn) == extras.end())
+                                extras.push_back(sn);
+                        }
+                    }
                 }
         }
     }
@@ -1641,16 +1772,8 @@ void ApplyItem(const std::string& route, int item_id, const std::string& from) {
 
     // bundle_saddles: a tame unlock also grants the dino's saddle engram - ONLY if THIS route's slot
     // enabled it (per-route, so an unbundled slot never gets the saddle handed over with the tame).
-    if (FlagFor(g_routeBundleSaddles, route)) {
-        auto sit = g_tameItemToSaddleItem.find(item_id);
-        if (sit != g_tameItemToSaddleItem.end()) {
-            g_state->AddItem(route, sit->second);     // record so the gate + reassert keep it
-            auto eit = g_itemToEngram.find(sit->second);
-            if (eit != g_itemToEngram.end())
-                for (UClass* c : eit->second) GrantEngramToPlayers(route, c);
-            DebugLog("BUNDLE saddle item=" + std::to_string(sit->second) + " with tame=" + std::to_string(item_id));
-        }
-    }
+    const bool bundleSaddles = FlagFor(g_routeBundleSaddles, route);
+    if (bundleSaddles) GrantBundledSaddle(route, item_id);
 
     // count-grouping (engrams_per_item / tames_per_item): a representative unlock also grants every
     // FOLDED member. Members were never pooled, so AP never sends them - we mark them owned (so the
@@ -1664,6 +1787,7 @@ void ApplyItem(const std::string& route, int item_id, const std::string& from) {
                 auto eit = g_itemToEngram.find(member);          // engram member -> unlock its class
                 if (eit != g_itemToEngram.end())
                     for (UClass* c : eit->second) GrantEngramToPlayers(route, c);
+                if (bundleSaddles) GrantBundledSaddle(route, member);   // a FOLDED tame carries a saddle too
                 DebugLog("GROUP member=" + std::to_string(member) + " via rep=" + std::to_string(item_id));
             }
     }
@@ -1722,11 +1846,23 @@ static void DoGrantStarter() {
         if (!FlagFor(g_routeFreeStarter, route)) continue;   // per-route: only slots that enabled it
         if (g_starterGrantedRoutes.count(route)) continue;
         g_starterGrantedRoutes.insert(route);
+        // FOLD THE STARTERS TOO. A pool item runs its item_groups fold in ApplyItem, which is how
+        // an S+ variant unlocks alongside its vanilla base. Starter engrams are removed from the
+        // pool and granted here by raw AddItem, so without doing the fold ourselves their variants
+        // (e.g. S+ Thatch Foundation) never come with them - they only appeared via a manual
+        // /release. Uses THIS route's own groups, so a non-S+ slot never picks up S+ variants.
+        auto grit = g_routeItemGroups.find(route);
         int n = 0;
-        for (int item : g_starterItemIds)
+        for (int item : g_starterItemIds) {
             if (g_state->AddItem(route, item)) ++n;
+            if (grit != g_routeItemGroups.end()) {
+                auto mit = grit->second.find(item);
+                if (mit != grit->second.end())
+                    for (int member : mit->second) g_state->AddItem(route, member);   // variant engram; reassert grants it
+            }
+        }
         if (n) DebugLog("STARTER granted " + std::to_string(n) + " of " +
-                        std::to_string(g_starterItemIds.size()) + " starter engrams" +
+                        std::to_string(g_starterItemIds.size()) + " starter engrams (+ folded variants)" +
                         (route.empty() ? "" : " [" + route + "]"));
     }
 }
@@ -1779,15 +1915,8 @@ static void ReownItem(const std::string& route, int item_id) {
     auto it = g_itemToEngram.find(item_id);
     if (it != g_itemToEngram.end())
         for (UClass* c : it->second) GrantEngramToPlayers(route, c);
-    if (FlagFor(g_routeBundleSaddles, route)) {     // bundled saddle rides along with its tame
-        auto sit = g_tameItemToSaddleItem.find(item_id);
-        if (sit != g_tameItemToSaddleItem.end()) {
-            g_state->AddItem(route, sit->second);
-            auto eit = g_itemToEngram.find(sit->second);
-            if (eit != g_itemToEngram.end())
-                for (UClass* c : eit->second) GrantEngramToPlayers(route, c);
-        }
-    }
+    const bool bundleSaddles = FlagFor(g_routeBundleSaddles, route);
+    if (bundleSaddles) GrantBundledSaddle(route, item_id);     // bundled saddle rides along with its tame
     auto grit = g_routeItemGroups.find(route);      // count-grouping members
     if (grit != g_routeItemGroups.end()) {
         auto mit = grit->second.find(item_id);
@@ -1797,6 +1926,7 @@ static void ReownItem(const std::string& route, int item_id) {
                 auto eit = g_itemToEngram.find(member);
                 if (eit != g_itemToEngram.end())
                     for (UClass* c : eit->second) GrantEngramToPlayers(route, c);
+                if (bundleSaddles) GrantBundledSaddle(route, member);   // folded tame's saddle too
             }
     }
     if (isNew)                                      // only interesting when it was actually missing

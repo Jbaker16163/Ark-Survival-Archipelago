@@ -5595,7 +5595,8 @@
         "Engram: Wire Horizontal",
         "Engram: Wire Incline",
         "Engram: Wire Intersection",
-        "Engram: Wire Vertical"
+        "Engram: Wire Vertical",
+        "Engram: Electrical Outlet"
       ]
     },
     {
@@ -5605,7 +5606,21 @@
         "Engram: Internal Pipe Pillar",
         "Engram: Internal Pipe Square",
         "Engram: Internal Pipe Triangle",
-        "Engram: Internal Pipe Wall"
+        "Engram: Internal Pipe Wall",
+        "Engram: Pipe Flex Metal SP",
+        "Engram: Pipe Flex Stone SP",
+        "Engram: Pipe Horizontal Metal",
+        "Engram: Pipe Horizontal Stone",
+        "Engram: Pipe Incline Metal",
+        "Engram: Pipe Incline Stone",
+        "Engram: Pipe Intake Metal",
+        "Engram: Pipe Intake Stone",
+        "Engram: Pipe Intersection Metal",
+        "Engram: Pipe Intersection Stone",
+        "Engram: Pipe Vertical Metal",
+        "Engram: Pipe Vertical Stone",
+        "Engram: Water Tap Metal",
+        "Engram: Water Tap Stone"
       ]
     },
     {

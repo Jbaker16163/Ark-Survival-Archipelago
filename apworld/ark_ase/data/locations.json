@@ -3394,9 +3394,9 @@
         },
         {
           "id": 8757241,
-          "name": "Collect 30 Absorbent Substrate",
+          "name": "Collect 10 Absorbent Substrate",
           "item_class": "PrimalItemResource_SubstrateAbsorbent",
-          "qty": 30,
+          "qty": 10,
           "tier": 2
         },
         {
@@ -3643,6 +3643,195 @@
           "item_class": "PrimalItemResource_ApexDrop_PoisonWyvern",
           "qty": 10,
           "tier": 2
+        },
+        {
+          "id": 8757329,
+          "name": "Collect 30 Preserving Salt",
+          "item_class": "PrimalItemResource_PreservingSalt",
+          "qty": 30,
+          "tier": 2
+        },
+        {
+          "id": 8757330,
+          "name": "Collect 50 Clay",
+          "item_class": "PrimalItemResource_Clay",
+          "qty": 50,
+          "tier": 1
+        },
+        {
+          "id": 8757331,
+          "name": "Wyvern Milk x5",
+          "item_class": "PrimalItemConsumable_WyvernMilk",
+          "qty": 5,
+          "tier": 3
+        },
+        {
+          "id": 8757332,
+          "name": "Plant Species Y Seed x20",
+          "item_class": "Seed_PlantSpeciesY",
+          "qty": 20,
+          "tier": 2
+        },
+        {
+          "id": 8757333,
+          "name": "Deathworm Horn x5",
+          "item_class": "KeratinSpike",
+          "qty": 5,
+          "tier": 2
+        },
+        {
+          "id": 8757335,
+          "name": "Alpha Deathworm Trophy",
+          "item_class": "Trophy_AlphaWorm",
+          "qty": 1,
+          "tier": 3
+        },
+        {
+          "id": 8757336,
+          "name": "Alpha Wyvern Trophy",
+          "item_class": "Trophy_AlphaWyvern",
+          "qty": 1,
+          "tier": 3
+        },
+        {
+          "id": 8757337,
+          "name": "Collect 2000 Wood",
+          "item_class": "PrimalItemResource_Wood",
+          "qty": 2000,
+          "tier": 2
+        },
+        {
+          "id": 8757338,
+          "name": "Collect 2000 Stone",
+          "item_class": "PrimalItemResource_Stone",
+          "qty": 2000,
+          "tier": 2
+        },
+        {
+          "id": 8757339,
+          "name": "Collect 1500 Thatch",
+          "item_class": "PrimalItemResource_Thatch",
+          "qty": 1500,
+          "tier": 2
+        },
+        {
+          "id": 8757340,
+          "name": "Collect 1500 Fiber",
+          "item_class": "PrimalItemResource_Fibers",
+          "qty": 1500,
+          "tier": 2
+        },
+        {
+          "id": 8757341,
+          "name": "Collect 1000 Hide",
+          "item_class": "PrimalItemResource_Hide",
+          "qty": 1000,
+          "tier": 2
+        },
+        {
+          "id": 8757342,
+          "name": "Collect 1000 Metal Ore",
+          "item_class": "PrimalItemResource_Metal_C",
+          "qty": 1000,
+          "tier": 2
+        },
+        {
+          "id": 8757343,
+          "name": "Collect 300 Metal Ingot",
+          "item_class": "PrimalItemResource_MetalIngot",
+          "qty": 300,
+          "tier": 2
+        },
+        {
+          "id": 8757344,
+          "name": "Collect 800 Chitin",
+          "item_class": "PrimalItemResource_Chitin",
+          "qty": 800,
+          "tier": 2
+        },
+        {
+          "id": 8757345,
+          "name": "Collect 300 Keratin",
+          "item_class": "PrimalItemResource_Keratin",
+          "qty": 300,
+          "tier": 2
+        },
+        {
+          "id": 8757346,
+          "name": "Collect 400 Cementing Paste",
+          "item_class": "PrimalItemResource_ChitinPaste",
+          "qty": 400,
+          "tier": 2
+        },
+        {
+          "id": 8757347,
+          "name": "Collect 300 Sparkpowder",
+          "item_class": "PrimalItemResource_Sparkpowder",
+          "qty": 300,
+          "tier": 2
+        },
+        {
+          "id": 8757348,
+          "name": "Collect 300 Gunpowder",
+          "item_class": "PrimalItemResource_Gunpowder",
+          "qty": 300,
+          "tier": 2
+        },
+        {
+          "id": 8757349,
+          "name": "Collect 300 Organic Polymer",
+          "item_class": "PrimalItemResource_Polymer_Organic",
+          "qty": 300,
+          "tier": 3
+        },
+        {
+          "id": 8757350,
+          "name": "Collect 150 Electronics",
+          "item_class": "PrimalItemResource_Electronics",
+          "qty": 150,
+          "tier": 3
+        },
+        {
+          "id": 8757351,
+          "name": "Collect 500 Silica Pearls",
+          "item_class": "PrimalItemResource_Silicon",
+          "qty": 500,
+          "tier": 2
+        },
+        {
+          "id": 8757352,
+          "name": "Collect 500 Oil",
+          "item_class": "PrimalItemResource_Oil",
+          "qty": 500,
+          "tier": 2
+        },
+        {
+          "id": 8757353,
+          "name": "Collect 300 Crystal",
+          "item_class": "PrimalItemResource_Crystal",
+          "qty": 300,
+          "tier": 2
+        },
+        {
+          "id": 8757354,
+          "name": "Collect 300 Obsidian",
+          "item_class": "PrimalItemResource_Obsidian",
+          "qty": 300,
+          "tier": 2
+        },
+        {
+          "id": 8757355,
+          "name": "Collect 30 Element",
+          "item_class": "PrimalItemResource_Element_C",
+          "qty": 30,
+          "tier": 3
+        },
+        {
+          "id": 8757356,
+          "name": "Collect 300 Element Dust",
+          "item_class": "PrimalItemResource_ElementDust",
+          "qty": 300,
+          "tier": 3
         }
       ]
     },

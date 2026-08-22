@@ -47,7 +47,7 @@ NO_TAME_LOGIC = {"Electrophorus", "Titanoboa"}
 # folds into the vanilla engram (see _variant_pairs), so ONE unlock grants both. Suffix rules are
 # tried first, then the curated table for the ones the mod RENAMES rather than suffixes. Every
 # result is still checked against the real vanilla engram list, so a bad guess simply doesn't pair.
-VARIANT_SUFFIXES = (" Plus", " Tek", " SS", " SP")
+VARIANT_SUFFIXES = (" Plus", " Tek", " SS", " SP", " LR")   # LR = Lethal's Reusables
 VARIANT_ALIAS = {
     "Engram: Smithy Plus": "Engram: Anvil Bench",
     "Engram: Mortar Pestle Plus": "Engram: Mortar And Pestle",
@@ -68,6 +68,9 @@ VARIANT_ALIAS = {
     "Engram: Loadout Dummy SS": "Engram: Loadout Mannequin",
     # (S+ Fridge Plus / Bee Hive Plus have NO vanilla counterpart in our engram set, so they stay
     #  their own separate unlocks - nothing to pair them with.)
+    # Lethal's Reusables: readable names that differ from the vanilla engram ap_name.
+    "Engram: Scuba Tank LR": "Engram: Scuba Shirt Suit With Tank",
+    "Engram: Whip LR": "Engram: Weapon Whip",
     "Engram: Taxidermy Plus Large": "Engram: Taxidermy Base Large",
     "Engram: Taxidermy Plus Medium": "Engram: Taxidermy Base Medium",
     "Engram: Taxidermy Plus Small": "Engram: Taxidermy Base Small",
@@ -968,6 +971,22 @@ class ArkASAWorld(World):
     # it errors with "item doesn't exist in the multiworld". This covers EVERY fold the apworld does:
     # count-groups, S+ variant pairs, material structure bundles, curated mod groups, and saddles
     # bundled with their tame. The plugin uses it to redirect the hint to the item you should chase.
+    def _tracker_groups_slotdata(self) -> dict:
+        """rep item id -> [every member item id it unlocks], for the TRACKER.
+
+        Archipelago sends one item per location, but a single ARK item can unlock many engrams (a
+        count-group representative, a bundle_structures material bundle, a mod bundle, or a saddle
+        bundled with its tame). PopTracker only sees the one item on the wire, so it needs the full
+        expansion to light up the members. `item_groups` covers only count-groups + variants;
+        hint_redirect (member -> rep) is the COMPLETE relationship, so invert it - that folds in the
+        structure/mod/saddle bundles too, with chains already resolved to the real pooled rep."""
+        groups: Dict[str, list] = {}
+        for member_id, rep_id in self._hint_redirect_slotdata().items():
+            groups.setdefault(str(rep_id), []).append(int(member_id))
+        for rep in groups:
+            groups[rep] = sorted(set(groups[rep]))
+        return groups
+
     def _hint_redirect_slotdata(self) -> dict:
         out: Dict[str, int] = {}
         ids = self.item_name_to_id
@@ -1644,7 +1663,7 @@ class ArkASAWorld(World):
             if self.options.tames_per_item.value <= 1:
                 tame_items = sorted(self._tame_item_names)
                 for m in self._locations["location_categories"].get("milestones", {}).get("entries", []):
-                    if m.get("tag", "").startswith("milestone_tames_"):
+                    if m.get("tag", "").startswith("milestone_tames_") and m["name"] not in excluded:
                         n = int(m["tag"].rsplit("_", 1)[1])
                         loc = self.multiworld.get_location(m["name"], self.player)
                         add_rule(loc, lambda state, k=n: state.has_from_list(tame_items, self.player, k))
@@ -1848,13 +1867,40 @@ class ArkASAWorld(World):
         return {"goal_bosses": self._goal_bosses(),
                 "goal_boss_tags": self._goal_boss_tags(order),
                 "bundle_saddles": bool(self.options.bundle_saddles.value),
+                "bundle_structures": bool(self.options.bundle_structures.value),
+                # Lurch's tracker interfaces with these two: bundle_structures tells it the vanilla
+                # structure engrams were collapsed into bundle items; extra_early_items is the exact
+                # list the player forced early. OptionSet -> sorted list so it serialises to JSON.
+                "extra_early_items": sorted(self.options.extra_early_items.value),
                 "free_starter_engrams": bool(self.options.free_starter_engrams.value),
                 "death_link": bool(self.options.death_link.value),
                 "mod_ids": sorted(self._active_mods()),   # mods this slot enabled (plugin diagnostics)
                 "item_groups": self._item_groups_slotdata(),  # rep item id -> folded member ids
                 "hint_redirect": self._hint_redirect_slotdata(),  # unpooled item id -> item that unlocks it
+                # rep item id -> EVERY member id it unlocks (count-groups + structure/mod/saddle
+                # bundles). PopTracker reads this to light up all engrams when one bundle item lands.
+                "tracker_groups": self._tracker_groups_slotdata(),
                 "engrams_per_item": self.options.engrams_per_item.value,
                 "tames_per_item": self.options.tames_per_item.value,
+                # Every player-selectable shuffle setting, for the tracker. Toggles -> bool, Range/
+                # Choice -> int (.value), OptionSet -> sorted list. Goal/bundle_*/death_link/mods/
+                # engrams_per_item/tames_per_item/extra_early_items are already sent above.
+                "maps": sorted(self.options.maps.value),
+                "goal": self.options.goal.value,
+                "lock_taming": bool(self.options.lock_taming.value),
+                "lock_supply_crates": bool(self.options.lock_supply_crates.value),
+                "trap_percentage": self.options.trap_percentage.value,
+                "early_dino_checks": bool(self.options.early_dino_checks.value),
+                "progression_tiers": bool(self.options.progression_tiers.value),
+                "station_placement": self.options.station_placement.value,
+                "tier0_add": sorted(self.options.tier0_add.value),
+                "tier0_remove": sorted(self.options.tier0_remove.value),
+                "dossier_checks": self.options.dossier_checks.value,
+                "food_sanity": self.options.food_sanity.value,
+                "tame_sanity": self.options.tame_sanity.value,
+                "death_sanity": self.options.death_sanity.value,
+                "death_milestones": bool(self.options.death_milestones.value),
+                "randomize_dino_spawns": self.options.randomize_dino_spawns.value,
                 "npc_replacements": [],           # legacy key (permutation design retired)
                 "spawn_additions": [],            # legacy key (additions design superseded)
                 "spawn_overrides": self._spawn_overrides()}

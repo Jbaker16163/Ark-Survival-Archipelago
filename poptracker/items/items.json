@@ -3941,9 +3941,9 @@
   "disabled_img": "images/apex_off.png"
  },
  {
-  "name": "Collect 30 Absorbent Substrate",
+  "name": "Collect 10 Absorbent Substrate",
   "type": "toggle",
-  "codes": "inv_collect_30_absorbent_substrate",
+  "codes": "inv_collect_10_absorbent_substrate",
   "img": "images/apex.png",
   "disabled_img": "images/apex_off.png"
  },
@@ -4175,6 +4175,195 @@
   "name": "Poison Talon x10",
   "type": "toggle",
   "codes": "inv_poison_talon_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 30 Preserving Salt",
+  "type": "toggle",
+  "codes": "inv_collect_30_preserving_salt",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 50 Clay",
+  "type": "toggle",
+  "codes": "inv_collect_50_clay",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Wyvern Milk x5",
+  "type": "toggle",
+  "codes": "inv_wyvern_milk_x5",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Plant Species Y Seed x20",
+  "type": "toggle",
+  "codes": "inv_plant_species_y_seed_x20",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Deathworm Horn x5",
+  "type": "toggle",
+  "codes": "inv_deathworm_horn_x5",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Alpha Deathworm Trophy",
+  "type": "toggle",
+  "codes": "inv_alpha_deathworm_trophy",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Alpha Wyvern Trophy",
+  "type": "toggle",
+  "codes": "inv_alpha_wyvern_trophy",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 2000 Wood",
+  "type": "toggle",
+  "codes": "inv_collect_2000_wood",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 2000 Stone",
+  "type": "toggle",
+  "codes": "inv_collect_2000_stone",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 1500 Thatch",
+  "type": "toggle",
+  "codes": "inv_collect_1500_thatch",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 1500 Fiber",
+  "type": "toggle",
+  "codes": "inv_collect_1500_fiber",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 1000 Hide",
+  "type": "toggle",
+  "codes": "inv_collect_1000_hide",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 1000 Metal Ore",
+  "type": "toggle",
+  "codes": "inv_collect_1000_metal_ore",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 300 Metal Ingot",
+  "type": "toggle",
+  "codes": "inv_collect_300_metal_ingot",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 800 Chitin",
+  "type": "toggle",
+  "codes": "inv_collect_800_chitin",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 300 Keratin",
+  "type": "toggle",
+  "codes": "inv_collect_300_keratin",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 400 Cementing Paste",
+  "type": "toggle",
+  "codes": "inv_collect_400_cementing_paste",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 300 Sparkpowder",
+  "type": "toggle",
+  "codes": "inv_collect_300_sparkpowder",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 300 Gunpowder",
+  "type": "toggle",
+  "codes": "inv_collect_300_gunpowder",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 300 Organic Polymer",
+  "type": "toggle",
+  "codes": "inv_collect_300_organic_polymer",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 150 Electronics",
+  "type": "toggle",
+  "codes": "inv_collect_150_electronics",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 500 Silica Pearls",
+  "type": "toggle",
+  "codes": "inv_collect_500_silica_pearls",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 500 Oil",
+  "type": "toggle",
+  "codes": "inv_collect_500_oil",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 300 Crystal",
+  "type": "toggle",
+  "codes": "inv_collect_300_crystal",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 300 Obsidian",
+  "type": "toggle",
+  "codes": "inv_collect_300_obsidian",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 30 Element",
+  "type": "toggle",
+  "codes": "inv_collect_30_element",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 300 Element Dust",
+  "type": "toggle",
+  "codes": "inv_collect_300_element_dust",
   "img": "images/apex.png",
   "disabled_img": "images/apex_off.png"
  },

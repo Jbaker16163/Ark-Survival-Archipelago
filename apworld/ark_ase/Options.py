@@ -189,6 +189,7 @@ class ModIds(OptionSet):
         889745138               Awesome Teleporters
         1631378184              Explorer Note Tracker
         1404697612              Awesome SpyGlass
+        1967741708              Lethal's Reusables
     Structures Plus and Super Structures are forks of one mod - list whichever you run, not both.
     Accepts a yaml list OR a comma-separated string, quotes optional:
         mod_ids: 731604991, 1631378184, 2594067220, 821530042, 1609138312, 1565015734, 1404697612, 889745138

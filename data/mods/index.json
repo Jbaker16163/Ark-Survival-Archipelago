@@ -68,6 +68,17 @@
       "kind": "utility",
       "id_base": 8830000,
       "file": "821530042.json"
+    },
+    {
+      "mod_id": "1967741708",
+      "aliases": [
+        "LethalReusable",
+        "LethalsReusables"
+      ],
+      "name": "Lethal's Reusables",
+      "kind": "utility",
+      "id_base": 8840000,
+      "file": "1967741708.json"
     }
   ]
 }
