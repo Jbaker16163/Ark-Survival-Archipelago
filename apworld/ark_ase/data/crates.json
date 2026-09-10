@@ -10,7 +10,9 @@
         "SupplyCrate_Level03_C",
         "SupplyCrate_Level03_Double_C",
         "SupplyCrate_Level03_ScorchedEarth_C",
-        "SupplyCrate_Level03_Double_ScorchedEarth_C"
+        "SupplyCrate_Level03_Double_ScorchedEarth_C",
+        "Val_SupplyCrate_Level03_C",
+        "Val_SupplyCrate_Level03_Double_C"
       ]
     },
     {
@@ -20,7 +22,11 @@
         "SupplyCrate_Level15_C",
         "SupplyCrate_Level15_Double_C",
         "SupplyCrate_Level15_ScorchedEarth_C",
-        "SupplyCrate_Level15_Double_ScorchedEarth_C"
+        "SupplyCrate_Level15_Double_ScorchedEarth_C",
+        "Val_SupplyCrate_Level15_C",
+        "Val_SupplyCrate_Level15_Double_C",
+        "Fjo_SupplyCrate_Level15_C",
+        "Fjo_SupplyCrate_Level15_Double_C"
       ]
     },
     {
@@ -30,7 +36,11 @@
         "SupplyCrate_Level25_C",
         "SupplyCrate_Level25_Double_C",
         "SupplyCrate_Level30_ScorchedEarth_C",
-        "SupplyCrate_Level30_Double_ScorchedEarth_C"
+        "SupplyCrate_Level30_Double_ScorchedEarth_C",
+        "Val_SupplyCrate_Level25_C",
+        "Val_SupplyCrate_Level25_Double_C",
+        "Fjo_SupplyCrate_Level25_C",
+        "Fjo_SupplyCrate_Level25_Double_C"
       ]
     },
     {
@@ -40,7 +50,11 @@
         "SupplyCrate_Level35_C",
         "SupplyCrate_Level35_Double_C",
         "SupplyCrate_Level45_ScorchedEarth_C",
-        "SupplyCrate_Level45_Double_ScorchedEarth_C"
+        "SupplyCrate_Level45_Double_ScorchedEarth_C",
+        "Val_SupplyCrate_Level35_C",
+        "Val_SupplyCrate_Level35_Double_C",
+        "Fjo_SupplyCrate_Level35_C",
+        "Fjo_SupplyCrate_Level35_Double_C"
       ]
     },
     {
@@ -50,7 +64,11 @@
         "SupplyCrate_Level45_C",
         "SupplyCrate_Level45_Double_C",
         "SupplyCrate_Level55_ScorchedEarth_C",
-        "SupplyCrate_Level55_Double_ScorchedEarth_C"
+        "SupplyCrate_Level55_Double_ScorchedEarth_C",
+        "Val_SupplyCrate_Level45_C",
+        "Val_SupplyCrate_Level45_Double_C",
+        "Fjo_SupplyCrate_Level45_C",
+        "Fjo_SupplyCrate_Level45_Double_C"
       ]
     },
     {
@@ -60,7 +78,11 @@
         "SupplyCrate_Level60_C",
         "SupplyCrate_Level60_Double_C",
         "SupplyCrate_Level70_ScorchedEarth_C",
-        "SupplyCrate_Level70_Double_ScorchedEarth_C"
+        "SupplyCrate_Level70_Double_ScorchedEarth_C",
+        "Val_SupplyCrate_Level60_C",
+        "Val_SupplyCrate_Level60_Double_C",
+        "Fjo_SupplyCrate_Level60_C",
+        "Fjo_SupplyCrate_Level60_Double_C"
       ]
     },
     {
@@ -68,7 +90,9 @@
       "ap_name": "Cave Crate: Cave T1",
       "classes": [
         "SupplyCrate_Cave_QualityTier1_C",
-        "SupplyCrate_Cave_QualityTier1_ScorchedEarth_C"
+        "SupplyCrate_Cave_QualityTier1_ScorchedEarth_C",
+        "SupplyCrate_Cave_Aberration_Level10_C",
+        "SupplyCrate_Cave_Aberration_Level10_Double_C"
       ]
     },
     {
@@ -76,7 +100,11 @@
       "ap_name": "Cave Crate: Cave T2",
       "classes": [
         "SupplyCrate_Cave_QualityTier2_C",
-        "SupplyCrate_Cave_QualityTier2_ScorchedEarth_C"
+        "SupplyCrate_Cave_QualityTier2_ScorchedEarth_C",
+        "SupplyCrate_Cave_Aberration_Level25_C",
+        "SupplyCrate_Cave_Aberration_Level25_Double_C",
+        "SupplyCrate_Cave_Aberration_Level35_C",
+        "SupplyCrate_Cave_Aberration_Level35_Double_C"
       ]
     },
     {
@@ -84,7 +112,11 @@
       "ap_name": "Cave Crate: Cave T3",
       "classes": [
         "SupplyCrate_Cave_QualityTier3_C",
-        "SupplyCrate_Cave_QualityTier3_ScorchedEarth_C"
+        "SupplyCrate_Cave_QualityTier3_ScorchedEarth_C",
+        "SupplyCrate_Cave_Aberration_Level50_C",
+        "SupplyCrate_Cave_Aberration_Level50_Double_C",
+        "SupplyCrate_Cave_Aberration_Level45_C",
+        "SupplyCrate_Cave_Aberration_Level45_Double_C"
       ]
     },
     {
@@ -92,7 +124,13 @@
       "ap_name": "Cave Crate: Cave T4",
       "classes": [
         "SupplyCrate_Cave_QualityTier4_C",
-        "SupplyCrate_Cave_QualityTier4_ScorchedEarth_C"
+        "SupplyCrate_Cave_QualityTier4_ScorchedEarth_C",
+        "SupplyCrate_Cave_Aberration_Level80_C",
+        "SupplyCrate_Cave_Aberration_Level60_C",
+        "SupplyCrate_Cave_Aberration_Level60_Double_C",
+        "SupplyCrate_Cave_Aberration_Level70_C",
+        "SupplyCrate_Cave_Aberration_Level70_Double_C",
+        "SupplyCrate_Cave_Aberration_Level80_Double_C"
       ]
     },
     {
@@ -106,14 +144,16 @@
       "id": 8733011,
       "ap_name": "Cave Crate: Ice Cave T2",
       "classes": [
-        "SupplyCrate_IceCaveTier2_C"
+        "SupplyCrate_IceCaveTier2_C",
+        "SupplyCrate_IceCaveTier2_Fjordor_C"
       ]
     },
     {
       "id": 8733012,
       "ap_name": "Cave Crate: Ice Cave T3",
       "classes": [
-        "SupplyCrate_IceCaveTier3_C"
+        "SupplyCrate_IceCaveTier3_C",
+        "SupplyCrate_IceCaveTier3_Fjordor_C"
       ]
     },
     {
@@ -165,7 +205,10 @@
         "SupplyCrate_OceanInstant_C",
         "SupplyCrate_OceanInstant_High_C",
         "SupplyCreate_OceanInstant_High_C",
-        "SupplyCreate_OceanInstant_C"
+        "SupplyCreate_OceanInstant_C",
+        "SupplyCrate_OceanDrop_Fjordor_C",
+        "SupplyCrateBaseBP_Instantaneous_Dam_Big_C",
+        "SupplyCrateBaseBP_Instantaneous_Dam_Small2_C"
       ]
     }
   ],

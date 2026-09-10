@@ -3529,6 +3529,138 @@
       "ap_name": "Engram: Tri Roof Adobe",
       "engram_class": "BlueprintGeneratedClass /Game/PrimalEarth/StructuresPlus/Structures/Roofs_Tri/Adobe/PrimalItemStructure_TriRoof_Adobe.PrimalItemStructure_TriRoof_Adobe_C",
       "tier": "auto"
+    },
+    {
+      "id": 8730661,
+      "ap_name": "Engram: Saddle Andrewsarchus",
+      "engram_class": "BlueprintGeneratedClass /Game/Fjordur/Dinos/Andrewsarchus/PrimalItemArmor_AndrewsarchusSaddle.PrimalItemArmor_AndrewsarchusSaddle_C",
+      "tier": "auto"
+    },
+    {
+      "id": 8730662,
+      "ap_name": "Engram: Saddle Desmodus",
+      "engram_class": "BlueprintGeneratedClass /Game/Fjordur/Dinos/Desmodus/PrimalItemArmor_DesmodusSaddle.PrimalItemArmor_DesmodusSaddle_C",
+      "tier": "auto"
+    },
+    {
+      "id": 8730663,
+      "ap_name": "Engram: Saddle Rock Drake",
+      "engram_class": "BlueprintGeneratedClass /Game/Aberration/Dinos/RockDrake/PrimalItemArmor_RockDrakeSaddle.PrimalItemArmor_RockDrakeSaddle_C",
+      "tier": "auto"
+    },
+    {
+      "id": 8730664,
+      "ap_name": "Engram: Saddle Basilisk",
+      "engram_class": "BlueprintGeneratedClass /Game/Aberration/Dinos/Basilisk/PrimalItemArmor_BasiliskSaddle.PrimalItemArmor_BasiliskSaddle_C",
+      "tier": "auto"
+    },
+    {
+      "id": 8730665,
+      "ap_name": "Engram: Saddle Snow Owl",
+      "engram_class": "BlueprintGeneratedClass /Game/Extinction/CoreBlueprints/Items/Saddle/PrimalItemArmor_OwlSaddle.PrimalItemArmor_OwlSaddle_C",
+      "tier": "auto"
+    },
+    {
+      "id": 8730666,
+      "ap_name": "Engram: Saddle Gasbags",
+      "engram_class": "BlueprintGeneratedClass /Game/Extinction/CoreBlueprints/Items/Saddle/PrimalItemArmor_GasBagsSaddle.PrimalItemArmor_GasBagsSaddle_C",
+      "tier": "auto"
+    },
+    {
+      "id": 8730667,
+      "ap_name": "Engram: Saddle Gacha",
+      "engram_class": "BlueprintGeneratedClass /Game/Extinction/CoreBlueprints/Items/Saddle/PrimalItemArmor_GachaSaddle.PrimalItemArmor_GachaSaddle_C",
+      "tier": "auto"
+    },
+    {
+      "id": 8730668,
+      "ap_name": "Engram: Saddle Megachelon",
+      "engram_class": "BlueprintGeneratedClass /Game/Genesis/Dinos/GiantTurtle/PrimalItemArmor_GiantTurtleSaddle.PrimalItemArmor_GiantTurtleSaddle_C",
+      "tier": "auto"
+    },
+    {
+      "id": 8730669,
+      "ap_name": "Engram: Saddle Maewing",
+      "engram_class": "BlueprintGeneratedClass /Game/Genesis2/Dinos/MilkGlider/PrimalItemArmor_MilkGliderSaddle.PrimalItemArmor_MilkGliderSaddle_C",
+      "tier": "auto"
+    },
+    {
+      "id": 8730670,
+      "ap_name": "Engram: Saddle Velonasaur",
+      "engram_class": "BlueprintGeneratedClass /Game/Extinction/CoreBlueprints/Items/Saddle/PrimalItemArmor_SpindlesSaddle.PrimalItemArmor_SpindlesSaddle_C",
+      "tier": "auto"
+    },
+    {
+      "id": 8730671,
+      "ap_name": "Engram: Saddle Ravager",
+      "engram_class": "BlueprintGeneratedClass /Game/Aberration/Dinos/CaveWolf/PrimalItemArmor_CavewolfSaddle.PrimalItemArmor_CavewolfSaddle_C",
+      "tier": "auto"
+    },
+    {
+      "id": 8730672,
+      "ap_name": "Engram: Saddle Amargasaurus",
+      "engram_class": "BlueprintGeneratedClass /Game/LostIsland/Dinos/Amargasaurus/PrimalItemArmor_AmargaSaddle.PrimalItemArmor_AmargaSaddle_C",
+      "tier": "auto"
+    },
+    {
+      "id": 8730673,
+      "ap_name": "Engram: Saddle Roll Rat",
+      "engram_class": "BlueprintGeneratedClass /Game/Aberration/Dinos/MoleRat/PrimalItemArmor_MoleRatSaddle.PrimalItemArmor_MoleRatSaddle_C",
+      "tier": "auto"
+    },
+    {
+      "id": 8730674,
+      "ap_name": "Engram: Saddle Karkinos",
+      "engram_class": "BlueprintGeneratedClass /Game/Aberration/Dinos/Crab/PrimalItemArmor_CrabSaddle.PrimalItemArmor_CrabSaddle_C",
+      "tier": "auto"
+    },
+    {
+      "id": 8730675,
+      "ap_name": "Engram: Saddle Tropeognathus",
+      "engram_class": "BlueprintGeneratedClass /Game/PrimalEarth/Dinos/Tropeognathus/PrimalItemArmor_TropeSaddle.PrimalItemArmor_TropeSaddle_C",
+      "tier": "auto"
+    },
+    {
+      "id": 8730676,
+      "ap_name": "Engram: Saddle Managarmr",
+      "engram_class": "BlueprintGeneratedClass /Game/Extinction/CoreBlueprints/Items/Saddle/PrimalItemArmor_IceJumperSaddle.PrimalItemArmor_IceJumperSaddle_C",
+      "tier": "auto"
+    },
+    {
+      "id": 8730677,
+      "ap_name": "Engram: Saddle Magmasaur",
+      "engram_class": "BlueprintGeneratedClass /Game/Genesis/Dinos/Cherufe/PrimalItemArmor_CherufeSaddle.PrimalItemArmor_CherufeSaddle_C",
+      "tier": "auto"
+    },
+    {
+      "id": 8730678,
+      "ap_name": "Engram: Hazard Suit Shirt",
+      "engram_class": "BlueprintGeneratedClass /Game/Aberration/CoreBlueprints/Items/Armor/HazardSuit/PrimalItemArmor_HazardSuitShirt.PrimalItemArmor_HazardSuitShirt_C",
+      "tier": "auto"
+    },
+    {
+      "id": 8730679,
+      "ap_name": "Engram: Hazard Suit Gloves",
+      "engram_class": "BlueprintGeneratedClass /Game/Aberration/CoreBlueprints/Items/Armor/HazardSuit/PrimalItemArmor_HazardSuitGloves.PrimalItemArmor_HazardSuitGloves_C",
+      "tier": "auto"
+    },
+    {
+      "id": 8730680,
+      "ap_name": "Engram: Hazard Suit Pants",
+      "engram_class": "BlueprintGeneratedClass /Game/Aberration/CoreBlueprints/Items/Armor/HazardSuit/PrimalItemArmor_HazardSuitPants.PrimalItemArmor_HazardSuitPants_C",
+      "tier": "auto"
+    },
+    {
+      "id": 8730681,
+      "ap_name": "Engram: Hazard Suit Boots",
+      "engram_class": "BlueprintGeneratedClass /Game/Aberration/CoreBlueprints/Items/Armor/HazardSuit/PrimalItemArmor_HazardSuitBoots.PrimalItemArmor_HazardSuitBoots_C",
+      "tier": "auto"
+    },
+    {
+      "id": 8730682,
+      "ap_name": "Engram: Hazard Suit Hat",
+      "engram_class": "BlueprintGeneratedClass /Game/Aberration/CoreBlueprints/Items/Armor/HazardSuit/PrimalItemArmor_HazardSuitHelmet.PrimalItemArmor_HazardSuitHelmet_C",
+      "tier": "auto"
     }
   ],
   "_special_id_base": 8739000,

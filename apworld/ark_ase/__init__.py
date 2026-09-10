@@ -22,7 +22,7 @@ from .data import (load_engram_data, load_location_data, load_dino_data, load_cr
 from .Items import (ArkItem, build_item_table, FILLER_NAME, FILLER_ID,
                     STRUCTURE_BUNDLES, structure_bundle_members)
 from .Locations import ArkLocation, build_location_table
-from .Options import ArkASAOptions, StationPlacement, Goal
+from .Options import ArkASAOptions, StationPlacement
 from .tame_logic import TameLogic, eval_ast
 
 GAME = "ARK Survival Evolved"
@@ -130,12 +130,16 @@ DINO_TIER = {
         "Carno", "Daeodon", "Direbear", "Dunkle", "Electrophorus", "Gigantopithecus", "Kaprosuchus",
         "Mammoth", "Megalania", "Megalodon", "Megalosaurus", "Megatherium",
         "Paraceratherium", "Pelagornis", "Plesiosaur", "Sarcosuchus", "Tapejara", "Thylacoleo",
-        "Titanoboa")},
+        "Titanoboa",
+        # Valguero Aberration-zone creatures (added 2026-08-23)
+        "Bulbdog", "Featherlight", "Glowtail", "Glowbug", "Roll Rat", "Ravager",
+        "Seeker", "Lamprey")},
     **{d: 3 for d in (
         "Angler", "Giganotosaurus", "Leedsichthys", "Liopleurodon", "Mosasaur", "Quetzal", "Rex",
         "Spino", "Therizinosaurus", "Titanosaur", "Tusoteuthis", "Yutyrannus",
         "Ammonite", "Eurypterid", "Jellyfish",     # untameable deep-ocean kill-only
-        "Rhyniognatha", "Carcharodontosaurus")},   # endgame tameable
+        "Rhyniognatha", "Carcharodontosaurus",     # endgame tameable
+        "Karkinos", "Deinonychus")},               # Valguero: knockout + egg-raise, late
     # alpha-predator kill checks (locations.json alpha_kills; "Killed: Alpha X")
     "Alpha Raptor": 2, "Alpha Carno": 2,
     **{d: 3 for d in ("Alpha Rex", "Alpha Megalodon", "Alpha Leedsichthys",
@@ -175,10 +179,11 @@ class ArkASAWorld(World):
     # location_name_to_id / item_name_to_id. It only narrows the per-slot pool.
     _map_data = load_map_data()
     _map_content = _map_data.get("content", {})
-    # key -> can this map carry a slot on its own? Only the Island can today. The ~549 "any" items
-    # (engrams, craftable everywhere) go to EVERY slot, but locations are map-specific, and no
-    # other map has a location count in that range - Ragnarok has no explorer notes at all, so it
-    # never gets the 232 note checks that carry the pool. Enforced in generate_early so the player
+    # key -> can this map carry a slot on its own? The ~549 "any" items (engrams, craftable
+    # everywhere) go to EVERY slot, but locations are map-specific, so a map needs enough of its own
+    # to absorb them. Cluster-only maps fall short - Ragnarok has no explorer notes at all, so it
+    # never gets the 232 note checks that carry the pool. Fjordur clears the bar a different way:
+    # 81 drawn exploration checks across its four realms instead of notes. Enforced in generate_early so the player
     # gets a sentence naming the fix instead of a raw headroom failure from create_items.
     _map_standalone = {m["key"]: m.get("standalone", True) for m in _map_data.get("maps", [])}
     # Tek engrams: never in the AP pool - the plugin grants each boss's set on its first kill.
@@ -192,6 +197,30 @@ class ArkASAWorld(World):
     item_name_to_id: Dict[str, int] = build_item_table(_engrams, _dinos, _crates, _filler, _mod_catalog)
     location_name_to_id: Dict[str, int] = build_location_table(_locations, _dinos, _mod_catalog,
                                                               _explore)
+
+    # COSMETIC / DEAD-END ENGRAMS. Signs, flags, furniture, elevators, pipes, trophies and the like:
+    # they unlock something craftable but nothing in the game or in our logic ever needs them, so as
+    # "useful" they only diluted the pool. Demoted to filler so the fill treats them as the junk they
+    # are. Keyed by ID, not name, so a display rename cannot silently drop one. Verified before
+    # demoting: none of these appears in any requirement in tame_logic.json, locations.json,
+    # dinos.json or crates.json (the only hits were an identity alias entry for Flamethrower and the
+    # unrelated "(Trap) Chain Bola'd" filler debuff). The check is applied AFTER every progression
+    # test below, so if one of these ever DOES become logic-required, progression still wins and the
+    # seed stays sound. NOTE: Flame Arrow (8730170) was deliberately left OUT of this set -
+    # it is real ammo, not a dead end, so it stays `useful`. Magnifying Glass (8730150) is out
+    # for the same reason - it is a real tool (spoil/stat inspection), not decoration. Flamethrower
+    # (8730347) and Flamethrower Ammo (8730348) are out too - a real weapon and its ammo. Ballista
+    # Turret (8730188) and Chain Bola (8730303) are out because they are TAMING gear - the
+    # Tropeognathus is tamed by firing a chain bola from a ballista.
+    _JUNK_ENGRAM_IDS = frozenset({
+        8730013, 8730028, 8730029, 8730030, 8730045, 8730046, 8730049, 8730052,
+        8730053, 8730060, 8730061, 8730069, 8730070, 8730079, 8730080, 8730095,
+        8730116, 8730122, 8730123, 8730124, 8730154, 8730155, 8730178, 8730179,
+        8730186, 8730189, 8730251, 8730252, 8730253, 8730260, 8730282, 8730284,
+        8730285, 8730286, 8730288, 8730295, 8730296, 8730331, 8730334, 8730335,
+        8730353, 8730356, 8730357, 8730364, 8730368, 8730372, 8730373, 8730374,
+        8730375, 8730376, 8730378,
+    })
 
     # classify: only items that actually GATE logic are progression.
     #   progression = station gates (tiers) + tame unlocks (they gate "Tamed: X" via lock_taming)
@@ -209,6 +238,8 @@ class ArkASAWorld(World):
             cls = ItemClassification.progression      # engram (or rep) that gates a crafted Collect check
         elif self.options.lock_taming.value and name in self._tame_item_names and name not in no_logic:
             cls = ItemClassification.progression
+        elif self.item_name_to_id.get(name) in self._JUNK_ENGRAM_IDS:
+            cls = ItemClassification.filler            # cosmetic/dead-end engram - nothing needs it
         else:                                          # useful: saddles, non-gating engrams, NO_TAME_LOGIC tames
             cls = ItemClassification.useful
         return ArkItem(name, cls, self.item_name_to_id[name], self.player)
@@ -1080,8 +1111,16 @@ class ArkASAWorld(World):
         tl = self._tame()
         if not tl:
             return ("true",)
-        return tl.compile(tl.dino_expr(short, self._dino_tier(short)), self._bundle_remap(),
-                          self._free_items(), self._direct_nodes(), self._missing_items())
+        ast = tl.compile(tl.dino_expr(short, self._dino_tier(short)), self._bundle_remap(),
+                         self._free_items(), self._direct_nodes(), self._missing_items())
+        # BOSS-REWARD creatures aren't tamed in the wild - you receive one for beating a boss (Fjordur's
+        # Fenrir drops from Fenrisulfr). Its "Tame: X" check is only obtainable post-boss, so AND the
+        # boss defeat in, or the fill could strand a progression item there thinking it's wild-tameable.
+        boss = self._tame_logic_data.get("tame_requires_boss", {}).get(short)
+        if boss:
+            gate = ("has", boss + " Defeated")
+            ast = gate if ast == ("true",) else ("and", [ast, gate])
+        return ast
 
     def _compile_expr(self, expr: str):
         # `direct` must be passed here too: the sheet's CAVE requirements use the same Ride<X> /
@@ -1114,6 +1153,18 @@ class ArkASAWorld(World):
     _KILL_WATER_APEX = "Scuba Tank + Crossbow"                 # dive + the underwater weapon
     _KILL_WATER_MID = "Scuba Tank"                             # just needs to get down there
     _KILL_APEX = "Crossbow | Longneck Rifle"                   # a real damage weapon
+
+    # task gates = the small hardcoded set above + Lurch's authored collect_reqs AND milestone_reqs
+    # tables (data/tame_logic.json), keyed by location name. The data tables WIN on any shared name.
+    # Tokens that don't resolve collapse to ('true',) - permissive, never a softlock.
+    def _collect_gates(self) -> dict:
+        cache = getattr(self, "_collect_gates_cache", None)
+        if cache is None:
+            cache = {**self._EXTRA_GATES,
+                     **self._tame_logic_data.get("collect_reqs", {}),
+                     **self._tame_logic_data.get("milestone_reqs", {})}
+            self._collect_gates_cache = cache
+        return cache
 
     def _spawn_hd(self) -> dict:
         m = getattr(self, "_spawn_hd_cache", None)
@@ -1161,12 +1212,25 @@ class ArkASAWorld(World):
             saddle = cls_to_engram.get(d.get("saddle_class") or "")
             by_key[self._ride_key(short)] = (d["ap_name"], saddle)
         cache = {}
+        # saddle CRAFTING gate: holding the saddle engram is not enough - you must be able to CRAFT it.
+        # The sheet's "Crafting" column says which station/resource each saddle needs; Ride<X> ANDs it
+        # in so a mount is only "usable" once its saddle is actually buildable (Smithy -> Anvil Bench,
+        # Cementing Paste -> Mortar And Pestle, both reached through the recipe graph).
+        craft_by_key = {}
+        for d in self._dinos.get("dinos", []):
+            if d.get("ap_name") and d.get("saddle_craft"):
+                craft_by_key[self._ride_key(self._dino_short(d))] = d["saddle_craft"]
+        _CRAFT_ITEM = {"Smithy": ["Anvil Bench"], "Cementing Paste": ["Mortar And Pestle"],
+                       "Smithy + Cementing Paste": ["Anvil Bench", "Mortar And Pestle"]}
         for key, (tame_item, saddle) in by_key.items():
             tame = self._tame_rep_of(tame_item)             # tames_per_item representative
             cache[key] = [tame]                             # bare name = tame only
+            cache["tame" + key] = [tame]                    # Tame<X> node (collect logic) = tame only
             ride = [tame]
             if saddle:
                 ride.append(remap(saddle[len("Engram: "):]))   # engrams_per_item representative
+                for stn in _CRAFT_ITEM.get(craft_by_key.get(key, ""), []):
+                    ride.append(remap(stn))                     # station needed to craft the saddle
             cache["ride" + key] = ride
         self._ride_map_cache = cache
         return cache
@@ -1192,7 +1256,8 @@ class ArkASAWorld(World):
             d = self._tame_logic_data
             cache = set()
             for src in (d.get("kill_reqs", {}), d.get("item_recipes", {}),
-                        d.get("cave_reqs", {}), d.get("dino_tame_raw", {})):
+                        d.get("cave_reqs", {}), d.get("dino_tame_raw", {}),
+                        d.get("collect_reqs", {})):
                 for expr in src.values():
                     for t in re.split(r"[+|()]", str(expr)):
                         t = t.strip()
@@ -1239,25 +1304,47 @@ class ArkASAWorld(World):
     # boss reachability AST: a boss needs all its artifacts' caves done; Overseer needs the 3
     # island bosses defeated. Boss kills are the goal, gated here so the win requires real prep.
     def _boss_ast(self, boss_short: str):
-        arts = self._tame_logic_data.get("boss_artifacts", {}).get(boss_short)
+        tl = self._tame_logic_data
+        kids = []
+        arts = tl.get("boss_artifacts", {}).get(boss_short)
         if arts:
-            kids = [k for k in (self._cave_ast(a) for a in arts) if k != ("true",)]
+            kids += [k for k in (self._cave_ast(a) for a in arts) if k != ("true",)]
             # Some bosses also demand TRIBUTE items on top of the artifacts, and those come off a
             # creature. The Manticore's portal wants 2/10/20 Fire + Lightning + Poison Talon
             # (gamma/beta/alpha) as well as its three artifacts, and every talon drops from a
             # Wyvern - so "can reach the Manticore" means "can kill a Wyvern", which the artifact
             # caves alone never implied. Uses _tame_ast, not _compile_expr: a creature name is not
             # an item name, and _compile_expr would silently collapse an unknown token to true.
-            for dino in self._tame_logic_data.get("boss_tribute_dino", {}).get(boss_short, []):
+            for dino in tl.get("boss_tribute_dino", {}).get(boss_short, []):
                 k = self._tame_ast(dino)
                 if k and k != ("true",):
                     kids.append(k)
-            return ("and", kids) if len(kids) > 1 else (kids[0] if kids else ("true",))
-        if boss_short in self._tame_logic_data.get("overseer_bosses", []) or boss_short == "Overseer":
-            if boss_short == "Overseer":
-                ob = self._tame_logic_data.get("overseer_bosses", [])
-                return ("and", [("has", b + " Defeated") for b in ob]) if ob else ("true",)
-        return ("true",)
+        # MAP-SPECIFIC extras, applied only when that map is enabled. Fjordur gates its arena bosses
+        # behind a Norse world-boss relic (Broodmother needs Beyla defeated, etc.) and adds its own
+        # tribute organs - neither of which the Island's Broodmother/Dragon/Megapithecus require, so
+        # they live here rather than in the global boss_artifacts/boss_tribute_dino.
+        for mk in self._active_map_keys():
+            for req in tl.get("map_boss_extra", {}).get(mk, {}).get(boss_short, []):
+                kids.append(("has", req + " Defeated"))
+            for dino in tl.get("map_boss_tribute", {}).get(mk, {}).get(boss_short, []):
+                k = self._tame_ast(dino)
+                if k and k != ("true",):
+                    kids.append(k)
+        # WORLD bosses (Fjordur's Beyla / Hati & Skoll / Steinbjorn) are farmed with Runestones off
+        # ALPHA creatures - so "can reach one" means alpha-farming combat capability.
+        wexpr = tl.get("world_boss_reqs", {}).get(boss_short)
+        if wexpr:
+            k = self._compile_expr(wexpr)
+            if k != ("true",):
+                kids.append(k)
+        # FINAL bosses require their prereq bosses defeated first: the Overseer (Island's three) and
+        # Fenrisulfr (Fjordur's Broodmother + Megapithecus + Dragon trophies).
+        prereq = tl.get("final_boss_prereqs", {}).get(boss_short)
+        if prereq is None and boss_short == "Overseer":
+            prereq = tl.get("overseer_bosses", [])
+        if prereq:
+            kids += [("has", b + " Defeated") for b in prereq]
+        return ("and", kids) if len(kids) > 1 else (kids[0] if kids else ("true",))
 
     # tribute check -> the dino you kill for the organ (same combat capability as taming it).
     def _tribute_ast(self, loc_name: str):
@@ -1287,6 +1374,26 @@ class ArkASAWorld(World):
                 return dive if cave == ("true",) else ("and", [cave, dive])
         return cave
 
+    # MAP-SPECIFIC note gate (map_note_caves). A note's physical location differs per map, so its
+    # gate does too: the Island's Cunning-cave note is Ragnarok's Whitesky-Peak (fur) note. The value
+    # is a boss name (needs that boss defeated), an artifact/tek cave key (reuses _note_ast), or a
+    # free access expression (FurIce, water/fly macros) compiled via _compile_expr.
+    _BOSS_DEFEAT_KEYS = {"Broodmother", "Megapithecus", "Dragon"}
+    # A note physically inside a boss arena is reachable once you can SUMMON that boss (enter the
+    # arena) - not only after defeating it. "tek" already means _boss_ast("Overseer") via _note_ast;
+    # this maps the other arenas the same way (Manticore arena on Scorched, etc.).
+    _ARENA_REACH_KEYS = {"manticore": "Manticore"}
+
+    def _map_note_ast(self, val: str):
+        if val in self._BOSS_DEFEAT_KEYS:
+            return ("has", val + " Defeated")
+        if val in self._ARENA_REACH_KEYS:
+            return self._boss_ast(self._ARENA_REACH_KEYS[val])   # arena access = boss reachable
+        artifacts = {a for arts in self._tame_logic_data.get("boss_artifacts", {}).values() for a in arts}
+        if val in ("tek", "underwater") or val in artifacts:
+            return self._note_ast(val)                 # artifact-cave / tek / underwater key
+        return self._compile_expr(val)                 # free access expression (FurIce, water/fly)
+
     # every AP item name any access rule can require -> must be PROGRESSION so the fill guarantees
     # reachability (received before AP requires the tame/cave/tribute/boss it gates).
     def _tame_required_items(self) -> set:
@@ -1299,9 +1406,15 @@ class ArkASAWorld(World):
                 asts = [self._tame_ast(self._dino_short(d))
                         for d in self._dinos.get("dinos", []) if d.get("tame_loc")]
                 asts += [self._cave_ast(a) for a in self._tame_logic_data.get("cave_reqs", {})]
-                asts += [self._boss_ast(b) for b in
-                         list(self._tame_logic_data.get("boss_artifacts", {})) + ["Overseer"]]
+                asts += [self._boss_ast(b) for b in (
+                    set(self._tame_logic_data.get("boss_artifacts", {}))
+                    | set(self._tame_logic_data.get("world_boss_reqs", {}))
+                    | set(self._tame_logic_data.get("final_boss_prereqs", {}))
+                    | {"Overseer"})]
                 asts += [self._note_ast(k) for k in self._tame_logic_data.get("note_caves", {}).values()]
+                asts += [self._map_note_ast(v)
+                         for mk in self._active_map_keys()
+                         for v in self._tame_logic_data.get("map_note_caves", {}).get(mk, {}).values()]
                 # KILL/collection gates (set_rules) also require engrams (e.g. Metal Pick/Hatchet):
                 # they MUST be progression too, else the fill won't guarantee they're reachable
                 # before the check that needs them (-> accessibility failure).
@@ -1309,7 +1422,7 @@ class ArkASAWorld(World):
                 # must be progression too or the accessibility sweep can never satisfy a kill rule.
                 asts += [self._kill_ast(self._dino_short(d), d.get("dino_tag") or "")
                          for d in self._dinos.get("dinos", []) if d.get("kill_loc")]
-                asts += [self._compile_expr(e) for e in self._EXTRA_GATES.values()]
+                asts += [self._compile_expr(e) for e in self._collect_gates().values()]
                 asts += [self._compile_expr(e) for e in
                          (self._KILL_APEX, "Crossbow + Scuba Tank", "Longneck Rifle + Scuba Tank")]
                 for a in asts:
@@ -1360,6 +1473,22 @@ class ArkASAWorld(World):
                                      # instead of surfacing as a stack trace mid-create_regions
         self._check_maps_can_carry_a_slot()
         self._check_rules_reachable()
+        # A single-boss goal must name a boss at least one enabled map actually has, or the win
+        # condition would be empty (an instantly-won seed). Fail fast and name the fix.
+        # Every boss NAMED in `goal` must exist on an enabled map, or the win condition is
+        # unreachable. An EMPTY goal means "every boss these maps have" and is always valid.
+        picked = self.options.goal.value
+        if picked and not self._goal_is_default():
+            order = self._boss_base_order()
+            missing = sorted(n for n in picked
+                             if n != self._GOAL_ALL and self._BOSS_NAME_TO_TAG.get(n) not in order)
+            if missing:
+                raise OptionError(
+                    f"goal names {', '.join(missing)}, but none of this slot's maps "
+                    f"({', '.join(sorted(self.options.maps.value))}) have "
+                    f"{'them' if len(missing) > 1 else 'it'}. Remove "
+                    f"{'those bosses' if len(missing) > 1 else 'that boss'} or add a map that has "
+                    f"{'them' if len(missing) > 1 else 'it'}.")
         # Fit the pool to this slot's locations BEFORE create_regions runs. The tier gates cache
         # their engram names through _bundle_remap while regions are built, so regrouping later
         # would leave a gate naming an engram that is no longer in the pool - the region then never
@@ -1495,11 +1624,21 @@ class ArkASAWorld(World):
                              rule=(lambda state, g=req: state.has_all(g, self.player)) if req else None)
         tiers[2].connect(notes, "Tier 2 -> Explorer Notes")   # inherits gates 0 AND 1 transitively
         excluded_progression = self._excluded_progression_names()
+        # Never let a TIER-GATE STATION (Forge/Mortar/Smithy/Fabricator) land on an explorer note.
+        # Notes are one Tier-2 region, but some sit deep in caves - physically late, yet the region
+        # only asks for Forge+Smithy. A station there (esp. the Fabricator, which OPENS Tier 3) means
+        # the run stalls behind a cave dive the logic never required. Kills/levels/collects in the
+        # tier host them fine. (Other later progression on notes is by design - only the gates move.)
+        station_items = self._tier_gate_items()
         for loc_name, loc_id in self._used_locations().items():
-            parent = notes if self._is_note(loc_name) else tiers[self._tier_of(loc_name)]
+            is_note = self._is_note(loc_name)
+            parent = notes if is_note else tiers[self._tier_of(loc_name)]
             loc = ArkLocation(self.player, loc_name, loc_id, parent)
             if loc_name in excluded_progression:
                 loc.progress_type = LocationProgressType.EXCLUDED
+            elif is_note and station_items:
+                loc.item_rule = lambda item, s=station_items: not (
+                    item.player == self.player and item.name in s)
             parent.locations.append(loc)
         for ev_name in self._boss_events():                # boss events live where bosses do (T3)
             ev = ArkLocation(self.player, ev_name, None, tiers[3])
@@ -1537,6 +1676,14 @@ class ArkASAWorld(World):
         # (HLN-A Discovery / Genesis Chronicles were REMOVED as locations entirely - they need the
         # Genesis-DLC-only HLN-A skin to collect - so they no longer need excluding here.)
         HARD_NOTE_PREFIXES = ("Hologram: ", "??? Note")
+        # Fjordur's 200 runes ARE explorer notes internally (picking one up fires
+        # ServerUnlockPerMapExplorerNote; indices 1014-1213, verified in-game at ordinal 0/50/129/199).
+        # The 49 that sit in caves, underwater caves and the wyvern trench are NOT excluded - they are
+        # GATED in map_note_caves["fjordur"] (cave -> a cave-capable mount, underwater cave -> DeepDive
+        # plus a water mount, trench -> CanFly), so they carry progression like any other note once the
+        # requirement is met. Only the 45 in Asgard / Jotunheim / Vanaheim stay filler-only, because
+        # realm ACCESS is the one thing this world still does not model.
+        RUNE_GATED_MARKERS = ("(Asgard ", "(Jotunheim ", "(Vanaheim ")
         # ALL alpha kills are filler-only. An alpha realistically needs a good TAME to kill, and
         # tames are themselves locked behind Tame: items - so progression here can strand a
         # foundational engram behind a fight the player can't take yet (playtest: Mortar And Pestle
@@ -1569,6 +1716,9 @@ class ArkASAWorld(World):
                     pass
             elif loc_name.startswith(HARD_NOTE_PREFIXES):
                 excluded_progression.add(loc_name)
+            elif (loc_name.startswith("Fjordur Rune")
+                  and any(m in loc_name for m in RUNE_GATED_MARKERS)):
+                excluded_progression.add(loc_name)   # rune behind access this world does not model
             # (crafted-resource "Collect N" checks are no longer excluded - they're GATED behind their
             #  crafting engram in set_rules, which prevents the self-circular placement safely.)
         self._excl_prog_cache = excluded_progression
@@ -1582,10 +1732,14 @@ class ArkASAWorld(World):
         island = Region("The Island", self.player, self.multiworld)
         regions.append(island)
         excluded_progression = self._excluded_progression_names()
+        station_items = self._tier_gate_items()   # keep tier-gate stations off notes (see _regions_tiered)
         for loc_name, loc_id in self._used_locations().items():
             loc = ArkLocation(self.player, loc_name, loc_id, island)
             if loc_name in excluded_progression:
                 loc.progress_type = LocationProgressType.EXCLUDED
+            elif self._is_note(loc_name) and station_items:
+                loc.item_rule = lambda item, s=station_items: not (
+                    item.player == self.player and item.name in s)
             island.locations.append(loc)
         for ev_name in self._boss_events():
             ev = ArkLocation(self.player, ev_name, None, island)
@@ -1593,24 +1747,49 @@ class ArkASAWorld(World):
             island.locations.append(ev)
         menu.connect(island)
 
+    # A single-boss goal -> that boss's base tag. Bare boss name in the yaml = defeat only this boss.
+    # yaml boss NAME -> boss base tag. ONE table for both the goal itself and its error message,
+    # so a new boss can never be accepted by the option and then be unnameable in the guard
+    # (which is exactly how the old `goal: beyla` raised KeyError instead of its own error).
+    _GOAL_ALL = "all_bosses"          # goal wildcard: every boss the enabled maps have
+    _BOSS_NAME_TO_TAG = {
+        "broodmother": "SpiderBoss", "megapithecus": "GorillaBoss", "dragon": "DragonBoss",
+        "overseer": "Overseer", "manticore": "Manticore",
+        "beyla": "Beyla", "hati_and_skoll": "HatiSkoll", "steinbjorn": "Steinbjorn",
+        "fenrisulfr": "Fenrisulfr",
+    }
+
+
     def _goal_bosses(self) -> int:
-        return self.options.goal.value + 1     # 1..4 cumulative (BM, +MP, +Dragon, +Overseer)
+        """How many bosses the goal requires - the count actually sent, for the tracker/plugin."""
+        return len(self._goal_boss_tags(self._boss_base_order()))
 
     def _goal_boss_tags(self, order: list) -> list:
         """Which boss base-tags this slot must defeat, from the bosses it can actually reach.
 
-        The historical options are cumulative over the Island's four. `all_bosses_all_maps` instead
-        means every boss on the maps you enabled - which on an Island-only slot is exactly the same
-        four, so the option is safe to pick without knowing your map list."""
-        if self.options.goal.value >= Goal.option_all_bosses_all_maps:
+        `goal` is a SET of boss names. Empty = every boss these maps have, which is what makes the
+        default work on any map without the player configuring anything. Otherwise it is exactly
+        the bosses named, filtered to `order` - though generate_early has already refused a seed
+        that names a boss no enabled map has, so nothing is silently dropped here."""
+        picked = self.options.goal.value
+        # "all_bosses" (and an empty list) = every boss these maps have. It is a wildcard, not a
+        # boss, so it subsumes anything listed with it rather than being intersected against it.
+        if not picked or self._GOAL_ALL in picked:
             return order
-        # Keep the historical order for the cumulative options: Broodmother, Megapithecus, Dragon,
-        # Overseer. Sorting `order` by that list keeps them first even on a cluster, so a Scorched
-        # cluster with goal=all_bosses still means the Island four, not "the first four found".
-        rank = {t: i for i, t in enumerate(
-            ["SpiderBoss", "GorillaBoss", "DragonBoss", "Overseer"])}
-        ranked = sorted(order, key=lambda t: rank.get(t, 99))
-        return ranked[: self._goal_bosses()]
+        want = {self._BOSS_NAME_TO_TAG[n] for n in picked if n in self._BOSS_NAME_TO_TAG}
+        hit = [t for t in order if t in want]
+        # The DEFAULT (the Island's four) adapts instead of failing, which is how the old cumulative
+        # goal behaved - "on a map without them it means that map's own bosses instead". A player who
+        # never touched the option should not have to know Scorched has no Broodmother. An EXPLICIT
+        # list is taken literally and generate_early already refused it if a boss was unreachable.
+        if self._goal_is_default():
+            return hit if hit else order
+        return hit
+
+    def _goal_is_default(self) -> bool:
+        """Is `goal` still the shipped default (the Island's four)? Then it adapts per map."""
+        from .Options import Goal
+        return set(self.options.goal.value) == set(Goal.default)
 
     def set_rules(self) -> None:
         # Every "skip this one" test below reads `excluded`, so fold the map filter into it rather
@@ -1715,6 +1894,18 @@ class ArkASAWorld(World):
                 if ast != ("true",):
                     add_rule(self.multiworld.get_location(name, self.player),
                              lambda state, a=ast: eval_ast(a, state, self.player))
+            # MAP-SPECIFIC note gating (map_note_caves): applied only when that map is enabled, so a
+            # shared note that sits in different places per map (Island cave vs Ragnarok peak) gets
+            # each map's own gate without the global note_caves clobbering the other.
+            mnc = self._tame_logic_data.get("map_note_caves", {})
+            for mk in self._active_map_keys():
+                for name, val in mnc.get(mk, {}).items():
+                    if name not in used or name in excluded:
+                        continue
+                    ast = self._map_note_ast(val)
+                    if ast != ("true",):
+                        add_rule(self.multiworld.get_location(name, self.player),
+                                 lambda state, a=ast: eval_ast(a, state, self.player))
             # REALISM: tough KILL checks shouldn't sit at sphere 0/1 (a kill has no tame-lock, so
             # by default any Killed: X is instantly reachable). Gate water creatures behind diving
             # gear and apex predators behind a real weapon, so they hold LATER progression. Easy
@@ -1775,7 +1966,7 @@ class ArkASAWorld(World):
                     add_rule(self.multiworld.get_location(name, self.player),
                              lambda state, a=ast: eval_ast(a, state, self.player))
             # named rate/volume grinds + tough-source harvests -> light bump off sphere 0/1
-            for name, expr in self._EXTRA_GATES.items():
+            for name, expr in self._collect_gates().items():
                 if name not in used_kill or name in excluded:
                     continue
                 ast = self._compile_expr(expr)
@@ -1906,7 +2097,7 @@ class ArkASAWorld(World):
                 # reads "all_bosses" / "tiered" / "chaos" etc. The percent choices send the number as
                 # a string ("50"). Toggles -> bool, Range -> int, OptionSet -> sorted list.
                 "maps": sorted(self.options.maps.value),
-                "goal": self.options.goal.current_key,
+                "goal": sorted(self.options.goal.value),
                 "lock_taming": bool(self.options.lock_taming.value),
                 "lock_supply_crates": bool(self.options.lock_supply_crates.value),
                 "trap_percentage": self.options.trap_percentage.value,

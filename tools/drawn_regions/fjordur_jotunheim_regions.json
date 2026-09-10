@@ -1,0 +1,15 @@
+{
+  "map": "fjordur",
+  "realm": "jotunheim",
+  "regions": {
+    "whiteoaksprings": {"name": "White Oak Springs", "gate": "Fur", "latlon": [[62.83,45.11],[62,58.67],[76.57,62.06],[77.49,43.64]]},
+    "icepond": {"name": "Ice Pond", "gate": "Fur", "latlon": [[79.87,40.07],[88.21,64.53],[97,56.75],[89.67,37.6]]},
+    "icedesert": {"name": "Ice Desert", "gate": "Fur", "latlon": [[83.07,14.33],[87.11,32.28],[68.6,37.78],[57.15,26.79],[58.52,15.52]]},
+    "icecove": {"name": "Ice Cove", "gate": "Fur", "latlon": [[46.34,19.46],[43.77,29.44],[52.75,31.09],[57.15,23.49],[52.57,16.71]]},
+    "glaciersprings": {"name": "Glacier Springs", "gate": "Fur", "latlon": [[48.17,10.94],[32.87,17.44],[30.39,2.97],[48.26,4.16]]},
+    "frozenplains": {"name": "Frozen Plains", "gate": "Fur", "latlon": [[25.91,34.3],[26.46,54.27],[46.98,54.09],[46.43,34.39]]},
+    "frozenlake": {"name": "Frozen Lake", "gate": "Fur", "latlon": [[12.44,73.33],[1.44,84.69],[15.92,92.93],[25.72,85.7],[21.78,73.42]]},
+    "jotunnvalley": {"name": "Jotunn Valley", "gate": "Fur", "latlon": [[66.49,60.13],[66.03,97.15],[25.26,94.49],[26.27,55.46]]},
+    "jotunheim": {"name": "Jotunheim", "gate": "", "latlon": [[0.12,0.13],[0.12,99.8],[99.79,99.62],[99.7,0.4]]}
+  }
+}

@@ -84,6 +84,10 @@
 <div>
   <label>Map</label>
   <select id="mapkey"></select>
+  <div id="realmwrap" hidden style="margin-top:8px">
+    <label>Realm</label>
+    <select id="realm"></select>
+  </div>
   <div id="calnote"></div>
 
   <label>Map image (drag onto the map, or pick a file)</label>
@@ -123,6 +127,21 @@
 // Mirrors data/maps.json (minus "any", which is not a place). `cal` marks maps whose world-unit
 // transform is already recorded in import_drawn_regions.KNOWN - drawing on the others will import
 // only once someone calibrates them.
+// Fjordur is ONE world with four altitude-stacked realms. Selecting Fjordur reveals a Realm
+// dropdown; each realm has its own map image and its own Z band. The band string is exactly what
+// import_drawn_regions.py's --zband takes, but the importer also auto-applies it from the exported
+// `realm` field, so no flag is needed - it is shown here only so you can see which band a realm uses.
+// Each realm has its OWN image->world transform (they are NOT one GPS system - Midgard is ~7300
+// world units/deg, Asgard ~3630). xform = [lon_div, lon_shift, lat_div, lat_shift] mapping the
+// drawer's image fraction (0-100) straight to world; it mirrors FJORDUR_REALMS in
+// import_drawn_regions.py. null = not calibrated yet (needs its four map corners /dumppos'd). You
+// can still DRAW on an uncalibrated realm; it just cannot be imported until its corners are added.
+const FJORDUR_REALMS = [
+  {key:"midgard",   name:"Midgard",   z:"-90000,",        xform:[7305.3, 50.984, 7233.8, 50.469]},
+  {key:"jotunheim", name:"Jotunheim", z:"-220000,-92000", xform:[2404.6, 72.230, 2822.7, -11.890]},
+  {key:"asgard",    name:"Asgard",    z:"-360000,-240000",xform:[3632.1, 87.887, 3647.8, 63.357]},
+  {key:"vanaheim",  name:"Vanaheim",  z:"-220000,-92000", xform:[2706.0, -45.352, 2917.4, 141.657]},
+];
 const MAPS = [
   {key:"island", name:"The Island", cal:true},
   {key:"scorched", name:"Scorched Earth", cal:true},
@@ -131,11 +150,11 @@ const MAPS = [
   {key:"extinction", name:"Extinction", cal:false},
   {key:"genesis1", name:"Genesis: Part 1", cal:false},
   {key:"genesis2", name:"Genesis: Part 2", cal:false},
-  {key:"center", name:"The Center", cal:false},
-  {key:"valguero", name:"Valguero", cal:false},
+  {key:"center", name:"The Center", cal:true},
+  {key:"valguero", name:"Valguero", cal:true},
   {key:"crystalisles", name:"Crystal Isles", cal:false},
   {key:"lostisland", name:"Lost Island", cal:false},
-  {key:"fjordur", name:"Fjordur", cal:false},
+  {key:"fjordur", name:"Fjordur", cal:true, realms:FJORDUR_REALMS},
   {key:"lostcolony", name:"Lost Colony", cal:false},
   {key:"astraeos", name:"Astraeos", cal:false},
 ];
@@ -143,14 +162,25 @@ const MAPS = [
 const svg = document.getElementById('svg'), img = document.getElementById('map');
 const stage = document.getElementById('stage'), out = document.getElementById('out');
 const sel = document.getElementById('mapkey');
+const realmSel = document.getElementById('realm'), realmWrap = document.getElementById('realmwrap');
 
-// Work is kept PER MAP so switching back and forth never loses a shape, and survives a reload -
-// drawing 40 regions is too much effort to lose to a stray refresh.
-let store = {};            // mapKey -> [ {key,name,gate,pts} ]
+// Work is kept PER MAP (per realm for Fjordur) so switching back and forth never loses a shape, and
+// survives a reload - drawing 40 regions is too much effort to lose to a stray refresh.
+let store = {};            // storeKey -> [ {key,name,gate,pts} ]
 let cur = [];              // vertices in progress (not yet a region)
 
-function mapKey(){ return sel.value; }
-function regions(){ return store[mapKey()] || (store[mapKey()] = []); }
+function curMap(){ return MAPS.find(m => m.key === sel.value); }
+function hasRealms(){ const m = curMap(); return !!(m && m.realms); }
+function realmKey(){ return hasRealms() ? realmSel.value : ''; }
+function realmName(){ const r = (curMap().realms || []).find(x => x.key === realmKey());
+                      return r ? r.name : ''; }
+function mapKey(){ return sel.value; }                       // the "map" field in the export
+// storeKey namespaces saved work + the dedup check; imgBase names the docs image, the dragged-image
+// cache, and the download file. For a realm map both fold the realm in; for every other map they are
+// just the map key, so nothing about the existing maps changes.
+function storeKey(){ return realmKey() ? sel.value + ':' + realmKey() : sel.value; }
+function imgBase(){ return realmKey() ? sel.value + '_' + realmKey() : sel.value; }
+function regions(){ return store[storeKey()] || (store[storeKey()] = []); }
 
 function save(){
   try { localStorage.setItem('arkap_regions', JSON.stringify(store)); } catch (e) {}
@@ -192,8 +222,9 @@ function draw(){
   }
   svg.innerHTML = s;
   document.getElementById('count').textContent = gs.length;
+  const where = curMap().name + (realmKey() ? ' / ' + realmName() : '');
   document.getElementById('tally').textContent =
-    `${MAPS.find(m=>m.key===mapKey()).name}: ${gs.length} region${gs.length===1?'':'s'}`
+    `${where}: ${gs.length} region${gs.length===1?'':'s'}`
     + (cur.length ? `  (drawing: ${cur.length} pts)` : '');
   document.getElementById('list').innerHTML = gs.map((g,i) =>
     `<div style="${g.hidden ? 'opacity:.45' : ''}">`
@@ -204,10 +235,12 @@ function draw(){
   // Live regions are reference only - they already exist in explore_areas.json, and the importer
   // skips a key it already has, so exporting them would imply edits that cannot land.
   const mine = gs.filter(g => !g.live);
-  out.value = JSON.stringify({
+  const payload = {
     map: mapKey(),
     regions: Object.fromEntries(mine.map(g => [g.key, {name:g.name, gate:g.gate, latlon:g.pts}]))
-  }, null, 2);
+  };
+  if (realmKey()) payload.realm = realmKey();      // importer namespaces + auto-applies the Z band
+  out.value = JSON.stringify(payload, null, 2);
   save();
 }
 function finish(){
@@ -222,19 +255,48 @@ function finish(){
   document.getElementById('name').value = '';
   draw();
 }
+// Switching MAP: (re)build the realm dropdown if this map has realms, show/hide it, then refresh.
 function showMap(){
-  const m = MAPS.find(x => x.key === mapKey());
-  document.getElementById('calnote').innerHTML = m.cal
+  const m = curMap();
+  if (m.realms){
+    realmSel.innerHTML = m.realms.map(r =>
+      `<option value="${r.key}">${r.name}  (z ${r.z})</option>`).join('');
+    realmWrap.hidden = false;
+  } else {
+    realmWrap.hidden = true;
+  }
+  refresh();
+}
+// Refresh for the current MAP + REALM: calnote, map image, and the canvas. Called on both a map
+// change and a realm change.
+function refresh(){
+  const m = curMap();
+  const rObj = m.realms ? m.realms.find(x => x.key === realmKey()) : null;
+  document.getElementById('calnote').innerHTML = m.realms
+    ? (rObj && rObj.xform
+       ? `<div class="hint">Fjordur / ${rObj.name} - calibrated. Draw here, export, then
+          <code>import_drawn_regions.py ${imgBase()}_regions.json --write</code> (realm, Z band and
+          transform are all applied automatically - no flags).</div>`
+       : `<div class="hint warn"><b>${rObj ? rObj.name : 'This realm'} is not calibrated yet.</b>
+          You can draw now, but it cannot be imported until its four map corners are set. Stand at
+          the map's top-left, top-right, bottom-left and bottom-right and <code>/dumppos</code> each,
+          then send them - I'll bake the transform in.</div>`)
+    : m.cal
     ? `<div class="hint">Transform known - <code>import_drawn_regions.py</code> needs no extra flags.</div>`
-    : `<div class="hint warn"><b>Not calibrated yet.</b> You can draw, but importing needs a
-       transform first: collect a few explorer notes and run
+    : `<div class="hint warn"><b>Not calibrated yet.</b> You can draw now - importing just needs the
+       map's world transform. Easiest: run <code>/dumppos</code> once in-game (it also writes
+       <code>ArkAP_map_geo.json</code>) and send that. If it comes back zeroed (many maps leave the
+       fields blank), instead <code>/dumppos</code> at two far-apart spots and note the compass
+       lat/lon at each (<code>import_drawn_regions.py --calib</code>), or use collected notes with
        <code>calibrate_from_notes.py</code>.</div>`;
-  // Prefer docs/<map>_map.png next to the repo - the real map images, gitignored as Wildcard
-  // assets - and fall back to whatever was dragged in before. Probed on a DETACHED image: assigning
-  // then clearing src on the live element fires its own error event, which re-enters this handler.
-  const key = mapKey();
-  const dragged = localStorage.getItem('arkap_img_' + key);
-  const show = src => { if (mapKey() !== key) return;      // user switched again while loading
+  // Prefer docs/<imgBase>_map.png next to the repo - the real map images, gitignored as Wildcard
+  // assets (for a realm that is docs/fjordur_midgard_map.png etc.) - and fall back to whatever was
+  // dragged in before. Probed on a DETACHED image: assigning then clearing src on the live element
+  // fires its own error event, which re-enters this handler.
+  const base = imgBase();
+  let dragged = null;
+  try { dragged = localStorage.getItem('arkap_img_' + base); } catch (e) {}
+  const show = src => { if (imgBase() !== base) return;      // user switched again while loading
                         if (src){ img.src = src; img.hidden = false; }
                         else { img.removeAttribute('src'); img.hidden = true; } };
   // The wiki's higher-resolution maps are JPEGs, so try every sensible extension rather than
@@ -246,7 +308,7 @@ function showMap(){
     const probe = new Image();
     probe.onload = () => show(probe.src);
     probe.onerror = () => tryNext(i + 1);
-    probe.src = '../docs/' + key + '_map.' + exts[i];
+    probe.src = '../docs/' + base + '_map.' + exts[i];
   })(0);
   cur = [];
   draw();
@@ -259,12 +321,15 @@ MAPS.forEach(m => {
   sel.appendChild(o);
 });
 sel.onchange = showMap;
+realmSel.onchange = refresh;
 
 svg.addEventListener('click', e => { cur.push(at(e)); draw(); });
 svg.addEventListener('dblclick', e => { e.preventDefault(); cur.pop(); finish(); });
 svg.addEventListener('mousemove', e => {
   const [lat, lon] = at(e);
-  document.getElementById('gps').textContent = `lat ${lat.toFixed(1)}, lon ${lon.toFixed(1)}`;
+  // two decimals: precise enough to place a calibration landmark (0.01 of an image unit is a few
+  // world metres), and this readout IS the "image position" you pair with a /dumppos to calibrate.
+  document.getElementById('gps').textContent = `lat ${lat.toFixed(2)}, lon ${lon.toFixed(2)}`;
 });
 addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
@@ -286,10 +351,11 @@ document.getElementById('showall').onclick = () => { regions().forEach(g => g.hi
 document.getElementById('clear').onclick = () => {
   // Only removes what YOU drew - imported live regions are reference and come back on re-import.
   const gs = regions().filter(g => !g.live);
-  if (!gs.length){ alert('Nothing drawn on this map yet.'); return; }
-  if (confirm(`Remove the ${gs.length} region(s) you drew on ${MAPS.find(m=>m.key===mapKey()).name}?`
+  if (!gs.length){ alert('Nothing drawn here yet.'); return; }
+  const where = curMap().name + (realmKey() ? ' / ' + realmName() : '');
+  if (confirm(`Remove the ${gs.length} region(s) you drew on ${where}?`
               + `\n(Imported live regions are kept.)`)){
-    store[mapKey()] = regions().filter(g => g.live);
+    store[storeKey()] = regions().filter(g => g.live);
     cur = [];
     draw();
   }
@@ -301,28 +367,44 @@ document.getElementById('clear').onclick = () => {
 // here cannot be shown, and guessing would place every region in the wrong spot.
 const TRANSFORMS = { island: [8000.0, 50.0], scorched: [8000.0, 50.0], ragnarok: [13009.4, 49.99] };
 
+// Per-axis (lon_div, lon_shift, lat_div, lat_shift) for the current map/realm - Fjordur realms each
+// have their own (from FJORDUR_REALMS), every other map is symmetric so its [div,shift] expands to
+// both axes. Returns null when no transform is known (uncalibrated realm), so live regions cannot
+// be placed back onto the image. Only used to REVERSE stored world polygons for on-screen editing.
+function axesFor(){
+  if (hasRealms()){
+    const r = (curMap().realms || []).find(x => x.key === realmKey());
+    return r && r.xform ? r.xform : null;
+  }
+  const t = TRANSFORMS[mapKey()];
+  return t ? [t[0], t[1], t[0], t[1]] : null;
+}
+
 function ingestLive(data){
   const key = mapKey();
-  const t = TRANSFORMS[key];
-  if (!t){ alert(`No world-unit transform known for ${key}, so live regions cannot be placed.`); return; }
-  const [div, shift] = t;
+  const ax = axesFor();
+  if (!ax){ alert(`No world-unit transform known for ${key}${realmKey()?'/'+realmName():''}, `
+                  + `so live regions cannot be placed.`); return; }
+  const [lonDiv, lonShift, latDiv, latShift] = ax;
+  const rk = realmKey();          // for a realm map, only pull back THIS realm's regions
   const existing = new Set(regions().map(g => g.key));
   let n = 0, skipped = 0;
   for (const [rkey, r] of Object.entries((data && data.regions) || {})){
     if ((r.map || 'island') !== key) continue;
+    if (rk && (r.realm || '') !== rk) continue;     // wrong realm - it belongs to another sub-map
     if (!r.polygon || r.polygon.length < 3){ skipped++; continue; }   // depth regions have no shape
     if (existing.has(rkey)) continue;
     regions().push({
       key: rkey, name: r.name || rkey, gate: r.gate || '', live: true, hidden: false,
-      pts: r.polygon.map(([x, y]) => [Math.round((y / div + shift) * 100) / 100,
-                                      Math.round((x / div + shift) * 100) / 100])
+      pts: r.polygon.map(([x, y]) => [Math.round((y / latDiv + latShift) * 100) / 100,
+                                      Math.round((x / lonDiv + lonShift) * 100) / 100])
     });
     n++;
   }
   draw();
-  alert(n ? `Imported ${n} live region(s) for ${key}.`
+  alert(n ? `Imported ${n} live region(s) for ${key}${rk?'/'+realmName():''}.`
           + (skipped ? `\n${skipped} depth region(s) skipped - they have no polygon.` : '')
-          : `No live regions found for ${key}.`);
+          : `No live regions found for ${key}${rk?'/'+realmName():''}.`);
 }
 document.getElementById('importlive').onclick = () => {
   // Works over the local server; a file:// page cannot fetch JSON, so fall back to a picker.
@@ -343,12 +425,12 @@ document.getElementById('copy').onclick = () => { out.select(); document.execCom
 document.getElementById('dl').onclick = () => {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([out.value], {type:'application/json'}));
-  a.download = mapKey() + '_regions.json'; a.click();
+  a.download = imgBase() + '_regions.json'; a.click();
 };
 function loadFile(f){
   if (!f) return;
   const r = new FileReader();
-  r.onload = () => { img.src = r.result; img.hidden = false; saveImage(mapKey(), r.result); };
+  r.onload = () => { img.src = r.result; img.hidden = false; saveImage(imgBase(), r.result); };
   r.readAsDataURL(f);
 }
 document.getElementById('file').onchange = e => loadFile(e.target.files[0]);

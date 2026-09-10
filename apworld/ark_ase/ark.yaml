@@ -5,19 +5,24 @@ game: ARK Survival Evolved
 ARK Survival Evolved:
   # Which map(s) your server runs. List more than one for a CLUSTER (maps linked by
   # obelisk/transmitter travel) and their content pools together.
-  # SHIPPED: the_island, scorched_earth, ragnarok - each one verified to generate ON ITS OWN, so
-  # listing a single map is never a limitation. The rest of the keys are reserved and have no data.
+  # SHIPPED: the_island, scorched_earth, ragnarok, the_center, valguero, fjordur - each one
+  # verified to generate ON ITS OWN, so listing a single map is never a limitation. The rest of the
+  # keys are reserved and have no data.
   # Anything you do not list is filtered out: its checks never appear, its items never enter the
   # pool, and the goal only asks for bosses your maps actually have.
   #   the_island | scorched_earth | aberration | extinction | genesis_part_1 | genesis_part_2 |
   #   lost_colony | the_center | ragnarok | valguero | crystal_isles | lost_island | fjordur | astraeos
   maps:
     - the_island
-  # Win: defeat these bosses (any difficulty). Cumulative over the Island's four; on a map without
-  # them it means that map's own bosses instead (Scorched alone = the Manticore).
-  #   broodmother | broodmother_megapithecus | broodmother_megapithecus_dragon | all_bosses |
-  #   all_bosses_all_maps  (every boss on the maps you enabled)
-  goal: all_bosses
+  # Win: defeat these bosses (any difficulty - Gamma, Beta or Alpha).
+  # Any combination, across any of your enabled maps; comma-separated:
+  #   broodmother | megapithecus | dragon | overseer | manticore
+  #   beyla | hati_and_skoll | steinbjorn | fenrisulfr        (Fjordur)
+  # Every boss listed must exist on a map you enabled, or generation stops and names the missing
+  # one. Use [all_bosses] (or []) for "every boss my maps have" - it adapts on its own, so it works
+  # on a map whose bosses are not the Island's (Scorched alone = the Manticore) and on a cluster it
+  # means every boss across all of them.
+  goal: [broodmother, megapithecus, dragon, overseer]
   # Die when a linked player in another game dies (and send yours to them).
   death_link: true
   # Taming a creature requires its "Tame: X" item first. Off = tame anything from the start

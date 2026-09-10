@@ -99,6 +99,15 @@ ISLAND_REGIONS = OrderedDict([
 ])
 REGIONS = {"island": ISLAND_REGIONS}
 
+# Human display names for the overlay heading. Falls back to key.title() for anything not listed.
+MAP_DISPLAY = {"island": "The Island", "scorched": "Scorched Earth", "ragnarok": "Ragnarok",
+               "center": "The Center", "valguero": "Valguero"}
+
+# Maps with no predefined region block yet: accept WHATEVER keys you /dumppos, using the key as the
+# display name (title-cased) and no gate. Lets you fly + name regions freely before we lock in a
+# formal block with gates. A key like "redwoods" becomes the region "Redwoods".
+OPEN_MAPS = {"center", "valguero"}
+
 # DEPTH regions have no polygon: they fire anywhere on the map below a given world Z. You cannot
 # circle the deep ocean the way you circle a landmass - it is the whole seabed - and a surface
 # polygon would fire while a bird flies over it, defeating the Scuba gate entirely. A depth floor
@@ -117,6 +126,11 @@ MAP_TRANSFORM = {"island": (8000.0, 50.0), "ragnarok": (13009.4, 49.99),
                  "scorched": (8000.0, 50.0)}
 
 EXPLORE_ID_BASE = 8758000        # own block, after inventory checks (8757xxx)
+# Each map gets its OWN 200-id slice so regenerating one map never renumbers another and ids never
+# collide across maps. Island keeps the historical base. A map not listed falls back to EXPLORE_ID_BASE
+# (fine only while it is the sole map being generated).
+MAP_EXPLORE_BASE = {"island": 8758000, "scorched": 8758200, "ragnarok": 8758400,
+                    "center": 8758600, "valguero": 8758800}
 MIN_POINTS = 3                   # fewer than 3 samples is not a polygon
 
 
@@ -174,8 +188,9 @@ def main():
     a = ap.parse_args()
 
     known = REGIONS.get(a.map)
-    if known is None:
-        raise SystemExit(f"unknown map '{a.map}' - known: {', '.join(REGIONS)}")
+    if known is None and a.map not in OPEN_MAPS:
+        raise SystemExit(f"unknown map '{a.map}' - known: "
+                         f"{', '.join(sorted(set(REGIONS) | OPEN_MAPS))}")
 
     samples = OrderedDict()
     with open(a.jsonl, encoding="utf-8") as fh:
@@ -190,11 +205,14 @@ def main():
             except Exception:
                 print(f"  ! skipping unparseable line: {line[:70]}")
 
+    if known is None:                       # OPEN_MAPS: every sampled key becomes an ungated region
+        known = OrderedDict((k, (k.title(), "")) for k in samples)
+
     unknown = [k for k in samples if k not in known]
     if unknown:
         print(f"! not registered for map '{a.map}' (typo?): {', '.join(unknown)}")
 
-    regions, next_id = OrderedDict(), EXPLORE_ID_BASE
+    regions, next_id = OrderedDict(), MAP_EXPLORE_BASE.get(a.map, EXPLORE_ID_BASE)
     for key, (name, gate, mp, z_below) in DEPTH_REGIONS.items():
         if mp != a.map:
             continue
@@ -214,12 +232,28 @@ def main():
                         "z_min": min(p[2] for p in pts), "z_max": max(p[2] for p in pts)}
         next_id += 1
 
+    # MERGE, do not clobber: keep every OTHER map's regions already in the file, replace only this
+    # map's. Without this, generating a second map would wipe the first (each run only builds its own
+    # map's regions). Per-map id blocks (MAP_EXPLORE_BASE) keep the ids stable across regenerations.
+    prior = {}
+    prior_path = os.path.join(DATA_DIRS[0], "explore_areas.json")
+    if os.path.isfile(prior_path):
+        try:
+            prior = json.load(open(prior_path, encoding="utf-8")).get("regions", {})
+        except Exception:
+            prior = {}
+    merged = OrderedDict((k, v) for k, v in prior.items() if v.get("map") != a.map)
+    merged.update(regions)
+    dropped = [k for k, v in prior.items() if v.get("map") == a.map and k not in regions]
+    if dropped:
+        print(f"  replaced {a.map}: dropped {len(dropped)} old region(s) not in this run")
+
     out = {"_comment": "Exploration areas measured in-game with /dumppos. Each polygon's points are "
                        "vertices IN FLIGHT ORDER - a player inside the loop has explored that "
                        "region. Overlap is intended (caves sit under biomes); a player inside "
                        "several polygons completes all of them. z_min/z_max are recorded but NOT "
                        "used for membership. Never reorder a polygon's points.",
-           "_id_base": EXPLORE_ID_BASE, "regions": regions}
+           "_id_base": EXPLORE_ID_BASE, "regions": merged}
 
     for d in DATA_DIRS:
         os.makedirs(d, exist_ok=True)
@@ -227,7 +261,8 @@ def main():
             json.dump(out, fh, indent=2)
             fh.write("\n")
 
-    print(f"\nmap '{a.map}': {len(regions)} region(s) -> ids {EXPLORE_ID_BASE}..{next_id - 1}")
+    print(f"\nmap '{a.map}': {len(regions)} region(s) -> ids "
+          f"{MAP_EXPLORE_BASE.get(a.map, EXPLORE_ID_BASE)}..{next_id - 1}")
     gated = [r for r in regions.values() if r["gate"]]
     print(f"  gated: {len(gated)}  ({', '.join(sorted({r['gate'] for r in gated})) or '-'})")
     depth = [k for k, r in regions.items() if not r["polygon"]]
@@ -265,27 +300,28 @@ def main():
     write_overlay(regions, a)
 
 
-def island_map_data_uri(embed=True):
-    """Embed the local Island map as a data URI so the page is self-contained.
+def map_image_data_uri(mapkey, embed=True):
+    """Embed a map's local image as a data URI so the page is self-contained.
 
-    It used to be a plain <img src="island_map.jpg">, which meant the background silently vanished
-    if the file was named .png (it was), or if the html was opened from anywhere else. The image is
-    a Wildcard asset so it is still never committed - docs/island_map.* is gitignored, and this html
+    Convention: docs/<mapkey>_map.{png,jpg,jpeg,webp} (island_map.png, valguero_map.jpg, ...). The
+    image is a Wildcard asset so it is never committed - docs/*_map.* is gitignored, and this html
     is too. Absent image = the page falls back to the plain grid.
     """
     import base64
+    stem = f"{mapkey}_map"
     if not embed:
-        print("  --no-embed: linking docs/island_map.png instead of inlining it")
+        print(f"  --no-embed: linking docs/{stem}.png instead of inlining it")
         return "", "link"
-    for name, mime in (("island_map.png", "image/png"), ("island_map.jpg", "image/jpeg"),
-                       ("island_map.jpeg", "image/jpeg"), ("island_map.webp", "image/webp")):
+    for ext, mime in ((".png", "image/png"), (".jpg", "image/jpeg"),
+                      (".jpeg", "image/jpeg"), (".webp", "image/webp")):
+        name = stem + ext
         path = os.path.join(ROOT, "docs", name)
         if os.path.isfile(path):
             with open(path, "rb") as fh:
                 b64 = base64.b64encode(fh.read()).decode("ascii")
             print(f"  embedded {name} ({os.path.getsize(path):,} bytes)")
             return f"data:{mime};base64,{b64}", name
-    print("  no docs/island_map.* found - the overlay will render on a plain grid")
+    print(f"  no docs/{stem}.* found - the overlay will render on a plain grid")
     return "", ""
 
 
@@ -342,20 +378,21 @@ def write_overlay(regions, a):
         for n, k, g, la, lo, ctr, extra, c in rows)
 
     gated = sum(1 for r in regions.values() if r["gate"])
-    map_uri, map_name = island_map_data_uri(embed=not a.no_embed)
+    stem = f"{a.map}_map"
+    map_uri, map_name = map_image_data_uri(a.map, embed=not a.no_embed)
     if map_uri:
         map_img = f'<img src="{map_uri}" alt="">'
         map_note = (f"Background: your local <code>docs/{map_name}</code>, embedded so this page "
                     f"works on its own.")
     elif map_name == "link":
-        map_img = ('<img src="island_map.png" alt="" '
+        map_img = (f'<img src="{stem}.png" alt="" '
                    "onerror=\"this.style.display='none'\">")
-        map_note = ("Put your own copy of the Island map at <code>docs/island_map.png</code> to see "
-                    "the terrain behind the loops. It is a Wildcard asset, so it is not included "
+        map_note = (f"Put your own copy of the map at <code>docs/{stem}.png</code> to see the "
+                    "terrain behind the loops. It is a Wildcard asset, so it is not included "
                     "here - only our own measured data is.")
     else:
-        map_img = '<!-- no docs/island_map.* found; grid only -->'
-        map_note = ("No <code>docs/island_map.png</code> found, so this is the plain grid. Drop "
+        map_img = f'<!-- no docs/{stem}.* found; grid only -->'
+        map_note = (f"No <code>docs/{stem}.png</code> found, so this is the plain grid. Drop "
                     "your own copy there and re-run to see the terrain.")
     html = f"""<title>ARK:ipelago - exploration areas</title>
 <style>
@@ -399,7 +436,7 @@ def write_overlay(regions, a):
  td:nth-child(4),td:nth-child(5),td:nth-child(6){{font:12px ui-monospace,Consolas,monospace}}
 </style>
 <div class="wrap">
-<h1>Exploration areas - The Island</h1>
+<h1>Exploration areas - {esc(MAP_DISPLAY.get(a.map, a.map.title()))}</h1>
 <p>{len(regions)} regions, {gated} of them gated. Coordinates are in-game GPS, so they match what
 your compass shows. Hover a shape for its range.</p>
 <div class="note">{esc(note)}</div>
@@ -427,7 +464,9 @@ asset, so neither it nor this page is committed.</p>
 </tbody></table>
 </div>
 """
-    dst = os.path.join(ROOT, "docs", "exploration_overlay.html")
+    # island keeps the historical filename; every other map gets its own so they never clobber
+    fname = "exploration_overlay.html" if a.map == "island" else f"exploration_overlay_{a.map}.html"
+    dst = os.path.join(ROOT, "docs", fname)
     with open(dst, "w", encoding="utf-8") as fh:
         fh.write(html)
     print(f"wrote {dst}")

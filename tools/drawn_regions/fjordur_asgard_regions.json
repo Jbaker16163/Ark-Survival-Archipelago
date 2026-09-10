@@ -1,0 +1,26 @@
+{
+  "map": "fjordur",
+  "realm": "asgard",
+  "regions": {
+    "lakeofgods": {"name": "Lake of Gods", "gate": "", "latlon": [[29.74,47.11],[30.28,60.4],[41.19,61.01],[46.84,49.71],[39.59,39.1]]},
+    "thetwins": {"name": "The Twins", "gate": "", "latlon": [[27.83,21.47],[22.24,30.27],[23.52,38.88],[35.34,37.51],[35.8,26.51]]},
+    "pondoflife": {"name": "Pond of Life", "gate": "", "latlon": [[34.15,1.78],[6.02,23.85],[13.9,35.22],[44.5,8.01]]},
+    "drakelagoon": {"name": "Drake Lagoon", "gate": "", "latlon": [[35.62,75.62],[28.56,76.72],[24.53,83.96],[22.61,99.16],[45.88,96.23],[53.3,84.87],[39.56,81.57]]},
+    "libbylagoon": {"name": "Libby Lagoon", "gate": "", "latlon": [[72.72,81.94],[68.97,96.87],[95.63,96.87],[95.53,78]]},
+    "fabledmountains": {"name": "Fabled Mountains", "gate": "", "latlon": [[95.44,78.09],[94.89,67.46],[71.07,70.49],[71.35,81.76]]},
+    "levenlake": {"name": "Leven Lake", "gate": "", "latlon": [[2.18,63.89],[1.63,79.28],[14.82,79.37],[14.36,64.81]]},
+    "theironmountain": {"name": "The Iron Mountain", "gate": "", "latlon": [[34.43,70.67],[23.07,88.9],[14.09,80.2],[24.62,64.53]]},
+    "thesavageheights": {"name": "The Savage Heights", "gate": "", "latlon": [[53.85,2.42],[53.02,15.7],[66.31,22.11],[69.79,3.24]]},
+    "westmidfieldsummits": {"name": "Western Midfield Summits", "gate": "", "latlon": [[45.88,17.81],[40.84,39.43],[52.75,41.17],[59.8,28.89],[54.86,17.99]]},
+    "eastmidfieldsummits": {"name": "Eastern Midfield Summits", "gate": "", "latlon": [[46.98,46.94],[50.64,60.13],[62.46,57.48],[58.7,45.48]]},
+    "theviolentpeaks": {"name": "The Violent Peaks", "gate": "", "latlon": [[59.35,76.63],[45.88,97.61],[64.84,96.23],[69.79,83.04],[66.13,73.97]]},
+    "drakenest": {"name": "Drake Nest", "gate": "", "latlon": [[59.25,74.89],[53.39,84.96],[43.4,81.02],[45.88,71.5]]},
+    "plainsofpain": {"name": "The Plains of Pain", "gate": "", "latlon": [[22.33,7.27],[20.78,15.98],[9.69,20.74],[6.94,5.07]]},
+    "bloodlake": {"name": "Blood Lake", "gate": "", "latlon": [[74.55,57.29],[76.2,69.2],[93.06,64.07],[86.46,50.15]]},
+    "jaggedhillside": {"name": "The Jagged Hillside", "gate": "", "latlon": [[85.09,44.19],[85.36,51.71],[78.49,57.66],[73.82,51.25],[75.2,43.55],[79.59,42.36]]},
+    "burfelllake": {"name": "Burfell Lake", "gate": "", "latlon": [[70.89,34.02],[70.8,39.52],[75.01,40.99],[79.41,37.6],[76.84,33.47],[75.01,32.74]]},
+    "ragnarpond": {"name": "Ragnar Pond", "gate": "", "latlon": [[82.8,41.63],[85,51.89],[92.79,50.97],[89.12,40.71]]},
+    "osfjoll": {"name": "Osfjoll", "gate": "", "latlon": [[10.33,34.48],[14.45,40.35],[7.49,43.92],[1.54,35.95]]},
+    "asgard": {"name": "Asgard", "gate": "", "latlon": [[0.3,0.03],[0.3,99.9],[99.79,99.8],[99.7,0.13]]}
+  }
+}

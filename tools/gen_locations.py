@@ -58,16 +58,19 @@ MEIYIN = ([3, 4, 82, 83, 124, 125, 126, 144, 152, 165] + list(range(193, 201))
           + list(range(257, 265)) + [288, 289, 290, 291, 354])
 NERVA = ([5, 84, 85, 86, 121, 131, 132, 146, 154, 167] + list(range(201, 209))
          + list(range(265, 273)) + [292, 293, 294, 295])
-MISC = {  # ??? notes, boss holograms, HLN-A, Genesis chronicles present on The Island
-    # ??? notes carry their raw wiki note index (ark.wiki.gg Explorer_Notes/Locations) so players
-    # can actually look them up - our #N alone matches nothing on the wiki.
+MISC = {  # ??? notes, boss holograms present on The Island
+    # ??? notes are ordinary collectable explorer notes (checklist Type="Note", Author="???") - an
+    # unknown in-game speaker, NOT the DLC set. They carry their raw wiki note index (ark.wiki.gg
+    # Explorer_Notes/Locations) so players can look them up. Two sit in boss arenas and are gated in
+    # map_note_caves (508 = Overseer Arena -> "tek"; the Scorched 509 = Manticore Arena).
     508: "??? Note #1 (idx 508)", 511: "??? Note #2 (idx 511)", 514: "??? Note #3 (idx 514)",
     517: "??? Note #4 (idx 517)", 520: "??? Note #5 (idx 520)",
     87: "Hologram: Broodmother", 88: "Hologram: Megapithecus", 89: "Hologram: Dragon",
     353: "Hologram: Overseer",
-    # HLN-A Discovery (688-690) + Genesis Chronicles (853-857) REMOVED: collecting them needs the
-    # HLN-A skin, only granted when the Genesis DLC is owned - a DLC-less player can never get the
-    # skin (tested), so these checks would strand items. (Lurch, 2026-07-25.)
+    # HLN-A Discovery (688-690) + Genesis Chronicles (853-857) stay REMOVED: checklist Type
+    # "Discovery"/"Genesis 2 Chronicles", Author HLN-A - GenesisPreLaunch client-only recordings
+    # (Buff_ExplorerNoteHLNA_ClientOnly) that need the HLN-A companion skin, granted only with the
+    # Genesis DLC. A DLC-less player can never collect them, so the checks would strand items.
 }
 
 # ---------------- other categories ----------------

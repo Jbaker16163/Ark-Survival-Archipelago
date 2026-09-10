@@ -1842,6 +1842,1006 @@
           "note_index": 521
         },
         {
+          "id": 8741014,
+          "name": "Fjordur Rune #1 (Jotunheim 60.4/26.1)",
+          "note_index": 1014
+        },
+        {
+          "id": 8741015,
+          "name": "Fjordur Rune #2 (Midgard 94.1/34.7)",
+          "note_index": 1015
+        },
+        {
+          "id": 8741016,
+          "name": "Fjordur Rune #3 (Jotunheim 84.1/56.7)",
+          "note_index": 1016
+        },
+        {
+          "id": 8741017,
+          "name": "Fjordur Rune #4 (Midgard Cave 87.9/16.8)",
+          "note_index": 1017
+        },
+        {
+          "id": 8741018,
+          "name": "Fjordur Rune #5 (Vanaheim -3.1/102.2)",
+          "note_index": 1018
+        },
+        {
+          "id": 8741019,
+          "name": "Fjordur Rune #6 (Midgard Cave 47.4/7.7)",
+          "note_index": 1019
+        },
+        {
+          "id": 8741020,
+          "name": "Fjordur Rune #7 (Jotunheim 80.2/39.1)",
+          "note_index": 1020
+        },
+        {
+          "id": 8741021,
+          "name": "Fjordur Rune #8 (Midgard 25.1/51.0)",
+          "note_index": 1021
+        },
+        {
+          "id": 8741022,
+          "name": "Fjordur Rune #9 (Jotunheim 84.1/46.8)",
+          "note_index": 1022
+        },
+        {
+          "id": 8741023,
+          "name": "Fjordur Rune #10 (Midgard 18.2/91.2)",
+          "note_index": 1023
+        },
+        {
+          "id": 8741024,
+          "name": "Fjordur Rune #11 (Vanaheim -2.8/99.7)",
+          "note_index": 1024
+        },
+        {
+          "id": 8741025,
+          "name": "Fjordur Rune #12 (Vanaheim 10.6/97.1)",
+          "note_index": 1025
+        },
+        {
+          "id": 8741026,
+          "name": "Fjordur Rune #13 (Vanaheim 18.9/100.9)",
+          "note_index": 1026
+        },
+        {
+          "id": 8741027,
+          "name": "Fjordur Rune #14 (Vanaheim 29.6/89.9)",
+          "note_index": 1027
+        },
+        {
+          "id": 8741028,
+          "name": "Fjordur Rune #15 (Vanaheim 31.9/83.1)",
+          "note_index": 1028
+        },
+        {
+          "id": 8741029,
+          "name": "Fjordur Rune #16 (Vanaheim 30.7/75.8)",
+          "note_index": 1029
+        },
+        {
+          "id": 8741030,
+          "name": "Fjordur Rune #17 (Vanaheim 27.8/63.4)",
+          "note_index": 1030
+        },
+        {
+          "id": 8741031,
+          "name": "Fjordur Rune #18 (Midgard Underwater Cave 5.1/6.0)",
+          "note_index": 1031
+        },
+        {
+          "id": 8741032,
+          "name": "Fjordur Rune #19 (Vanaheim 19.6/74.9)",
+          "note_index": 1032
+        },
+        {
+          "id": 8741033,
+          "name": "Fjordur Rune #20 (Vanaheim 12.4/64.5)",
+          "note_index": 1033
+        },
+        {
+          "id": 8741034,
+          "name": "Fjordur Rune #21 (Midgard 6.9/45.4)",
+          "note_index": 1034
+        },
+        {
+          "id": 8741035,
+          "name": "Fjordur Rune #22 (Vanaheim 1.3/69.8)",
+          "note_index": 1035
+        },
+        {
+          "id": 8741036,
+          "name": "Fjordur Rune #23 (Vanaheim -7.6/68.9)",
+          "note_index": 1036
+        },
+        {
+          "id": 8741037,
+          "name": "Fjordur Rune #24 (Vanaheim 11.2/83.1)",
+          "note_index": 1037
+        },
+        {
+          "id": 8741038,
+          "name": "Fjordur Rune #25 (Midgard Cave 11.3/84.2)",
+          "note_index": 1038
+        },
+        {
+          "id": 8741039,
+          "name": "Fjordur Rune #26 (Vanaheim 9.3/84.7)",
+          "note_index": 1039
+        },
+        {
+          "id": 8741040,
+          "name": "Fjordur Rune #27 (Vanaheim 2.2/91.8)",
+          "note_index": 1040
+        },
+        {
+          "id": 8741041,
+          "name": "Fjordur Rune #28 (Midgard Cave 27.6/46.1)",
+          "note_index": 1041
+        },
+        {
+          "id": 8741042,
+          "name": "Fjordur Rune #29 (Midgard 38.2/60.1)",
+          "note_index": 1042
+        },
+        {
+          "id": 8741043,
+          "name": "Fjordur Rune #30 (Midgard 51.8/85.0)",
+          "note_index": 1043
+        },
+        {
+          "id": 8741044,
+          "name": "Fjordur Rune #31 (Midgard 88.1/92.4)",
+          "note_index": 1044
+        },
+        {
+          "id": 8741045,
+          "name": "Fjordur Rune #32 (Midgard 73.9/5.3)",
+          "note_index": 1045
+        },
+        {
+          "id": 8741046,
+          "name": "Fjordur Rune #33 (Midgard 75.5/6.5)",
+          "note_index": 1046
+        },
+        {
+          "id": 8741047,
+          "name": "Fjordur Rune #34 (Midgard 85.8/92.1)",
+          "note_index": 1047
+        },
+        {
+          "id": 8741048,
+          "name": "Fjordur Rune #35 (Midgard 84.0/96.4)",
+          "note_index": 1048
+        },
+        {
+          "id": 8741049,
+          "name": "Fjordur Rune #36 (Midgard 75.1/95.6)",
+          "note_index": 1049
+        },
+        {
+          "id": 8741050,
+          "name": "Fjordur Rune #37 (Midgard Cave 83.6/92.6)",
+          "note_index": 1050
+        },
+        {
+          "id": 8741051,
+          "name": "Fjordur Rune #38 (Midgard 72.1/89.4)",
+          "note_index": 1051
+        },
+        {
+          "id": 8741052,
+          "name": "Fjordur Rune #39 (Midgard 81.8/86.1)",
+          "note_index": 1052
+        },
+        {
+          "id": 8741053,
+          "name": "Fjordur Rune #40 (Midgard 88.3/84.8)",
+          "note_index": 1053
+        },
+        {
+          "id": 8741054,
+          "name": "Fjordur Rune #41 (Midgard Cave 84.8/16.0)",
+          "note_index": 1054
+        },
+        {
+          "id": 8741055,
+          "name": "Fjordur Rune #42 (Midgard 89.9/85.2)",
+          "note_index": 1055
+        },
+        {
+          "id": 8741056,
+          "name": "Fjordur Rune #43 (Midgard 64.6/93.2)",
+          "note_index": 1056
+        },
+        {
+          "id": 8741057,
+          "name": "Fjordur Rune #44 (Midgard 87.1/82.8)",
+          "note_index": 1057
+        },
+        {
+          "id": 8741058,
+          "name": "Fjordur Rune #45 (Midgard 83.5/35.4)",
+          "note_index": 1058
+        },
+        {
+          "id": 8741059,
+          "name": "Fjordur Rune #46 (Midgard 93.0/93.1)",
+          "note_index": 1059
+        },
+        {
+          "id": 8741060,
+          "name": "Fjordur Rune #47 (Midgard 91.4/16.4)",
+          "note_index": 1060
+        },
+        {
+          "id": 8741061,
+          "name": "Fjordur Rune #48 (Midgard 97.0/84.1)",
+          "note_index": 1061
+        },
+        {
+          "id": 8741062,
+          "name": "Fjordur Rune #49 (Midgard 96.1/78.3)",
+          "note_index": 1062
+        },
+        {
+          "id": 8741063,
+          "name": "Fjordur Rune #50 (Midgard 82.2/73.6)",
+          "note_index": 1063
+        },
+        {
+          "id": 8741064,
+          "name": "Fjordur Rune #51 (Midgard 81.8/79.4)",
+          "note_index": 1064
+        },
+        {
+          "id": 8741065,
+          "name": "Fjordur Rune #52 (Midgard 75.5/78.8)",
+          "note_index": 1065
+        },
+        {
+          "id": 8741066,
+          "name": "Fjordur Rune #53 (Midgard Cave 89.9/83.2)",
+          "note_index": 1066
+        },
+        {
+          "id": 8741067,
+          "name": "Fjordur Rune #54 (Midgard Cave 88.3/85.7)",
+          "note_index": 1067
+        },
+        {
+          "id": 8741068,
+          "name": "Fjordur Rune #55 (Midgard Wyvern Trench 85.4/71.5)",
+          "note_index": 1068
+        },
+        {
+          "id": 8741069,
+          "name": "Fjordur Rune #56 (Midgard Wyvern Trench 90.6/73.8)",
+          "note_index": 1069
+        },
+        {
+          "id": 8741070,
+          "name": "Fjordur Rune #57 (Midgard Wyvern Trench 95.9/81.5)",
+          "note_index": 1070
+        },
+        {
+          "id": 8741071,
+          "name": "Fjordur Rune #58 (Midgard Wyvern Trench 96.1/84.5)",
+          "note_index": 1071
+        },
+        {
+          "id": 8741072,
+          "name": "Fjordur Rune #59 (Jotunheim 82.1/36.8)",
+          "note_index": 1072
+        },
+        {
+          "id": 8741073,
+          "name": "Fjordur Rune #60 (Midgard Wyvern Trench 91.0/91.9)",
+          "note_index": 1073
+        },
+        {
+          "id": 8741074,
+          "name": "Fjordur Rune #61 (Midgard 97.8/5.6)",
+          "note_index": 1074
+        },
+        {
+          "id": 8741075,
+          "name": "Fjordur Rune #62 (Midgard 97.6/6.5)",
+          "note_index": 1075
+        },
+        {
+          "id": 8741076,
+          "name": "Fjordur Rune #63 (Midgard 92.0/1.9)",
+          "note_index": 1076
+        },
+        {
+          "id": 8741077,
+          "name": "Fjordur Rune #64 (Midgard 89.4/2.6)",
+          "note_index": 1077
+        },
+        {
+          "id": 8741078,
+          "name": "Fjordur Rune #65 (Midgard 85.8/6.9)",
+          "note_index": 1078
+        },
+        {
+          "id": 8741079,
+          "name": "Fjordur Rune #66 (Midgard 91.6/7.7)",
+          "note_index": 1079
+        },
+        {
+          "id": 8741080,
+          "name": "Fjordur Rune #67 (Midgard 89.7/13.7)",
+          "note_index": 1080
+        },
+        {
+          "id": 8741081,
+          "name": "Fjordur Rune #68 (Midgard 86.7/13.0)",
+          "note_index": 1081
+        },
+        {
+          "id": 8741082,
+          "name": "Fjordur Rune #69 (Midgard 86.2/7.0)",
+          "note_index": 1082
+        },
+        {
+          "id": 8741083,
+          "name": "Fjordur Rune #70 (Midgard 83.3/14.7)",
+          "note_index": 1083
+        },
+        {
+          "id": 8741084,
+          "name": "Fjordur Rune #71 (Midgard 77.8/9.9)",
+          "note_index": 1084
+        },
+        {
+          "id": 8741085,
+          "name": "Fjordur Rune #72 (Midgard 81.2/4.6)",
+          "note_index": 1085
+        },
+        {
+          "id": 8741086,
+          "name": "Fjordur Rune #73 (Midgard 78.8/3.4)",
+          "note_index": 1086
+        },
+        {
+          "id": 8741087,
+          "name": "Fjordur Rune #74 (Jotunheim 91.1/27.1)",
+          "note_index": 1087
+        },
+        {
+          "id": 8741088,
+          "name": "Fjordur Rune #75 (Midgard 80.1/3.5)",
+          "note_index": 1088
+        },
+        {
+          "id": 8741089,
+          "name": "Fjordur Rune #76 (Midgard 69.7/5.0)",
+          "note_index": 1089
+        },
+        {
+          "id": 8741090,
+          "name": "Fjordur Rune #77 (Midgard 67.8/8.0)",
+          "note_index": 1090
+        },
+        {
+          "id": 8741091,
+          "name": "Fjordur Rune #78 (Midgard 63.3/10.2)",
+          "note_index": 1091
+        },
+        {
+          "id": 8741092,
+          "name": "Fjordur Rune #79 (Midgard 63.9/25.9)",
+          "note_index": 1092
+        },
+        {
+          "id": 8741093,
+          "name": "Fjordur Rune #80 (Midgard 66.1/33.5)",
+          "note_index": 1093
+        },
+        {
+          "id": 8741094,
+          "name": "Fjordur Rune #81 (Midgard 60.4/35.7)",
+          "note_index": 1094
+        },
+        {
+          "id": 8741095,
+          "name": "Fjordur Rune #82 (Midgard 51.2/38.3)",
+          "note_index": 1095
+        },
+        {
+          "id": 8741096,
+          "name": "Fjordur Rune #83 (Midgard 66.6/39.1)",
+          "note_index": 1096
+        },
+        {
+          "id": 8741097,
+          "name": "Fjordur Rune #84 (Jotunheim 74.5/24.5)",
+          "note_index": 1097
+        },
+        {
+          "id": 8741098,
+          "name": "Fjordur Rune #85 (Midgard 74.4/34.0)",
+          "note_index": 1098
+        },
+        {
+          "id": 8741099,
+          "name": "Fjordur Rune #86 (Midgard 76.8/36.2)",
+          "note_index": 1099
+        },
+        {
+          "id": 8741100,
+          "name": "Fjordur Rune #87 (Midgard 87.7/45.1)",
+          "note_index": 1100
+        },
+        {
+          "id": 8741101,
+          "name": "Fjordur Rune #88 (Midgard 79.9/28.3)",
+          "note_index": 1101
+        },
+        {
+          "id": 8741102,
+          "name": "Fjordur Rune #89 (Midgard 73.7/19.9)",
+          "note_index": 1102
+        },
+        {
+          "id": 8741103,
+          "name": "Fjordur Rune #90 (Midgard Cave 88.2/20.2)",
+          "note_index": 1103
+        },
+        {
+          "id": 8741104,
+          "name": "Fjordur Rune #91 (Midgard Cave 87.6/11.6)",
+          "note_index": 1104
+        },
+        {
+          "id": 8741105,
+          "name": "Fjordur Rune #92 (Jotunheim 70.6/32.7)",
+          "note_index": 1105
+        },
+        {
+          "id": 8741106,
+          "name": "Fjordur Rune #93 (Midgard 46.0/11.5)",
+          "note_index": 1106
+        },
+        {
+          "id": 8741107,
+          "name": "Fjordur Rune #94 (Midgard 40.5/5.2)",
+          "note_index": 1107
+        },
+        {
+          "id": 8741108,
+          "name": "Fjordur Rune #95 (Midgard 42.7/4.7)",
+          "note_index": 1108
+        },
+        {
+          "id": 8741109,
+          "name": "Fjordur Rune #96 (Midgard 44.9/15.9)",
+          "note_index": 1109
+        },
+        {
+          "id": 8741110,
+          "name": "Fjordur Rune #97 (Midgard Cave 47.7/14.0)",
+          "note_index": 1110
+        },
+        {
+          "id": 8741111,
+          "name": "Fjordur Rune #98 (Midgard Cave 49.1/10.1)",
+          "note_index": 1111
+        },
+        {
+          "id": 8741112,
+          "name": "Fjordur Rune #99 (Midgard Cave 43.1/10.4)",
+          "note_index": 1112
+        },
+        {
+          "id": 8741113,
+          "name": "Fjordur Rune #100 (Asgard 39.2/50.5)",
+          "note_index": 1113
+        },
+        {
+          "id": 8741114,
+          "name": "Fjordur Rune #101 (Midgard Cave 45.6/12.6)",
+          "note_index": 1114
+        },
+        {
+          "id": 8741115,
+          "name": "Fjordur Rune #102 (Jotunheim 63.2/33.8)",
+          "note_index": 1115
+        },
+        {
+          "id": 8741116,
+          "name": "Fjordur Rune #103 (Jotunheim 60.3/34.1)",
+          "note_index": 1116
+        },
+        {
+          "id": 8741117,
+          "name": "Fjordur Rune #104 (Asgard 21.8/9.7)",
+          "note_index": 1117
+        },
+        {
+          "id": 8741118,
+          "name": "Fjordur Rune #105 (Midgard 11.2/5.0)",
+          "note_index": 1118
+        },
+        {
+          "id": 8741119,
+          "name": "Fjordur Rune #106 (Midgard 2.9/14.3)",
+          "note_index": 1119
+        },
+        {
+          "id": 8741120,
+          "name": "Fjordur Rune #107 (Asgard 27.2/17.8)",
+          "note_index": 1120
+        },
+        {
+          "id": 8741121,
+          "name": "Fjordur Rune #108 (Midgard 19.8/18.8)",
+          "note_index": 1121
+        },
+        {
+          "id": 8741122,
+          "name": "Fjordur Rune #109 (Midgard 13.1/17.3)",
+          "note_index": 1122
+        },
+        {
+          "id": 8741123,
+          "name": "Fjordur Rune #110 (Midgard 33.8/20.1)",
+          "note_index": 1123
+        },
+        {
+          "id": 8741124,
+          "name": "Fjordur Rune #111 (Midgard 14.8/2.4)",
+          "note_index": 1124
+        },
+        {
+          "id": 8741125,
+          "name": "Fjordur Rune #112 (Midgard 34.5/42.7)",
+          "note_index": 1125
+        },
+        {
+          "id": 8741126,
+          "name": "Fjordur Rune #113 (Midgard 28.7/43.6)",
+          "note_index": 1126
+        },
+        {
+          "id": 8741127,
+          "name": "Fjordur Rune #114 (Midgard 6.3/56.5)",
+          "note_index": 1127
+        },
+        {
+          "id": 8741128,
+          "name": "Fjordur Rune #115 (Midgard 6.4/60.8)",
+          "note_index": 1128
+        },
+        {
+          "id": 8741129,
+          "name": "Fjordur Rune #116 (Midgard 22.5/61.6)",
+          "note_index": 1129
+        },
+        {
+          "id": 8741130,
+          "name": "Fjordur Rune #117 (Asgard 32.4/12.8)",
+          "note_index": 1130
+        },
+        {
+          "id": 8741131,
+          "name": "Fjordur Rune #118 (Midgard 18.5/79.5)",
+          "note_index": 1131
+        },
+        {
+          "id": 8741132,
+          "name": "Fjordur Rune #119 (Midgard 22.8/82.3)",
+          "note_index": 1132
+        },
+        {
+          "id": 8741133,
+          "name": "Fjordur Rune #120 (Midgard 34.4/82.9)",
+          "note_index": 1133
+        },
+        {
+          "id": 8741134,
+          "name": "Fjordur Rune #121 (Midgard 30.1/91.3)",
+          "note_index": 1134
+        },
+        {
+          "id": 8741135,
+          "name": "Fjordur Rune #122 (Midgard 6.5/76.0)",
+          "note_index": 1135
+        },
+        {
+          "id": 8741136,
+          "name": "Fjordur Rune #123 (Midgard 8.5/92.6)",
+          "note_index": 1136
+        },
+        {
+          "id": 8741137,
+          "name": "Fjordur Rune #124 (Midgard 37.5/96.9)",
+          "note_index": 1137
+        },
+        {
+          "id": 8741138,
+          "name": "Fjordur Rune #125 (Midgard 39.3/95.5)",
+          "note_index": 1138
+        },
+        {
+          "id": 8741139,
+          "name": "Fjordur Rune #126 (Midgard 52.6/82.4)",
+          "note_index": 1139
+        },
+        {
+          "id": 8741140,
+          "name": "Fjordur Rune #127 (Midgard 48.3/72.7)",
+          "note_index": 1140
+        },
+        {
+          "id": 8741141,
+          "name": "Fjordur Rune #128 (Asgard 56.7/25.2)",
+          "note_index": 1141
+        },
+        {
+          "id": 8741142,
+          "name": "Fjordur Rune #129 (Midgard 60.6/70.8)",
+          "note_index": 1142
+        },
+        {
+          "id": 8741143,
+          "name": "Fjordur Rune #130 (Midgard 45.6/61.2)",
+          "note_index": 1143
+        },
+        {
+          "id": 8741144,
+          "name": "Fjordur Rune #131 (Midgard 41.8/52.8)",
+          "note_index": 1144
+        },
+        {
+          "id": 8741145,
+          "name": "Fjordur Rune #132 (Midgard 35.5/49.7)",
+          "note_index": 1145
+        },
+        {
+          "id": 8741146,
+          "name": "Fjordur Rune #133 (Midgard 27.2/49.9)",
+          "note_index": 1146
+        },
+        {
+          "id": 8741147,
+          "name": "Fjordur Rune #134 (Midgard 26.4/64.7)",
+          "note_index": 1147
+        },
+        {
+          "id": 8741148,
+          "name": "Fjordur Rune #135 (Midgard 13.3/63.9)",
+          "note_index": 1148
+        },
+        {
+          "id": 8741149,
+          "name": "Fjordur Rune #136 (Midgard 19.3/77.4)",
+          "note_index": 1149
+        },
+        {
+          "id": 8741150,
+          "name": "Fjordur Rune #137 (Midgard 65.9/7.7)",
+          "note_index": 1150
+        },
+        {
+          "id": 8741151,
+          "name": "Fjordur Rune #138 (Midgard 17.7/14.8)",
+          "note_index": 1151
+        },
+        {
+          "id": 8741152,
+          "name": "Fjordur Rune #139 (Asgard 63.6/30.0)",
+          "note_index": 1152
+        },
+        {
+          "id": 8741153,
+          "name": "Fjordur Rune #140 (Asgard 60.4/36.0)",
+          "note_index": 1153
+        },
+        {
+          "id": 8741154,
+          "name": "Fjordur Rune #141 (Asgard 62.4/48.5)",
+          "note_index": 1154
+        },
+        {
+          "id": 8741155,
+          "name": "Fjordur Rune #142 (Midgard Underwater Cave 6.0/10.0)",
+          "note_index": 1155
+        },
+        {
+          "id": 8741156,
+          "name": "Fjordur Rune #143 (Asgard 42.5/40.4)",
+          "note_index": 1156
+        },
+        {
+          "id": 8741157,
+          "name": "Fjordur Rune #144 (Midgard Underwater Cave 8.4/13.5)",
+          "note_index": 1157
+        },
+        {
+          "id": 8741158,
+          "name": "Fjordur Rune #145 (Midgard Cave 7.6/22.5)",
+          "note_index": 1158
+        },
+        {
+          "id": 8741159,
+          "name": "Fjordur Rune #146 (Midgard Cave 6.5/23.4)",
+          "note_index": 1159
+        },
+        {
+          "id": 8741160,
+          "name": "Fjordur Rune #147 (Midgard Cave 6.5/28.3)",
+          "note_index": 1160
+        },
+        {
+          "id": 8741161,
+          "name": "Fjordur Rune #148 (Midgard 8.2/37.8)",
+          "note_index": 1161
+        },
+        {
+          "id": 8741162,
+          "name": "Fjordur Rune #149 (Midgard 7.6/34.4)",
+          "note_index": 1162
+        },
+        {
+          "id": 8741163,
+          "name": "Fjordur Rune #150 (Midgard 6.9/33.6)",
+          "note_index": 1163
+        },
+        {
+          "id": 8741164,
+          "name": "Fjordur Rune #151 (Midgard Cave 13.5/67.7)",
+          "note_index": 1164
+        },
+        {
+          "id": 8741165,
+          "name": "Fjordur Rune #152 (Midgard Cave 13.8/85.3)",
+          "note_index": 1165
+        },
+        {
+          "id": 8741166,
+          "name": "Fjordur Rune #153 (Midgard Cave 18.4/82.7)",
+          "note_index": 1166
+        },
+        {
+          "id": 8741167,
+          "name": "Fjordur Rune #154 (Midgard Cave 19.2/11.8)",
+          "note_index": 1167
+        },
+        {
+          "id": 8741168,
+          "name": "Fjordur Rune #155 (Midgard Cave 25.8/40.7)",
+          "note_index": 1168
+        },
+        {
+          "id": 8741169,
+          "name": "Fjordur Rune #156 (Jotunheim 64.6/39.5)",
+          "note_index": 1169
+        },
+        {
+          "id": 8741170,
+          "name": "Fjordur Rune #157 (Midgard Cave 19.0/59.2)",
+          "note_index": 1170
+        },
+        {
+          "id": 8741171,
+          "name": "Fjordur Rune #158 (Midgard Cave 16.2/61.7)",
+          "note_index": 1171
+        },
+        {
+          "id": 8741172,
+          "name": "Fjordur Rune #159 (Midgard Cave 17.8/65.7)",
+          "note_index": 1172
+        },
+        {
+          "id": 8741173,
+          "name": "Fjordur Rune #160 (Midgard Underwater Cave 32.1/32.1)",
+          "note_index": 1173
+        },
+        {
+          "id": 8741174,
+          "name": "Fjordur Rune #161 (Midgard Underwater Cave 34.9/33.3)",
+          "note_index": 1174
+        },
+        {
+          "id": 8741175,
+          "name": "Fjordur Rune #162 (Midgard Cave 42.8/64.4)",
+          "note_index": 1175
+        },
+        {
+          "id": 8741176,
+          "name": "Fjordur Rune #163 (Midgard Cave 55.3/67.5)",
+          "note_index": 1176
+        },
+        {
+          "id": 8741177,
+          "name": "Fjordur Rune #164 (Midgard Cave 53.8/65.2)",
+          "note_index": 1177
+        },
+        {
+          "id": 8741178,
+          "name": "Fjordur Rune #165 (Midgard 54.0/83.1)",
+          "note_index": 1178
+        },
+        {
+          "id": 8741179,
+          "name": "Fjordur Rune #166 (Midgard 50.4/81.7)",
+          "note_index": 1179
+        },
+        {
+          "id": 8741180,
+          "name": "Fjordur Rune #167 (Midgard Cave 76.4/8.3)",
+          "note_index": 1180
+        },
+        {
+          "id": 8741181,
+          "name": "Fjordur Rune #168 (Midgard Cave 75.9/70.3)",
+          "note_index": 1181
+        },
+        {
+          "id": 8741182,
+          "name": "Fjordur Rune #169 (Midgard Cave 73.3/71.9)",
+          "note_index": 1182
+        },
+        {
+          "id": 8741183,
+          "name": "Fjordur Rune #170 (Midgard Cave 86.9/97.1)",
+          "note_index": 1183
+        },
+        {
+          "id": 8741184,
+          "name": "Fjordur Rune #171 (Midgard Cave 83.3/94.6)",
+          "note_index": 1184
+        },
+        {
+          "id": 8741185,
+          "name": "Fjordur Rune #172 (Midgard 94.1/96.6)",
+          "note_index": 1185
+        },
+        {
+          "id": 8741186,
+          "name": "Fjordur Rune #173 (Midgard Cave 84.8/15.5)",
+          "note_index": 1186
+        },
+        {
+          "id": 8741187,
+          "name": "Fjordur Rune #174 (Midgard Cave 82.5/16.4)",
+          "note_index": 1187
+        },
+        {
+          "id": 8741188,
+          "name": "Fjordur Rune #175 (Midgard Cave 81.2/13.8)",
+          "note_index": 1188
+        },
+        {
+          "id": 8741189,
+          "name": "Fjordur Rune #176 (Midgard 63.9/95.7)",
+          "note_index": 1189
+        },
+        {
+          "id": 8741190,
+          "name": "Fjordur Rune #177 (Asgard 42.6/30.2)",
+          "note_index": 1190
+        },
+        {
+          "id": 8741191,
+          "name": "Fjordur Rune #178 (Midgard 31.6/66.5)",
+          "note_index": 1191
+        },
+        {
+          "id": 8741192,
+          "name": "Fjordur Rune #179 (Midgard 32.3/65.3)",
+          "note_index": 1192
+        },
+        {
+          "id": 8741193,
+          "name": "Fjordur Rune #180 (Midgard 30.9/52.6)",
+          "note_index": 1193
+        },
+        {
+          "id": 8741194,
+          "name": "Fjordur Rune #181 (Midgard 60.6/80.6)",
+          "note_index": 1194
+        },
+        {
+          "id": 8741195,
+          "name": "Fjordur Rune #182 (Midgard 97.0/22.0)",
+          "note_index": 1195
+        },
+        {
+          "id": 8741196,
+          "name": "Fjordur Rune #183 (Asgard 19.7/25.0)",
+          "note_index": 1196
+        },
+        {
+          "id": 8741197,
+          "name": "Fjordur Rune #184 (Asgard 20.4/44.0)",
+          "note_index": 1197
+        },
+        {
+          "id": 8741198,
+          "name": "Fjordur Rune #185 (Midgard 74.9/94.8)",
+          "note_index": 1198
+        },
+        {
+          "id": 8741199,
+          "name": "Fjordur Rune #186 (Asgard 31.0/53.6)",
+          "note_index": 1199
+        },
+        {
+          "id": 8741200,
+          "name": "Fjordur Rune #187 (Midgard 92.7/84.9)",
+          "note_index": 1200
+        },
+        {
+          "id": 8741201,
+          "name": "Fjordur Rune #188 (Jotunheim 62.8/48.4)",
+          "note_index": 1201
+        },
+        {
+          "id": 8741202,
+          "name": "Fjordur Rune #189 (Midgard Underwater Cave 90.6/39.8)",
+          "note_index": 1202
+        },
+        {
+          "id": 8741203,
+          "name": "Fjordur Rune #190 (Midgard Cave 90.2/79.4)",
+          "note_index": 1203
+        },
+        {
+          "id": 8741204,
+          "name": "Fjordur Rune #191 (Midgard Cave 89.0/86.6)",
+          "note_index": 1204
+        },
+        {
+          "id": 8741205,
+          "name": "Fjordur Rune #192 (Jotunheim 71.4/48.1)",
+          "note_index": 1205
+        },
+        {
+          "id": 8741206,
+          "name": "Fjordur Rune #193 (Midgard 94.3/7.7)",
+          "note_index": 1206
+        },
+        {
+          "id": 8741207,
+          "name": "Fjordur Rune #194 (Asgard 45.7/55.7)",
+          "note_index": 1207
+        },
+        {
+          "id": 8741208,
+          "name": "Fjordur Rune #195 (Jotunheim 91.9/50.7)",
+          "note_index": 1208
+        },
+        {
+          "id": 8741209,
+          "name": "Fjordur Rune #196 (Midgard 89.2/6.5)",
+          "note_index": 1209
+        },
+        {
+          "id": 8741210,
+          "name": "Fjordur Rune #197 (Midgard 78.8/15.7)",
+          "note_index": 1210
+        },
+        {
+          "id": 8741211,
+          "name": "Fjordur Rune #198 (Asgard 66.5/13.7)",
+          "note_index": 1211
+        },
+        {
+          "id": 8741212,
+          "name": "Fjordur Rune #199 (Jotunheim 75.9/48.6)",
+          "note_index": 1212
+        },
+        {
+          "id": 8741213,
+          "name": "Fjordur Rune #200 (Midgard 70.1/12.2)",
+          "note_index": 1213
+        },
+        {
           "id": 8741221,
           "name": "Dossier: Griffin",
           "note_index": 1221
@@ -1954,6 +2954,58 @@
           "id": 8750024,
           "name": "Boss: Manticore (Alpha)",
           "tag": "Manticore_Alpha"
+        },
+        {
+          "id": 8750030,
+          "tag": "Beyla_Gamma",
+          "name": "Boss: Beyla",
+          "tier": null,
+          "_tag_placeholder": true,
+          "relic_classes": [
+            "PrimalItemResource_MiniBossDrop_Beyla"
+          ]
+        },
+        {
+          "id": 8750031,
+          "tag": "HatiSkoll_Gamma",
+          "name": "Boss: Hati and Skoll",
+          "tier": null,
+          "_tag_placeholder": true,
+          "relic_classes": [
+            "PrimalItemResource_MiniBossDrop_Hati",
+            "PrimalItemResource_MiniBossDrop_Skoll"
+          ]
+        },
+        {
+          "id": 8750032,
+          "tag": "Steinbjorn_Gamma",
+          "name": "Boss: Steinbjorn",
+          "tier": null,
+          "_tag_placeholder": true,
+          "relic_classes": [
+            "PrimalItemResource_MiniBossDrop_Stein"
+          ]
+        },
+        {
+          "id": 8750033,
+          "tag": "Fenrisulfr_Gamma",
+          "name": "Boss: Fenrisulfr (Gamma)",
+          "tier": null,
+          "_tag_placeholder": true
+        },
+        {
+          "id": 8750034,
+          "tag": "Fenrisulfr_Beta",
+          "name": "Boss: Fenrisulfr (Beta)",
+          "tier": null,
+          "_tag_placeholder": true
+        },
+        {
+          "id": 8750035,
+          "tag": "Fenrisulfr_Alpha",
+          "name": "Boss: Fenrisulfr (Alpha)",
+          "tier": null,
+          "_tag_placeholder": true
         }
       ]
     },
@@ -3194,14 +4246,16 @@
           "name": "Collect 200 Mejoberries",
           "item_class": "PrimalItemConsumable_Berry_Mejoberry",
           "qty": 200,
-          "tier": 0
+          "tier": 0,
+          "food": true
         },
         {
           "id": 8757213,
           "name": "Collect 100 Raw Meat",
           "item_class": "PrimalItemConsumable_RawMeat_C",
           "qty": 100,
-          "tier": 0
+          "tier": 0,
+          "food": true
         },
         {
           "id": 8757214,
@@ -3327,7 +4381,8 @@
           "name": "Collect 50 Raw Prime Meat",
           "item_class": "PrimalItemConsumable_RawPrimeMeat_C",
           "qty": 50,
-          "tier": 1
+          "tier": 1,
+          "food": true
         },
         {
           "id": 8757232,
@@ -3586,7 +4641,8 @@
           "name": "Collect 100 Cactus Sap",
           "item_class": "PrimalItemConsumable_CactusSap",
           "qty": 100,
-          "tier": 0
+          "tier": 0,
+          "food": true
         },
         {
           "id": 8757321,
@@ -3670,7 +4726,8 @@
           "name": "Plant Species Y Seed x20",
           "item_class": "Seed_PlantSpeciesY",
           "qty": 20,
-          "tier": 2
+          "tier": 2,
+          "food": true
         },
         {
           "id": 8757333,
@@ -3832,6 +4889,398 @@
           "item_class": "PrimalItemResource_Element_C",
           "qty": 5,
           "tier": 3
+        },
+        {
+          "id": 8757358,
+          "name": "Collect 100 Raw Fish Meat",
+          "item_class": "PrimalItemConsumable_RawMeat_Fish_C",
+          "qty": 100,
+          "tier": 0,
+          "food": true
+        },
+        {
+          "id": 8757359,
+          "name": "Collect 50 Raw Prime Fish Meat",
+          "item_class": "PrimalItemConsumable_RawPrimeMeat_Fish_C",
+          "qty": 50,
+          "tier": 1,
+          "food": true
+        },
+        {
+          "id": 8757360,
+          "name": "Collect 500 Pelt",
+          "item_class": "PrimalItemResource_Pelt",
+          "qty": 500,
+          "tier": 1
+        },
+        {
+          "id": 8757361,
+          "name": "Collect 1000 Pelt",
+          "item_class": "PrimalItemResource_Pelt",
+          "qty": 1000,
+          "tier": 1
+        },
+        {
+          "id": 8757362,
+          "name": "Collect 200 Narcotic",
+          "item_class": "PrimalItemConsumable_Narcotic",
+          "qty": 200,
+          "tier": 1
+        },
+        {
+          "id": 8757363,
+          "name": "Collect 300 Narcotic",
+          "item_class": "PrimalItemConsumable_Narcotic",
+          "qty": 300,
+          "tier": 1
+        },
+        {
+          "id": 8757364,
+          "name": "Collect 10 Sap",
+          "item_class": "PrimalItemResource_Sap",
+          "qty": 10,
+          "tier": 1
+        },
+        {
+          "id": 8757365,
+          "name": "Collect 30 Sap",
+          "item_class": "PrimalItemResource_Sap",
+          "qty": 30,
+          "tier": 1
+        },
+        {
+          "id": 8757366,
+          "name": "Collect 200 Stimulant",
+          "item_class": "PrimalItemConsumable_Stimulant",
+          "qty": 200,
+          "tier": 1
+        },
+        {
+          "id": 8757367,
+          "name": "Collect 300 Stimulant",
+          "item_class": "PrimalItemConsumable_Stimulant",
+          "qty": 300,
+          "tier": 1
+        },
+        {
+          "id": 8757368,
+          "name": "Collect 50 Leech Blood",
+          "item_class": "PrimalItemResource_LeechBlood",
+          "qty": 50,
+          "tier": 1
+        },
+        {
+          "id": 8757369,
+          "name": "Collect 100 Leech Blood",
+          "item_class": "PrimalItemResource_LeechBlood",
+          "qty": 100,
+          "tier": 1
+        },
+        {
+          "id": 8757370,
+          "name": "Collect 50 Achatina Paste",
+          "item_class": "PrimalItemResource_SnailPaste",
+          "qty": 50,
+          "tier": 1
+        },
+        {
+          "id": 8757371,
+          "name": "Collect 100 Achatina Paste",
+          "item_class": "PrimalItemResource_SnailPaste",
+          "qty": 100,
+          "tier": 1
+        },
+        {
+          "id": 8757372,
+          "name": "Collect 200 Raw Meat",
+          "item_class": "PrimalItemConsumable_RawMeat_C",
+          "qty": 200,
+          "tier": 0,
+          "food": true
+        },
+        {
+          "id": 8757373,
+          "name": "Collect 500 Raw Meat",
+          "item_class": "PrimalItemConsumable_RawMeat_C",
+          "qty": 500,
+          "tier": 0,
+          "food": true
+        },
+        {
+          "id": 8757374,
+          "name": "Collect 20 Raw Prime Meat",
+          "item_class": "PrimalItemConsumable_RawPrimeMeat_C",
+          "qty": 20,
+          "tier": 1,
+          "food": true
+        },
+        {
+          "id": 8757375,
+          "name": "Collect 200 Raw Fish Meat",
+          "item_class": "PrimalItemConsumable_RawMeat_Fish_C",
+          "qty": 200,
+          "tier": 0,
+          "food": true
+        },
+        {
+          "id": 8757376,
+          "name": "Collect 500 Raw Fish Meat",
+          "item_class": "PrimalItemConsumable_RawMeat_Fish_C",
+          "qty": 500,
+          "tier": 0,
+          "food": true
+        },
+        {
+          "id": 8757377,
+          "name": "Collect 20 Raw Prime Fish Meat",
+          "item_class": "PrimalItemConsumable_RawPrimeMeat_Fish_C",
+          "qty": 20,
+          "tier": 1,
+          "food": true
+        },
+        {
+          "id": 8757378,
+          "name": "Cooked Meat x50",
+          "item_class": "PrimalItemConsumable_CookedMeat_C",
+          "qty": 50,
+          "tier": 0,
+          "food": true
+        },
+        {
+          "id": 8757379,
+          "name": "Cooked Meat x100",
+          "item_class": "PrimalItemConsumable_CookedMeat_C",
+          "qty": 100,
+          "tier": 0,
+          "food": true
+        },
+        {
+          "id": 8757380,
+          "name": "Cooked Meat x200",
+          "item_class": "PrimalItemConsumable_CookedMeat_C",
+          "qty": 200,
+          "tier": 0,
+          "food": true
+        },
+        {
+          "id": 8757381,
+          "name": "Cooked Meat x500",
+          "item_class": "PrimalItemConsumable_CookedMeat_C",
+          "qty": 500,
+          "tier": 0,
+          "food": true
+        },
+        {
+          "id": 8757382,
+          "name": "Cooked Prime Meat x10",
+          "item_class": "CookedPrimeMeat_C",
+          "qty": 10,
+          "tier": 1,
+          "food": true
+        },
+        {
+          "id": 8757383,
+          "name": "Cooked Prime Meat x50",
+          "item_class": "CookedPrimeMeat_C",
+          "qty": 50,
+          "tier": 1,
+          "food": true
+        },
+        {
+          "id": 8757384,
+          "name": "Cooked Fish Meat x50",
+          "item_class": "CookedMeat_Fish",
+          "qty": 50,
+          "tier": 0,
+          "food": true
+        },
+        {
+          "id": 8757385,
+          "name": "Cooked Fish Meat x100",
+          "item_class": "CookedMeat_Fish",
+          "qty": 100,
+          "tier": 0,
+          "food": true
+        },
+        {
+          "id": 8757386,
+          "name": "Cooked Fish Meat x200",
+          "item_class": "CookedMeat_Fish",
+          "qty": 200,
+          "tier": 0,
+          "food": true
+        },
+        {
+          "id": 8757387,
+          "name": "Cooked Prime Fish Meat x10",
+          "item_class": "CookedPrimeMeat_Fish",
+          "qty": 10,
+          "tier": 1,
+          "food": true
+        },
+        {
+          "id": 8757388,
+          "name": "Cooked Prime Fish Meat x50",
+          "item_class": "CookedPrimeMeat_Fish",
+          "qty": 50,
+          "tier": 1,
+          "food": true
+        },
+        {
+          "id": 8757389,
+          "name": "Cooked Meat Jerky x10",
+          "item_class": "CookedMeat_Jerky",
+          "qty": 10,
+          "tier": 2,
+          "food": true
+        },
+        {
+          "id": 8757390,
+          "name": "Prime Meat Jerky x10",
+          "item_class": "CookedPrimeMeat_Jerky",
+          "qty": 10,
+          "tier": 2,
+          "food": true
+        },
+        {
+          "id": 8757391,
+          "name": "Collect 100 Gasoline",
+          "item_class": "PrimalItemResource_Gasoline",
+          "qty": 100,
+          "tier": 2
+        },
+        {
+          "id": 8757392,
+          "name": "Collect 200 Gasoline",
+          "item_class": "PrimalItemResource_Gasoline",
+          "qty": 200,
+          "tier": 2
+        },
+        {
+          "id": 8757393,
+          "name": "Citronal x20",
+          "item_class": "Veggie_Citronal",
+          "qty": 20,
+          "tier": 1,
+          "food": true
+        },
+        {
+          "id": 8757394,
+          "name": "Citronal x30",
+          "item_class": "Veggie_Citronal",
+          "qty": 30,
+          "tier": 1,
+          "food": true
+        },
+        {
+          "id": 8757395,
+          "name": "Longrass x20",
+          "item_class": "Veggie_Longrass",
+          "qty": 20,
+          "tier": 1,
+          "food": true
+        },
+        {
+          "id": 8757396,
+          "name": "Longrass x30",
+          "item_class": "Veggie_Longrass",
+          "qty": 30,
+          "tier": 1,
+          "food": true
+        },
+        {
+          "id": 8757397,
+          "name": "Rockarrot x20",
+          "item_class": "Veggie_Rockarrot",
+          "qty": 20,
+          "tier": 1,
+          "food": true
+        },
+        {
+          "id": 8757398,
+          "name": "Rockarrot x30",
+          "item_class": "Veggie_Rockarrot",
+          "qty": 30,
+          "tier": 1,
+          "food": true
+        },
+        {
+          "id": 8757399,
+          "name": "Savoroot x20",
+          "item_class": "Veggie_Savoroot",
+          "qty": 20,
+          "tier": 1,
+          "food": true
+        },
+        {
+          "id": 8757400,
+          "name": "Savoroot x30",
+          "item_class": "Veggie_Savoroot",
+          "qty": 30,
+          "tier": 1,
+          "food": true
+        },
+        {
+          "id": 8757401,
+          "name": "Giant Bee Honey x10",
+          "item_class": "PrimalItemConsumable_Honey",
+          "qty": 10,
+          "tier": 1,
+          "food": true
+        },
+        {
+          "id": 8757402,
+          "name": "Rare Flower x20",
+          "item_class": "PrimalItemResource_RareFlower",
+          "qty": 20,
+          "tier": 0,
+          "food": true
+        },
+        {
+          "id": 8757403,
+          "name": "Rare Mushroom x20",
+          "item_class": "PrimalItemResource_RareMushroom",
+          "qty": 20,
+          "tier": 0,
+          "food": true
+        },
+        {
+          "id": 8757404,
+          "name": "Collect 100 Mejoberries",
+          "item_class": "PrimalItemConsumable_Berry_Mejoberry",
+          "qty": 100,
+          "tier": 0,
+          "food": true
+        },
+        {
+          "id": 8757405,
+          "name": "Collect 500 Mejoberries",
+          "item_class": "PrimalItemConsumable_Berry_Mejoberry",
+          "qty": 500,
+          "tier": 0,
+          "food": true
+        },
+        {
+          "id": 8757406,
+          "name": "Collect 1000 Mejoberries",
+          "item_class": "PrimalItemConsumable_Berry_Mejoberry",
+          "qty": 1000,
+          "tier": 1,
+          "food": true
+        },
+        {
+          "id": 8757407,
+          "name": "Runestone x5",
+          "item_class": "PrimalItemResource_ApexDrop_Runestone",
+          "qty": 5,
+          "tier": 2
+        },
+        {
+          "id": 8757408,
+          "name": "Runestone x10",
+          "item_class": "PrimalItemResource_ApexDrop_Runestone",
+          "qty": 10,
+          "tier": 2
         }
       ]
     },

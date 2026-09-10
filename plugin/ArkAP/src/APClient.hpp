@@ -398,10 +398,19 @@ private:
                 for (auto& it : msg.value("items", json::array())) {
                     int idx = base + i++;
                     if (receivedIdx_.count(idx)) continue;
+                    // WHY was this unlocked? ReceivedItems names the finder's slot AND the
+                    // location they checked, so resolve it here (LocName uses that slot's own
+                    // datapackage) and carry it through the mailbox. The plugin puts it in front
+                    // of the unlock line, so chat says what earned the item instead of it
+                    // appearing from nowhere.
+                    int finder = it.value("player", -1);
+                    std::string loc = it.contains("location")
+                                    ? LocName(finder, it.value("location", 0)) : std::string();
+                    if (loc == "a location") loc.clear();   // unknown - say nothing rather than guess
                     pendingItems_.push_back({ idx,
                         json{ {"item_id", it.value("item", 0)},
-                              {"from", players_.count(it.value("player", -1))
-                                         ? players_[it.value("player", -1)] : std::string()},
+                              {"from", players_.count(finder) ? players_[finder] : std::string()},
+                              {"location", loc},
                               {"index", idx} } });
                 }
             }
@@ -490,6 +499,10 @@ private:
         try { std::ofstream(cfg_.mailbox / "flags.json")
                 << json({ {"bundle_saddles", sd.value("bundle_saddles", false)},
                           {"free_starter_engrams", sd.value("free_starter_engrams", false)},
+                          // the plugin needs this too: on a SHARED slot one survivor's death is the
+                          // slot's death, so it has to kill everyone on the server, not just the
+                          // one who died. Only the client knew the setting before.
+                          {"death_link", sd.value("death_link", false)},
                           {"mod_ids", sd.value("mod_ids", json::array())},
                           // engrams_per_item / tames_per_item: {rep id -> [folded member ids]}; the
                           // plugin unlocks a group's members when the representative arrives.

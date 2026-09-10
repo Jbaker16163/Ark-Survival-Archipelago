@@ -73,6 +73,7 @@ static std::set<int> g_starterItemIds;  // free starter engram item ids (from en
 // free_starter/bundle_saddles on, another off) must not leak one slot's setting onto everyone.
 static std::map<std::string, bool> g_routeFreeStarter;
 static std::map<std::string, bool> g_routeBundleSaddles;
+static std::map<std::string, bool> g_routeDeathLink;      // slot has DeathLink on (from flags.json)
 static bool FlagFor(const std::map<std::string, bool>& m, const std::string& r) {
     auto it = m.find(r); return it != m.end() && it->second;
 }
@@ -120,9 +121,16 @@ static std::set<APrimalDinoCharacter*> g_trapDinos;   // spawned trap dinos -> t
 struct FillerGive { std::string gfi; int qty; int quality; std::string code; };
 static std::unordered_map<int, std::vector<FillerGive>> g_fillerGive;
 
-// buff/debuff filler: item id -> console command run AS the target player
-// (e.g. "ForceGiveBuff Buff_Bleeding true"). Debuffs are trap-flagged in filler.json.
-static std::unordered_map<int, std::string> g_fillerBuff;
+// buff/debuff filler: item id -> the buff's class leaf name (e.g. "Buff_Bleeding") plus an optional
+// full blueprint path. Applied NATIVELY (APrimalBuff::StaticAddBuff), not via the console
+// "ForceGiveBuff" command - that command routes through UShooterCheatManager and silently no-ops on
+// dedicated servers, which is why buffs/debuffs "sometimes did nothing" for everyone. The class is
+// resolved from the loaded object table by name; `path` is only needed for buffs whose asset is
+// never loaded on the map (StaticLoadObject forces it in). Debuffs are trap-flagged in filler.json.
+struct FillerBuff { std::string name; std::string path; };
+static std::unordered_map<int, FillerBuff> g_fillerBuff;
+static std::unordered_map<std::string, UClass*> g_buffClassCache;   // name -> resolved class (cached)
+static std::set<std::string> g_seenBuffClasses;                     // /dumpbuffs jsonl dedup
 
 // crate registry (loaded from crates.json): crate class name -> gated access item
 static std::unordered_map<std::string, int> g_crateGateClassToItem;     // beacon/cave/deepsea -> access item id
@@ -131,6 +139,14 @@ static std::unordered_map<std::string, int> g_crateGateClassToItem;     // beaco
 // difficulty from the actor class name: "_Easy" = Gamma, "_Medium" = Beta, else Alpha.
 struct BossEntry { std::string frag; std::string baseTag; int locGamma = 0; int locBeta = 0; int locAlpha = 0; };
 static std::vector<BossEntry> g_bosses;
+// BOSS RELICS: a boss's base tag plus EVERY relic class its fight drops. Holding the relics proves
+// the kill far more reliably than matching the corpse class (Hati and Skoll share a generic
+// "MiniBoss_" class; a missed fragment means the boss silently never registers), and it still works
+// when the death hook cannot see the kill: relog, another player landed the blow, corpse despawned.
+// ALL of `classes` must be held, not any: Hati and Skoll is two creatures in one fight and drops a
+// relic for each, so one relic only proves half of it was killed.
+struct BossRelic { std::string baseTag; std::vector<std::string> classes; };
+static std::vector<BossRelic> g_bossRelics;
 // alpha-predator kills: class-name fragment -> "Killed: Alpha X" check loc
 static std::vector<std::pair<std::string, int>> g_alphaFragToLoc;
 // tek grants: boss baseTag -> engram item ids granted locally on that boss's first kill
@@ -140,13 +156,19 @@ struct InvCheck { int loc; std::string cls; int qty; std::string name; };
 // exploration checks: a region is a POLYGON of world X/Y measured in-game with /dumppos. Being
 // anywhere inside the loop counts. Regions deliberately overlap (caves sit under biomes), so a
 // player can complete several at once - we test them all, we do not stop at the first hit.
-// Altitude is ignored on purpose: you fly through the volcano to reach its maw.
+// Altitude is ignored by default: you fly through the volcano to reach its maw.
 // A region can be made of SEVERAL disjoint shapes. Hand-drawn areas are one loop, but the ones
 // imported from ark.wiki.gg's region data are rectangle sets - MurderSnow is 24 of them - and a
 // bounding box round those would swallow half the map. `parts` holds them all; being inside ANY
 // part counts. Single-shape regions just have one part, so nothing about them changes.
+// OPTIONAL Z BAND (hasZ): Fjordur's realms (Midgard/Asgard/Jotunheim/Vanaheim) are one persistent
+// world STACKED in altitude - they share X/Y (the GPS compass is X/Y only, so it reads the same
+// lat/lon in Asgard as in the Midgard spot ~300k units above), and differ only in world Z. Regions
+// on such a map carry z_min/z_max so a Midgard polygon does not fire for a player at the same X/Y
+// down in a realm. Regions without a band (every other map) keep the altitude-ignored behaviour.
 struct ExploreArea { int loc; std::string name;
-                     std::vector<std::vector<std::pair<double, double>>> parts; };
+                     std::vector<std::vector<std::pair<double, double>>> parts;
+                     bool hasZ = false; double zMin = 0, zMax = 0; };
 static std::vector<ExploreArea> g_explore;
 // DEPTH regions have no polygon - they fire anywhere below a world Z. The deep ocean cannot be
 // circled like a landmass, and a surface polygon would fire from a bird flying over it, which
@@ -180,11 +202,27 @@ static bool MapAllowsLoc(int id) {
 // Keyed by route -> unix time the window closes; the re-send arrives asynchronously after the
 // client reconnects, so it is a time window rather than a single pass.
 static std::map<std::string, long long> g_quietUntil;
+// The applied-index watermark captured at the moment a recovery re-send begins. A recovery clears
+// the real watermark to force a full replay, so during the quiet window "already applied" can no
+// longer be read from the watermark - it is read from this ceiling instead. An item whose network
+// index is <= the ceiling is REPLAYED history (its filler already fired in the original run and must
+// not fire again); an index ABOVE it is genuinely NEW and its filler MUST fire even mid-window.
+// Without this the whole window suppressed live filler too - the "buffs sometimes do nothing right
+// after a relog" bug.
+static std::map<std::string, long long> g_replayCeiling;
 static bool QuietFor(const std::string& route) {
     auto it = g_quietUntil.find(route);
     if (it == g_quietUntil.end()) return false;
-    if (std::time(nullptr) > it->second) { g_quietUntil.erase(it); return false; }
+    if (std::time(nullptr) > it->second) {
+        g_quietUntil.erase(it);
+        g_replayCeiling.erase(route);            // window closed -> ceiling no longer applies
+        return false;
+    }
     return true;
+}
+static long long ReplayCeilingFor(const std::string& route) {
+    auto it = g_replayCeiling.find(route);
+    return it == g_replayCeiling.end() ? -1 : it->second;
 }
 static std::vector<InvCheck> g_invChecks;
 
@@ -193,7 +231,7 @@ namespace fs = std::filesystem;
 // Which dll is actually loaded. Declared up here rather than beside Load() because the JOIN greet
 // and /apstatus both quote it: "what version are they running?" was answered by asking someone to
 // find a log file on the server box, which is no answer at all when the report comes from a player.
-static const char* ARKAP_BUILD = "v175-child-crate-gate";
+static const char* ARKAP_BUILD = "v187-dumpinv-class-path";
 
 // the plugin's own folder: ArkApi/Plugins/ArkAP
 static fs::path PluginDir() {
@@ -202,7 +240,8 @@ static fs::path PluginDir() {
 
 // forward decls (defined below)
 void ReportLocation(const std::string& route, int loc_id);
-void ApplyItem(const std::string& route, int item_id, const std::string& from);
+void ApplyItem(const std::string& route, int item_id, const std::string& from, int net_index = -1,
+               const std::string& reason = "");
 
 // True only once the server is fully up - guards all game-data access.
 static bool ServerReady() {
@@ -820,6 +859,21 @@ static AShooterPlayerController* ResolveKillerPc(AController* killer, AActor* ca
     return nullptr;
 }
 
+// Record a boss defeat. Bosses are the GOAL, not AP check locations, so a defeat is signalled by
+// BASE TAG into every known route's boss_out.jsonl - boss fights are team efforts, and the client
+// reads that file into a set (duplicate lines are harmless) and compares it against the goal tags.
+// `why` only distinguishes the two sources in the log: the kill hook, or a relic in someone's bag.
+static void SignalBossDefeat(const std::string& baseTag, const char* why) {
+    static std::set<std::string> signalled;              // once per boss per server run
+    if (!signalled.insert(baseTag).second) return;
+    DebugLog(std::string("BOSS-DEFEAT ") + why + " boss=" + baseTag + " -> boss_out.jsonl");
+    for (auto& r : KnownRoutes()) {
+        std::ofstream f(g_ipc->DirFor(r) / "boss_out.jsonl", std::ios::app);
+        if (f) f << baseTag << "\n";
+    }
+    GrantTekForBoss(baseTag);                            // tek engrams unlock on any difficulty
+}
+
 static void DoBossDeath(APrimalDinoCharacter* dino, AController* killer, AActor* damageCauser) {
     FString fn; dino->GetFullName(&fn, nullptr);
     std::string full = fn.ToString();
@@ -831,12 +885,8 @@ static void DoBossDeath(APrimalDinoCharacter* dino, AController* killer, AActor*
             // Boss kills are the GOAL, not AP check locations (nothing gets stranded behind a hard
             // boss kill). Signal the defeat by base-tag to boss_out.jsonl in EVERY known route's
             // mailbox (boss fights are team efforts); the client counts required tags -> AP goal.
-            DebugLog("BOSS-KILL name=" + name + " boss=" + b.baseTag + " -> boss_out.jsonl");
-            for (auto& r : KnownRoutes()) {
-                std::ofstream f(g_ipc->DirFor(r) / "boss_out.jsonl", std::ios::app);
-                if (f) f << b.baseTag << "\n";
-            }
-            GrantTekForBoss(b.baseTag);                         // tek engrams unlock on any difficulty
+            DebugLog("BOSS-KILL name=" + name + " boss=" + b.baseTag);
+            SignalBossDefeat(b.baseTag, "kill");
             return;
         }
     }
@@ -1058,8 +1108,37 @@ static void DoPlayerDeath(AShooterCharacter* who) {
     if (sit != g_suppressDeathUntil.end() && std::time(nullptr) < sit->second) return;   // incoming-link kill -> don't echo
     QueueCountEvent("death", route);
     DebugLog("PLAYER death -> death_out.jsonl" + (route.empty() ? std::string() : " route=" + route));
-    std::ofstream f(g_ipc->DirFor(route) / "death_out.jsonl", std::ios::app);
-    if (f) f << "{\"death\":1}\n";
+    {   std::ofstream f(g_ipc->DirFor(route) / "death_out.jsonl", std::ios::app);
+        if (f) f << "{\"death\":1}\n";
+    }
+
+    // SHARED SLOT + DEATHLINK: everyone on this server IS the one Archipelago slot, so one
+    // survivor dying is the slot dying - the rest have to go with them. Without this the death
+    // was broadcast to every OTHER game in the multiworld while the people standing next to the
+    // corpse, on the same slot, walked away untouched.
+    // Only for a shared slot: in per-player multiplayer each survivor owns their own slot, and
+    // killing the others would be someone else's DeathLink, not theirs.
+    // The suppress window is set BEFORE the kills and AFTER our own death_out write, so the
+    // knock-on deaths do not each rebroadcast (the same guard the incoming-link path uses).
+    if (!g_multiplayer && FlagFor(g_routeDeathLink, route)) {
+        UWorld* world = ArkApi::GetApiUtils().GetWorld();
+        if (world) {
+            g_suppressDeathUntil[route] = std::time(nullptr) + 5;
+            int killed = 0;
+            for (TWeakObjectPtr<APlayerController> wpc : world->PlayerControllerListField()) {
+                auto* pc = static_cast<AShooterPlayerController*>(wpc.Get());
+                if (!pc) continue;
+                AShooterCharacter* ch = pc->GetPlayerCharacter();
+                if (!ch || ch == who || ch->IsDead()) continue;   // the dying one is already handled
+                FDamageEvent dmg;                                 // real Die via the trampoline, so
+                AShooterCharacter_Die_original(ch, 1000000.f, &dmg, nullptr, nullptr);  // our hook does not re-fire
+                ++killed;
+            }
+            if (killed)
+                DebugLog("DEATHLINK shared-slot: one death took the whole server -> killed " +
+                         std::to_string(killed) + " other player(s)");
+        }
+    }
 }
 // Classify + report BEFORE the original Die runs: the causer and the damage event are still valid
 // then, the same reason the dying route is resolved early.
@@ -1468,21 +1547,89 @@ static bool GiveFiller(const std::string& route, int item_id) {
     return ok;
 }
 
-// buff/debuff filler: run the ForceGiveBuff command on the TARGET player's controller.
-// Same live-character rule as gives: dead/absent -> retry after respawn (a debuff landing on a
-// corpse would silently no-op; a buff would be wasted).
-static bool DoBuffFiller(const std::string& route, const std::string& cmdStr) {
+// The leaf (final) name of any UObject: GetFullName gives "<Type> <Package>.<Leaf>" (or ":<Leaf>"),
+// so drop the leading type token, then take the tail after the last . : or /. For a blueprint buff
+// the loaded CLASS object's leaf is "Buff_X_C".
+static std::string ObjLeafName(UObject* o) {
+    if (!o) return "";
+    FString fn; o->GetFullName(&fn, nullptr);
+    std::string s = fn.ToString();
+    auto sp = s.find(' ');
+    if (sp != std::string::npos) s = s.substr(sp + 1);      // drop "<Type> "
+    auto p = s.find_last_of("./:");
+    if (p != std::string::npos) s = s.substr(p + 1);
+    return s;
+}
+// The loadable object path of a UObject: everything after the leading type token, e.g.
+// "/Game/PrimalEarth/CoreBlueprints/Buffs/Buff_Bleeding.Buff_Bleeding_C".
+static std::string ObjLoadPath(UObject* o) {
+    if (!o) return "";
+    FString fn; o->GetFullName(&fn, nullptr);
+    std::string s = fn.ToString();
+    auto sp = s.find(' ');
+    return sp == std::string::npos ? s : s.substr(sp + 1);
+}
+
+// Resolve a buff's UClass. 1) cache; 2) if a full path is configured, force-load it - this returns
+// the generated CLASS object directly and is unambiguous, so it is tried FIRST now that every buff
+// carries a verified path; 3) otherwise scan the loaded object table for the class. The scan matches
+// ONLY the "<name>_C" leaf: a loaded buff also has a PACKAGE object whose leaf is the bare "<name>",
+// and matching that returned a UPackage cast to UClass - a silent no-op that made every buff "do
+// nothing". Returns nullptr on a genuine miss, which the caller logs by name.
+static UClass* ResolveBuffClass(const FillerBuff& b) {
+    auto ci = g_buffClassCache.find(b.name);
+    if (ci != g_buffClassCache.end() && ci->second) return ci->second;
+
+    if (!b.path.empty()) {
+        std::wstring wp = ArkApi::Tools::Utf8Decode(b.path);
+        UObject* o = Globals::StaticLoadObject(UObject::StaticClass(), nullptr, wp.c_str(),
+                                               nullptr, 0, 0, true);
+        if (o) {
+            UClass* c = reinterpret_cast<UClass*>(o);
+            g_buffClassCache[b.name] = c;
+            return c;
+        }
+    }
+
+    const std::string wantC = b.name + "_C";       // the generated class, NOT the bare package leaf
+    auto& arr = Globals::GUObjectArray()().ObjObjects;
+    for (int i = 0; i < arr.NumElements; ++i) {
+        auto* item = arr.GetObjectPtr(i);
+        if (!item || !item->Object) continue;
+        if (ObjLeafName(item->Object) == wantC) {
+            UClass* c = reinterpret_cast<UClass*>(item->Object);
+            g_buffClassCache[b.name] = c;
+            return c;
+        }
+    }
+    return nullptr;
+}
+
+// buff/debuff filler: apply the buff NATIVELY to the TARGET player's character. StaticAddBuff spawns
+// and attaches the buff directly - no console command, no cheat manager. The character is passed as
+// its own DamageCauser so debuffs that need an instigator (bleed, poison, shock) still take effect.
+// Same live-character rule as gives: dead/absent -> retry after respawn.
+static bool DoBuffFiller(const std::string& route, const FillerBuff& b) {
     auto pcs = PcsForRoute(route);
+    UClass* cls = ResolveBuffClass(b);
+    if (!cls) {
+        DebugLog("BUFF MISS name=" + b.name + " - class not loaded and no working path in "
+                 "filler.json; run /dumpbuffs to harvest its real path" +
+                 (route.empty() ? "" : " [" + route + "]"));
+        return true;                                   // nothing to retry - a path won't appear later
+    }
+    TSubclassOf<APrimalBuff> bc; bc.uClass = cls;
     bool any = false;
     for (auto* pc : pcs) {
-        if (!pc || !pc->GetPlayerCharacter() || pc->GetPlayerCharacter()->IsDead()) continue;
-        FString cmd(ArkApi::Tools::Utf8Decode(cmdStr).c_str()); FString res;
-        pc->ConsoleCommand(&res, &cmd, true);
+        AShooterCharacter* ch = pc ? pc->GetPlayerCharacter() : nullptr;
+        if (!ch || ch->IsDead()) continue;
+        APrimalCharacter* pch = reinterpret_cast<APrimalCharacter*>(ch);
+        APrimalBuff::StaticAddBuff(bc, pch, nullptr, reinterpret_cast<AActor*>(ch), true);
         any = true;
     }
-    if (any) DebugLog("BUFF applied cmd=" + cmdStr + " players=" + std::to_string(pcs.size()) +
+    if (any) DebugLog("BUFF applied name=" + b.name + " players=" + std::to_string(pcs.size()) +
                       (route.empty() ? "" : " [" + route + "]"));
-    return any;
+    return any;                                        // no live player yet -> retry after respawn
 }
 static bool BuffFiller(const std::string& route, int item_id) {
     auto it = g_fillerBuff.find(item_id);
@@ -1500,6 +1647,35 @@ static bool BuffFiller(const std::string& route, int item_id) {
 static const int FX_PER_TICK = 6;
 static int       g_fxBudget = FX_PER_TICK;
 
+// TRAP STORM. Pacing alone does not save the player from a mass delivery: !release / !collect (or a
+// generous benefactor emptying their whole game into yours) hands over every remaining item at once,
+// and roughly two thirds of our filler are traps. At 6 effects a tick that is not a server hitch any
+// more - it is twenty minutes of being eaten by raptors with no way to stop it, usually when the run
+// is already over.
+// So when filler arrives in bulk, the TRAPS are dropped and the good filler still lands. Detection is
+// a rolling count per route: more than BURST_TRAPS filler items inside BURST_WINDOW seconds means
+// this is not normal play, and traps stay suppressed until the flood stops (the deadline is pushed
+// forward while items keep coming). Beneficial filler is untouched - being handed your resource packs
+// is the point of a release.
+static const int  BURST_TRAPS  = 12;    // filler items within the window that means "bulk delivery"
+static const long BURST_WINDOW = 10;    // seconds
+static const long STORM_HOLD   = 30;    // keep suppressing until this long after the last one
+static std::set<int> g_trapIds;                                   // filler.json "trap": true
+static std::map<std::string, std::pair<long long, int>> g_fillerBurst;   // route -> (windowStart, n)
+static std::map<std::string, long long> g_trapStormUntil;         // route -> suppress traps until
+static std::map<std::string, int>       g_trapStormSkipped;       // route -> how many we dropped
+
+// Count one filler delivery and report whether traps are currently being suppressed for this route.
+static bool TrapStorm(const std::string& route) {
+    const long long now = (long long)std::time(nullptr);
+    auto& w = g_fillerBurst[route];
+    if (now - w.first > BURST_WINDOW) { w.first = now; w.second = 0; }
+    ++w.second;
+    if (w.second > BURST_TRAPS) g_trapStormUntil[route] = now + STORM_HOLD;
+    auto it = g_trapStormUntil.find(route);
+    return it != g_trapStormUntil.end() && now < it->second;
+}
+
 // filler effects that arrived while the target player wasn't in-world (OR were throttled) -
 // retried each tick, still subject to the per-tick budget.
 static std::vector<std::pair<std::string, int>> g_pendingFx;   // (route, item id)
@@ -1511,6 +1687,14 @@ static void RetryPendingFx() {
         // just arrives late, which is exactly how 114 filler gives landed 31 seconds after the
         // re-send began.
         if (QuietFor(route)) continue;                                      // recovery -> drop it
+        // a trap queued before the flood was recognised must not arrive after it
+        if (g_trapIds.count(id)) {
+            auto sit = g_trapStormUntil.find(route);
+            if (sit != g_trapStormUntil.end() && (long long)std::time(nullptr) < sit->second) {
+                ++g_trapStormSkipped[route];
+                continue;
+            }
+        }
         if (g_fxBudget <= 0) { again.emplace_back(route, id); continue; }   // throttled -> next tick
         if (!SpawnTrap(route, id) || !GiveFiller(route, id) || !BuffFiller(route, id))
             again.emplace_back(route, id);                                   // player absent -> keep
@@ -1551,7 +1735,7 @@ static bool NameHasWord(const std::string& name, const std::string& word) {
 // that the player can see everything they got.
 static void AnnounceUnlock(const std::string& route, const std::string& headline,
                            const std::vector<std::string>& extras, const std::string& from,
-                           bool showCount = true) {
+                           bool showCount = true, const std::string& reason = "") {
     // WHO IS THIS FOR? Previously the recipient only appeared when a per-player route existed, so
     // on a shared server the line just said "Unlocked X" and left everyone guessing whether it was
     // theirs. Name it either way: a survivor in per-player mode, "everyone" when the whole server
@@ -1599,8 +1783,15 @@ static void AnnounceUnlock(const std::string& route, const std::string& headline
     }
     const bool allInline = (inlined == items.size());
 
-    std::wstring first = L"Unlocked for " + who + L": " +
-                         ArkApi::Tools::Utf8Decode(prefix + joined);
+    // LEAD WITH THE REASON. "Unlocked for everyone: Engram: X" left players with no idea what
+    // earned it - especially on a shared slot where someone else's check hands you the item. When
+    // the mailbox carries the finder's location, name it first: "Explore: The Savage Heights
+    // (Asgard) unlocked for everyone on the server: Engram: X". Falls back to the old wording when
+    // the location is unknown (offline grants, legacy mailbox lines, an unmapped id).
+    std::wstring first = reason.empty()
+        ? L"Unlocked for " + who + L": " + ArkApi::Tools::Utf8Decode(prefix + joined)
+        : ArkApi::Tools::Utf8Decode(reason) + L" unlocked for " + who + L": " +
+          ArkApi::Tools::Utf8Decode(prefix + joined);
     if (showCount && !allInline)
         first += L"  (+" + std::to_wstring(items.size() - inlined) + L" more)";
     if (!from.empty())
@@ -1630,7 +1821,7 @@ static std::string ItemNameOf(int id) {
 }
 
 static void ApplyStructureBundle(const std::string& route, int bundle_id,
-                                 const std::string& material, const std::string& from) {
+                                 const std::string& material, const std::string& from, const std::string& reason = "") {
     int members = 0;
     std::vector<std::string> names;
     for (auto& [item_id, cls] : g_tables.item_to_engram_class) {
@@ -1646,7 +1837,7 @@ static void ApplyStructureBundle(const std::string& route, int bundle_id,
         ++members;
     }
     AnnounceUnlock(route, "ALL " + material + " structures (" + std::to_string(members) +
-                          " engrams)", names, from, false);
+                          " engrams)", names, from, false, reason);
     DebugLog("BUNDLE structures material=" + material + " members=" + std::to_string(members));
 }
 
@@ -1654,7 +1845,7 @@ static void ApplyStructureBundle(const std::string& route, int bundle_id,
 // members from a material word), the member ITEM IDS come straight from the apworld's mod json, so
 // the two sides can never drift.
 static void ApplyModBundle(const std::string& route, int bundle_id,
-                           const std::vector<int>& members, const std::string& from) {
+                           const std::vector<int>& members, const std::string& from, const std::string& reason = "") {
     int granted = 0;
     std::vector<std::string> names;
     for (int mid : members) {
@@ -1668,7 +1859,7 @@ static void ApplyModBundle(const std::string& route, int bundle_id,
     }
     std::string label = ItemNameOf(bundle_id);
     if (label.empty()) label = "mod bundle";
-    AnnounceUnlock(route, label + " (" + std::to_string(granted) + " engrams)", names, from, false);
+    AnnounceUnlock(route, label + " (" + std::to_string(granted) + " engrams)", names, from, false, reason);
     DebugLog("BUNDLE mod id=" + std::to_string(bundle_id) + " granted=" + std::to_string(granted) +
              "/" + std::to_string(members.size()));
 }
@@ -1687,7 +1878,8 @@ static void GrantBundledSaddle(const std::string& route, int tameItemId) {
     DebugLog("BUNDLE saddle item=" + std::to_string(sit->second) + " with tame=" + std::to_string(tameItemId));
 }
 
-void ApplyItem(const std::string& route, int item_id, const std::string& from) {
+void ApplyItem(const std::string& route, int item_id, const std::string& from, int net_index,
+               const std::string& reason) {
     bool is_new = g_state->AddItem(route, item_id);
     bool is_engram = g_itemToEngram.count(item_id) > 0;
     bool is_filler = g_fillerSpawn.count(item_id) > 0 || g_fillerGive.count(item_id) > 0
@@ -1697,13 +1889,13 @@ void ApplyItem(const std::string& route, int item_id, const std::string& from) {
              (route.empty() ? "" : " [" + route + "]"));
     auto bit = kStructureBundles.find(item_id);         // structure bundle -> unlock every member
     if (bit != kStructureBundles.end()) {
-        if (is_new) ApplyStructureBundle(route, item_id, bit->second, from);
+        if (is_new) ApplyStructureBundle(route, item_id, bit->second, from, reason);
         return;
     }
     // curated per-mod group (S+ Wiring / Turrets / Automation / ...) -> unlock every member engram
     auto mbit = g_tables.mod_bundles.find(item_id);
     if (mbit != g_tables.mod_bundles.end()) {
-        if (is_new) ApplyModBundle(route, item_id, mbit->second, from);
+        if (is_new) ApplyModBundle(route, item_id, mbit->second, from, reason);
         return;
     }
     // the pool holds many COPIES of the same filler id; each copy (new index) re-fires its
@@ -1715,6 +1907,13 @@ void ApplyItem(const std::string& route, int item_id, const std::string& from) {
     // so checking "quiet" after it meant deferred filler still fired, half a minute later, in a
     // burst. Ask first, and drop recovery filler outright rather than queueing it.
     const bool quiet = QuietFor(route);           // re-send to rebuild lost state: stay silent
+    // REPLAY vs LIVE during a recovery window. Only history that was already applied before the
+    // recovery (network index <= the captured ceiling) must stay silent and skip its filler; a
+    // genuinely new item (index above the ceiling) is live and must announce + fire its effect even
+    // mid-window. Index-less legacy lines are treated as replay, matching the old behaviour. Outside
+    // a recovery window `quiet` is false, so `replay` is false and everything fires normally.
+    const bool replay = quiet &&
+        (net_index < 0 || net_index <= ReplayCeilingFor(route));
 
     // What ELSE does this item hand over? Collected BEFORE the announcement so the chat line can
     // name every one of them - the saddle that rides along with a tame, and every member folded
@@ -1746,19 +1945,35 @@ void ApplyItem(const std::string& route, int item_id, const std::string& from) {
                 }
         }
     }
-    if (quiet && is_filler) return;               // already granted in the original run
+    if (replay && is_filler) return;              // already granted in the original run
 
     // throttle expensive filler so a huge simultaneous send doesn't flood one frame: when the
     // per-tick budget is spent, defer this copy (effect AND its chat line) to a later tick.
     if (is_filler) {
+        // Count this delivery FIRST, so the burst is measured even for the copies we then drop -
+        // otherwise dropping traps would shrink the very count that detects the flood.
+        const bool storm = TrapStorm(route);
+        if (storm && g_trapIds.count(item_id)) {
+            int n = ++g_trapStormSkipped[route];
+            if (n == 1 || n % 25 == 0)
+                DebugLog("TRAP STORM: bulk delivery detected - suppressing traps [" +
+                         std::to_string(n) + " skipped so far]" +
+                         (route.empty() ? "" : " route=" + route));
+            if (n == 1)      // say it once, or the notice becomes its own flood
+                ArkApi::GetApiUtils().SendChatMessageToAll(
+                    FString(L"Archipelago"), L"{}",
+                    std::wstring(L"Bulk delivery detected - traps are being skipped so you are not "
+                                 L"buried. Everything else still arrives."));
+            return;                                // the item is still OWNED; only the effect is dropped
+        }
         if (g_fxBudget <= 0) { g_pendingFx.emplace_back(route, item_id); return; }
         --g_fxBudget;
     }
 
     // announce known items (skip unknown ids), naming everything it unlocks
     auto nameIt = g_tables.item_name.find(item_id);
-    if (!quiet && nameIt != g_tables.item_name.end())
-        AnnounceUnlock(route, nameIt->second, extras, from);
+    if (!replay && nameIt != g_tables.item_name.end())
+        AnnounceUnlock(route, nameIt->second, extras, from, true, reason);
 
     auto it = g_itemToEngram.find(item_id);       // engram item -> push the unlock now
     if (it != g_itemToEngram.end()) {
@@ -1780,9 +1995,9 @@ void ApplyItem(const std::string& route, int item_id, const std::string& from) {
     // filler effects; if the target player isn't in-world yet, queue a retry.
     // During a recovery re-send the effect already fired in the original run - repeating it would
     // hand out the resources (or the trap dinos) a second time.
-    bool trapOk = quiet ? true : SpawnTrap(route, item_id);   // trap filler -> spawn dinos nearby
-    bool giveOk = quiet ? true : GiveFiller(route, item_id);  // good filler -> give item(s)
-    bool buffOk = quiet ? true : BuffFiller(route, item_id);  // buff/debuff -> ForceGiveBuff
+    bool trapOk = replay ? true : SpawnTrap(route, item_id);   // trap filler -> spawn dinos nearby
+    bool giveOk = replay ? true : GiveFiller(route, item_id);  // good filler -> give item(s)
+    bool buffOk = replay ? true : BuffFiller(route, item_id);  // buff/debuff -> native StaticAddBuff
     if (!trapOk || !giveOk || !buffOk) {
         g_pendingFx.emplace_back(route, item_id);
         DebugLog("FX deferred (target player not in-world) id=" + std::to_string(item_id));
@@ -2079,7 +2294,15 @@ static void PollMailbox(const std::string& route) {
             auto b = (a == std::string::npos) ? std::string::npos : line.find('"', a + 1);
             if (b != std::string::npos) from = line.substr(a + 1, b - a - 1);
         }
-        ApplyItem(route, id, from);   // non-filler dupes still dedup via persisted state
+        // the finder's location, written by the AP client - becomes the "why" on the unlock line
+        std::string loc;
+        auto lp = line.find("\"location\"");
+        if (lp != std::string::npos) {
+            auto a = line.find('"', line.find(':', lp) + 1);
+            auto b = (a == std::string::npos) ? std::string::npos : line.find('"', a + 1);
+            if (b != std::string::npos) loc = line.substr(a + 1, b - a - 1);
+        }
+        ApplyItem(route, id, from, idx, loc);   // idx lets a recovery tell replayed history from live sends
     }
     if (wmDirty) SaveWatermark(route, watermark);
     backfilledRoutes.insert(route);                 // mailbox had content - backfill is done
@@ -2144,6 +2367,7 @@ static void DoAutoRecoverLostState() {
         // watermark alone is sufficient.
         fs::remove(WatermarkPath(route), ec);
         g_quietUntil[route] = std::time(nullptr) + 180;      // silent while the list comes back
+        g_replayCeiling[route] = wm;                         // history <= wm is replay; above it is live
         DebugLog("AUTORECOVER watermark=" + std::to_string(wm) + " but 0 items owned" +
                  (route.empty() ? "" : " [" + route + "]") +
                  " - state was lost; asking Archipelago to re-send the item list");
@@ -2371,7 +2595,29 @@ static void DoDumpNotes() {
     nlohmann::json idx = nlohmann::json::array();
     for (int i = 0; i < notes.Num(); ++i) idx.push_back(i);
     out["indices"] = idx;
+    // WHICH index is WHAT. FExplorerNoteEntry has no published layout in our SDK, so reading its
+    // fields would mean guessing offsets. ExplorerNoteEntriesObjects is the parallel UObject array
+    // for the same table, and a UObject's name is safe to read - that is enough to tell note
+    // families apart by name (Fjordur's runes, for one, cannot be identified any other way: they
+    // fire the normal note RPC but are absent from every published note list).
+    nlohmann::json ents = nlohmann::json::array();
+    auto& objs = gd->ExplorerNoteEntriesObjectsField();
+    for (int i = 0; i < objs.Num(); ++i) {
+        nlohmann::json e;
+        e["index"] = i;
+        // UGenericDataListEntry is only forward-declared in the SDK, so the compiler cannot see
+        // that it derives from UObject; it does in the engine. Reading only the name via the
+        // UObject vtable is safe, and the whole dump already runs inside DumpNotes' __try.
+        UObject* o = reinterpret_cast<UObject*>(objs[i]);
+        e["name"] = o ? ObjLeafName(o) : "";
+        e["path"] = o ? ObjLoadPath(o) : "";
+        ents.push_back(e);
+    }
+    out["entry_objects_count"] = objs.Num();
+    out["entries"] = ents;
     std::ofstream(PluginDir() / "ArkAP_notes_dump.json") << out.dump(2);
+    DebugLog("DUMPNOTES count=" + std::to_string(notes.Num()) +
+             " entryObjects=" + std::to_string(objs.Num()));
 }
 static void DumpNotes(APlayerController*, FString*, bool) {
     __try { DoDumpNotes(); }
@@ -2438,6 +2684,35 @@ static void DumpPosChat(AShooterPlayerController* pc, FString* m, EChatSendMode:
 
 static void DumpDinosChat(AShooterPlayerController* pc, FString*, EChatSendMode::Type) {
     __try { DoDumpDinos(pc); } __except (EXCEPTION_EXECUTE_HANDLER) {}
+}
+
+// One-shot harvest of every buff blueprint CLASS currently loaded in the server's object table.
+// Ground truth for the buff `path` fields in filler.json - no need to APPLY any buff. Run /dumpbuffs
+// once after the map + creatures + your inventory have loaded; whatever is resident gets dumped with
+// its exact load path to ArkAP_buff_classes.jsonl. A buff the new native apply already resolves by
+// name needs no path; only the handful this never lists (never loaded on the map) do.
+static void DoDumpBuffs(AShooterPlayerController* pc) {
+    int before = (int)g_seenBuffClasses.size();
+    std::ofstream f(PluginDir() / "ArkAP_buff_classes.jsonl", std::ios::app);
+    auto& arr = Globals::GUObjectArray()().ObjObjects;
+    for (int i = 0; i < arr.NumElements; ++i) {
+        auto* item = arr.GetObjectPtr(i);
+        if (!item || !item->Object) continue;
+        std::string leaf = ObjLeafName(item->Object);
+        if (leaf.rfind("Buff", 0) != 0) continue;                       // leaf begins "Buff"
+        if (leaf.size() < 2 || leaf.compare(leaf.size() - 2, 2, "_C") != 0) continue;  // generated class
+        if (!g_seenBuffClasses.insert(leaf).second) continue;          // once each
+        if (f) f << "{\"class\": \"" << leaf << "\", \"path\": \"" << ObjLoadPath(item->Object)
+                 << "\"}\n";
+    }
+    int total = (int)g_seenBuffClasses.size();
+    std::wstring m = L"Harvested " + std::to_wstring(total - before) + L" new buff classes (" +
+                     std::to_wstring(total) + L" total) -> ArkAP_buff_classes.jsonl";
+    ChatNotify(m.c_str());
+    DebugLog("DUMPBUFFS new=" + std::to_string(total - before) + " total=" + std::to_string(total));
+}
+static void DumpBuffsChat(AShooterPlayerController* pc, FString*, EChatSendMode::Type) {
+    __try { DoDumpBuffs(pc); } __except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
 // /whoami - show which AP route (survivor character name) this player resolves to, and whether
@@ -2938,8 +3213,16 @@ static void DoDumpInv(AShooterPlayerController* pc) {
         std::string cls = full.substr(0, full.find(' '));      // "<Class> <path>"
         if (!seen.insert(cls).second) continue;
         ++added;
-        if (f) f << "{\"class\": \"" << cls << "\", \"qty\": " << it->ItemQuantityField() << "}\n";
-        DebugLog("ITEMCLASS " + cls);
+        // ALSO the class's own full name. The instance path above is a transient outer and is
+        // useless as data; engrams.json is keyed on exactly this string
+        // ("BlueprintGeneratedClass /Game/...X_C") because that is what MapEngramEntry compares
+        // against. Without it a new engram cannot be added from a dump at all - the leaf alone is
+        // not enough, and guessing the /Game path gives a silent no-op that looks like it worked.
+        std::string clsPath;
+        if (UClass* c = it->ClassField()) { FString cn; c->GetFullName(&cn, nullptr); clsPath = cn.ToString(); }
+        if (f) f << "{\"class\": \"" << cls << "\", \"engram_class\": \""
+                 << clsPath << "\", \"qty\": " << it->ItemQuantityField() << "}\n";
+        DebugLog("ITEMCLASS " + cls + " | " + clsPath);
     }
     std::wstring m = L"ArkAP: dumped " + std::to_wstring(added) + L" new class name(s) from " +
                      std::to_wstring(total) + L" stack(s) -> ArkAP_item_classes.jsonl";
@@ -2973,16 +3256,19 @@ static void ApResyncChat(AShooterPlayerController* pc, FString*, EChatSendMode::
 // that: the applied-index watermark says every item was already applied, so the plugin never
 // re-processes them and the set never refills - the player stays locked out permanently. Clearing
 // the watermark makes the next poll re-apply Archipelago's full item list, which rebuilds it.
-// Filler effects re-fire as a side effect (a one-off shower of resources) - a fair price for
-// getting taming back, and stated up front.
+// Replayed filler is suppressed by the quiet window (see the replay ceiling below); only genuinely
+// new sends that arrive after recovery still fire. Taming/crates return without a resource shower.
 static void DoApRecover(AShooterPlayerController* pc) {
     if (!pc) return;
     std::string route = RouteFor(pc);
     std::error_code ec;
+    int wm = LoadWatermark(route);                          // capture BEFORE clearing (replay ceiling)
     fs::remove(WatermarkPath(route), ec);                   // re-apply from items_in.jsonl
     // NOT session.json - see the note in DoAutoRecoverLostState. Removing it fakes a seed change
     // and wipes this route's checks and boss defeats along with it.
     g_quietUntil[route] = std::time(nullptr) + 180;          // silent while the list comes back
+    g_replayCeiling[route] = wm;                             // replayed history <= wm stays silent;
+                                                             // anything new above it still fires
     DebugLog("RECOVER cleared applied-index watermark" +
              std::string(route.empty() ? "" : " [" + route + "]"));
     ChatNotify(L"ArkAP: rebuilding your unlocks from Archipelago. Reconnect with /connect if "
@@ -3148,8 +3434,12 @@ static void DoProcessPending() {
                     }
                 for (auto& ea : g_explore)
                     if (!g_state->AlreadyChecked(route, ea.loc) &&
+                        (!ea.hasZ || (pos.Z >= ea.zMin && pos.Z <= ea.zMax)) &&
                         PointInAnyPart(pos.X, pos.Y, ea.parts)) {
                         DebugLog("EXPLORE " + ea.name + " -> loc=" + std::to_string(ea.loc) +
+                                 (ea.hasZ ? " (z " + std::to_string((long long)pos.Z) + " in [" +
+                                            std::to_string((long long)ea.zMin) + "," +
+                                            std::to_string((long long)ea.zMax) + "])" : "") +
                                  (route.empty() ? "" : " [" + route + "]"));
                         ReportLocation(route, ea.loc);
                     }
@@ -3158,6 +3448,16 @@ static void DoProcessPending() {
             if (inv) for (auto& ic : g_invChecks)
                 if (!g_state->AlreadyChecked(route, ic.loc) && CountResource(inv, ic.cls) >= ic.qty)
                     ReportLocation(route, ic.loc);
+            // Relics in the bag = that world boss is down. Goes through SignalBossDefeat (boss_out),
+            // NOT ReportLocation - a boss is not a check location. SignalBossDefeat is idempotent,
+            // so holding them forever costs one set lookup a tick and writes nothing again.
+            // EVERY relic the fight drops must be present (Hati and Skoll = two).
+            if (inv) for (auto& br : g_bossRelics) {
+                bool all = true;
+                for (auto& cls : br.classes)
+                    if (CountResource(inv, cls) < 1) { all = false; break; }
+                if (all) SignalBossDefeat(br.baseTag, "relic");
+            }
         }
     }
 
@@ -3544,6 +3844,7 @@ static void DoTick() {
             catch (const std::exception& e) { DebugLog("FLAGS route=[" + route + "] parse FAIL: " + e.what()); continue; }
             g_routeBundleSaddles[route] = j.value("bundle_saddles", false);
             g_routeFreeStarter[route]   = j.value("free_starter_engrams", false);
+            g_routeDeathLink[route]     = j.value("death_link", false);
             std::set<std::string> mods;
             for (auto& m : j.value("mod_ids", nlohmann::json::array()))
                 if (m.is_string()) mods.insert(m.get<std::string>());
@@ -3764,6 +4065,7 @@ static void Load() {
             for (auto& f : fj.value("filler", nlohmann::json::array())) {
                 int id = f.at("id").get<int>();
                 g_tables.item_name[id] = f.value("ap_name", "Filler");
+                if (f.value("trap", false)) g_trapIds.insert(id);
                 auto& eff = f["effect"];
                 std::string kind = eff.value("kind", "");
                 if (kind == "spawn")
@@ -3779,8 +4081,21 @@ static void Load() {
                     g_fillerGive[id] = gives;
                 }
                 else if (kind == "buff") {
-                    std::string c = eff.value("command", "");
-                    if (!c.empty()) g_fillerBuff[id] = c;
+                    // Prefer an explicit "buff" (class leaf) + optional "path"; fall back to parsing
+                    // the legacy "command" string ("ForceGiveBuff Buff_X true" -> "Buff_X").
+                    std::string name = eff.value("buff", "");
+                    std::string path = eff.value("path", "");
+                    if (name.empty()) {
+                        std::string c = eff.value("command", "");
+                        const std::string pfx = "ForceGiveBuff ";
+                        auto p = c.find(pfx);
+                        if (p != std::string::npos) {
+                            std::string rest = c.substr(p + pfx.size());
+                            auto sp = rest.find(' ');
+                            name = (sp == std::string::npos) ? rest : rest.substr(0, sp);
+                        }
+                    }
+                    if (!name.empty()) g_fillerBuff[id] = { name, path };
                 }
             }
         }
@@ -3794,6 +4109,14 @@ static void Load() {
             {"GorillaBoss", "Gorilla"},                 // Megapithecus
             {"DragonBoss", "Dragon_Character_BP_Boss"}, // Dragon
             {"Overseer", "EndBoss"},                    // Overseer = EndBoss_Character_C (confirmed)
+            // Fjordur Norse bosses (harvested classes). Frags chosen to hit ONLY the boss, not its
+            // minions: Beyla_Character_BP excludes BeylaMinion_...; Steinbjorn_Character excludes
+            // Direbear_..._SteinbjornMinion; MiniBoss_ hits both Hati & Skoll twins (one shared
+            // event); Fenrir_Character_BP_Boss hits Easy/Medium/Hard but not the MiniBoss/Minion.
+            {"Beyla", "Beyla_Character_BP"},            // Beyla_Character_BP_C (tag Bee)
+            {"Steinbjorn", "Steinbjorn_Character"},     // Steinbjorn_Character_BP_C (tag Direbear)
+            {"HatiSkoll", "MiniBoss_"},                 // Fenrir_Character_BP_MiniBoss_Hati_C / _Skoll_C
+            {"Fenrisulfr", "Fenrir_Character_BP_Boss"}, // Fenrir_Character_BP_Boss_Easy/Medium/Hard_C
         };
         std::unordered_map<std::string, BossEntry> byBase;
         for (auto& [tag, loc] : g_tables.boss_tag_to_loc) {
@@ -3829,6 +4152,22 @@ static void Load() {
                           .value("entries", nlohmann::json::array()))
             g_invChecks.push_back({ ic.at("id").get<int>(), ic.at("item_class").get<std::string>(),
                                     ic.value("qty", 1), ic.value("name", std::string()) });
+        // BOSS RELICS -> boss base tag. NOT an inventory CHECK: bosses are the GOAL, not AP check
+        // locations (see DoBossDeath), so reporting a boss location only earns "that check is not in
+        // your slot". A relic instead signals the defeat the same way a kill does, by writing the
+        // base tag to boss_out.jsonl. A boss with several relics needs ALL of them - Hati and Skoll
+        // is two creatures in one fight, so a single relic only proves half of it died.
+        for (auto& b : lc.value("bosses", nlohmann::json::object())
+                         .value("entries", nlohmann::json::array())) {
+            if (!b.contains("relic_classes")) continue;
+            std::string tag = b.value("tag", std::string());
+            auto us = tag.rfind('_');
+            std::string base = (us == std::string::npos) ? tag : tag.substr(0, us);
+            if (base.empty()) continue;
+            BossRelic br; br.baseTag = base;
+            for (auto& rc : b["relic_classes"]) br.classes.push_back(rc.get<std::string>());
+            if (!br.classes.empty()) g_bossRelics.push_back(std::move(br));
+        }
     } catch (...) {}
 
     // which map are we on, and which location ids belong to it? Must load BEFORE the exploration
@@ -3893,6 +4232,13 @@ static void Load() {
                 };
                 if (r.contains("polygons")) for (auto& poly : r["polygons"]) addPart(poly);
                 else if (r.contains("polygon"))                       addPart(r["polygon"]);
+                // optional Z band for altitude-stacked realms (Fjordur). Missing edge = open on that
+                // side, so z_min alone means "at or above", z_max alone "at or below".
+                if (r.contains("z_min") || r.contains("z_max")) {
+                    ea.hasZ = true;
+                    ea.zMin = r.value("z_min", -1e12);
+                    ea.zMax = r.value("z_max",  1e12);
+                }
                 if (r.contains("z_below")) {            // depth region - no polygon
                     g_depth.push_back({ea.loc, ea.name, r["z_below"].get<double>()});
                 } else if (!ea.parts.empty()) {
@@ -3944,6 +4290,7 @@ static void Load() {
     ArkApi::GetCommands().AddChatCommand("/dumpengrams", &DumpEngramsChat);
     ArkApi::GetCommands().AddChatCommand("/dumpnotes", &DumpNotesChat);
     ArkApi::GetCommands().AddChatCommand("/dumpdinos", &DumpDinosChat);
+    ArkApi::GetCommands().AddChatCommand("/dumpbuffs", &DumpBuffsChat);   // harvest buff class paths
     ArkApi::GetCommands().AddChatCommand("/dumppos", &DumpPosChat);   // exploration mapping
     ArkApi::GetCommands().AddChatCommand("/whoami", &WhoAmIChat);
     ArkApi::GetCommands().AddChatCommand("/buildregistry", &BuildRegistryChat);
@@ -4013,6 +4360,7 @@ static void Unload() {
     ArkApi::GetCommands().RemoveChatCommand("/dumpengrams");
     ArkApi::GetCommands().RemoveChatCommand("/dumpnotes");
     ArkApi::GetCommands().RemoveChatCommand("/dumpdinos");
+    ArkApi::GetCommands().RemoveChatCommand("/dumpbuffs");
     ArkApi::GetCommands().RemoveChatCommand("/dumppos");
     ArkApi::GetCommands().RemoveChatCommand("/whoami");
     ArkApi::GetCommands().RemoveChatCommand("/buildregistry");

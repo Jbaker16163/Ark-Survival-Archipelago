@@ -4,34 +4,34 @@ from Options import (Toggle, Range, Choice, DeathLink, OptionSet, PerGameCommonO
                      StartInventoryPool)
 
 
-class Goal(Choice):
+class Goal(OptionSet):
     """Which bosses you must defeat to win (any difficulty - Gamma, Beta, or Alpha).
 
-    The first four are cumulative over THE ISLAND's bosses, and mean the same thing whatever maps
-    you run:
-      broodmother                     - defeat the Broodmother
-      broodmother_megapithecus        - + Megapithecus
-      broodmother_megapithecus_dragon - + Dragon
-      all_bosses                      - + Overseer (all four)
+    Defaults to the Island's four. List exactly the bosses you want instead, in any combination,
+    across any of your enabled maps:
+        goal: [broodmother, manticore, fenrisulfr]
 
-    The last one scales with your maps instead:
-      all_bosses_all_maps             - every boss on the maps you enabled
+    Use `all_bosses` (or an empty list) to mean "every boss my enabled maps have", which adapts on
+    its own - handy on a map whose bosses are not the Island's (Scorched alone would be the
+    Manticore), and on a cluster it means every boss across all of them:
+        goal: [all_bosses]
 
-    On an Island-only slot that final option is identical to all_bosses. Add Scorched Earth and it
-    also wants the Manticore; Ragnarok's arena is the Dragon and Manticore together, so it counts
-    for both.
+    Valid names:
+      broodmother | megapithecus | dragon | overseer      (the Island four)
+      manticore                                            (Scorched / Ragnarok / Valguero)
+      beyla | hati_and_skoll | steinbjorn | fenrisulfr     (Fjordur)
 
-    A boss on a map you are not running is never required - it could not be reached. On a map
-    without the Island's four, the cumulative options simply mean that map's own bosses, so
-    Scorched Earth alone is a Manticore run.
+    Every boss you name must exist on a map you enabled, or generation stops with an error naming
+    the ones that are missing - rather than handing you a seed that can never be won.
     """
     display_name = "Goal"
-    option_broodmother = 0
-    option_broodmother_megapithecus = 1
-    option_broodmother_megapithecus_dragon = 2
-    option_all_bosses = 3
-    option_all_bosses_all_maps = 4
-    default = 3
+    valid_keys = {"all_bosses",
+                  "broodmother", "megapithecus", "dragon", "overseer", "manticore",
+                  "beyla", "hati_and_skoll", "steinbjorn", "fenrisulfr"}
+    # The Island's four - the historical default. NOTE this means a slot running only a map without
+    # them (Scorched, Fjordur) must set `goal` itself; generation says exactly which boss is missing
+    # rather than quietly picking a goal the player never asked for.
+    default = frozenset({"broodmother", "megapithecus", "dragon", "overseer"})
 
 
 class Maps(OptionSet):
@@ -49,7 +49,8 @@ class Maps(OptionSet):
 
     Smaller maps have fewer locations than the Island but receive the same craftable-everywhere
     engrams, so engram grouping is raised automatically when a slot needs it (as if you had set
-    engrams_per_item yourself). Supported today: the_island, scorched_earth, ragnarok.
+    engrams_per_item yourself). Supported today: the_island, scorched_earth, ragnarok, the_center,
+    valguero, fjordur.
     """
     display_name = "Maps"
     valid_keys = {

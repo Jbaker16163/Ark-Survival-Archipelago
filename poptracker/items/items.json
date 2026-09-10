@@ -2247,6 +2247,482 @@
   "disabled_img": "images/kill_off.png"
  },
  {
+  "name": "Karkinos",
+  "type": "toggle",
+  "codes": "unlocked_karkinos",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Karkinos",
+  "type": "toggle",
+  "codes": "tame_karkinos",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Karkinos",
+  "type": "toggle",
+  "codes": "kill_karkinos",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Ravager",
+  "type": "toggle",
+  "codes": "unlocked_ravager",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Ravager",
+  "type": "toggle",
+  "codes": "tame_ravager",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Ravager",
+  "type": "toggle",
+  "codes": "kill_ravager",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Deinonychus",
+  "type": "toggle",
+  "codes": "unlocked_deinonychus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Deinonychus",
+  "type": "toggle",
+  "codes": "tame_deinonychus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Deinonychus",
+  "type": "toggle",
+  "codes": "kill_deinonychus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Featherlight",
+  "type": "toggle",
+  "codes": "unlocked_featherlight",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Featherlight",
+  "type": "toggle",
+  "codes": "tame_featherlight",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Featherlight",
+  "type": "toggle",
+  "codes": "kill_featherlight",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Glowtail",
+  "type": "toggle",
+  "codes": "unlocked_glowtail",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Glowtail",
+  "type": "toggle",
+  "codes": "tame_glowtail",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Glowtail",
+  "type": "toggle",
+  "codes": "kill_glowtail",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Glowbug",
+  "type": "toggle",
+  "codes": "kill_glowbug",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Roll Rat",
+  "type": "toggle",
+  "codes": "unlocked_roll_rat",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Roll Rat",
+  "type": "toggle",
+  "codes": "tame_roll_rat",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Roll Rat",
+  "type": "toggle",
+  "codes": "kill_roll_rat",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Bulbdog",
+  "type": "toggle",
+  "codes": "unlocked_bulbdog",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Bulbdog",
+  "type": "toggle",
+  "codes": "tame_bulbdog",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Bulbdog",
+  "type": "toggle",
+  "codes": "kill_bulbdog",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Lamprey",
+  "type": "toggle",
+  "codes": "kill_lamprey",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Seeker",
+  "type": "toggle",
+  "codes": "kill_seeker",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Andrewsarchus",
+  "type": "toggle",
+  "codes": "unlocked_andrewsarchus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Andrewsarchus",
+  "type": "toggle",
+  "codes": "tame_andrewsarchus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Andrewsarchus",
+  "type": "toggle",
+  "codes": "kill_andrewsarchus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Desmodus",
+  "type": "toggle",
+  "codes": "unlocked_desmodus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Desmodus",
+  "type": "toggle",
+  "codes": "tame_desmodus",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Desmodus",
+  "type": "toggle",
+  "codes": "kill_desmodus",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Fjordhawk",
+  "type": "toggle",
+  "codes": "unlocked_fjordhawk",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Fjordhawk",
+  "type": "toggle",
+  "codes": "tame_fjordhawk",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Fjordhawk",
+  "type": "toggle",
+  "codes": "kill_fjordhawk",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Gacha",
+  "type": "toggle",
+  "codes": "unlocked_gacha",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Gacha",
+  "type": "toggle",
+  "codes": "tame_gacha",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Gacha",
+  "type": "toggle",
+  "codes": "kill_gacha",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Gasbags",
+  "type": "toggle",
+  "codes": "unlocked_gasbags",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Gasbags",
+  "type": "toggle",
+  "codes": "tame_gasbags",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Gasbags",
+  "type": "toggle",
+  "codes": "kill_gasbags",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Maewing",
+  "type": "toggle",
+  "codes": "unlocked_maewing",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Maewing",
+  "type": "toggle",
+  "codes": "tame_maewing",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Maewing",
+  "type": "toggle",
+  "codes": "kill_maewing",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Snow Owl",
+  "type": "toggle",
+  "codes": "unlocked_snow_owl",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Snow Owl",
+  "type": "toggle",
+  "codes": "tame_snow_owl",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Snow Owl",
+  "type": "toggle",
+  "codes": "kill_snow_owl",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Megachelon",
+  "type": "toggle",
+  "codes": "unlocked_megachelon",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Megachelon",
+  "type": "toggle",
+  "codes": "tame_megachelon",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Megachelon",
+  "type": "toggle",
+  "codes": "kill_megachelon",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Shadowmane",
+  "type": "toggle",
+  "codes": "unlocked_shadowmane",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Shadowmane",
+  "type": "toggle",
+  "codes": "tame_shadowmane",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Shadowmane",
+  "type": "toggle",
+  "codes": "kill_shadowmane",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Magmasaur",
+  "type": "toggle",
+  "codes": "unlocked_magmasaur",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Magmasaur",
+  "type": "toggle",
+  "codes": "tame_magmasaur",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Magmasaur",
+  "type": "toggle",
+  "codes": "kill_magmasaur",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Ferox",
+  "type": "toggle",
+  "codes": "unlocked_ferox",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Ferox",
+  "type": "toggle",
+  "codes": "tame_ferox",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Ferox",
+  "type": "toggle",
+  "codes": "kill_ferox",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Shinehorn",
+  "type": "toggle",
+  "codes": "unlocked_shinehorn",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Shinehorn",
+  "type": "toggle",
+  "codes": "tame_shinehorn",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Shinehorn",
+  "type": "toggle",
+  "codes": "kill_shinehorn",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Rock Drake",
+  "type": "toggle",
+  "codes": "unlocked_rock_drake",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Rock Drake",
+  "type": "toggle",
+  "codes": "tame_rock_drake",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Rock Drake",
+  "type": "toggle",
+  "codes": "kill_rock_drake",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Basilisk",
+  "type": "toggle",
+  "codes": "unlocked_basilisk",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Basilisk",
+  "type": "toggle",
+  "codes": "tame_basilisk",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Basilisk",
+  "type": "toggle",
+  "codes": "kill_basilisk",
+  "img": "images/kill.png",
+  "disabled_img": "images/kill_off.png"
+ },
+ {
+  "name": "Fenrir",
+  "type": "toggle",
+  "codes": "unlocked_fenrir",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
+  "name": "Fenrir",
+  "type": "toggle",
+  "codes": "tame_fenrir",
+  "img": "images/tame.png",
+  "disabled_img": "images/tame_off.png"
+ },
+ {
   "name": "Alpha Raptor",
   "type": "toggle",
   "codes": "kill_alpha_raptor",
@@ -3962,9 +4438,9 @@
   "disabled_img": "images/apex_off.png"
  },
  {
-  "name": "Collect 10 Element",
+  "name": "Collect 1 Element",
   "type": "toggle",
-  "codes": "inv_collect_10_element",
+  "codes": "inv_collect_1_element",
   "img": "images/apex.png",
   "disabled_img": "images/apex_off.png"
  },
@@ -4256,9 +4732,9 @@
   "disabled_img": "images/apex_off.png"
  },
  {
-  "name": "Collect 1000 Hide",
+  "name": "Collect 2000 Hide",
   "type": "toggle",
-  "codes": "inv_collect_1000_hide",
+  "codes": "inv_collect_2000_hide",
   "img": "images/apex.png",
   "disabled_img": "images/apex_off.png"
  },
@@ -4354,16 +4830,373 @@
   "disabled_img": "images/apex_off.png"
  },
  {
-  "name": "Collect 30 Element",
+  "name": "Collect 300 Element Dust",
   "type": "toggle",
-  "codes": "inv_collect_30_element",
+  "codes": "inv_collect_300_element_dust",
   "img": "images/apex.png",
   "disabled_img": "images/apex_off.png"
  },
  {
-  "name": "Collect 300 Element Dust",
+  "name": "Collect 5 Element",
   "type": "toggle",
-  "codes": "inv_collect_300_element_dust",
+  "codes": "inv_collect_5_element",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 100 Raw Fish Meat",
+  "type": "toggle",
+  "codes": "inv_collect_100_raw_fish_meat",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 50 Raw Prime Fish Meat",
+  "type": "toggle",
+  "codes": "inv_collect_50_raw_prime_fish_meat",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 500 Pelt",
+  "type": "toggle",
+  "codes": "inv_collect_500_pelt",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 1000 Pelt",
+  "type": "toggle",
+  "codes": "inv_collect_1000_pelt",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 200 Narcotic",
+  "type": "toggle",
+  "codes": "inv_collect_200_narcotic",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 300 Narcotic",
+  "type": "toggle",
+  "codes": "inv_collect_300_narcotic",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 10 Sap",
+  "type": "toggle",
+  "codes": "inv_collect_10_sap",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 30 Sap",
+  "type": "toggle",
+  "codes": "inv_collect_30_sap",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 200 Stimulant",
+  "type": "toggle",
+  "codes": "inv_collect_200_stimulant",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 300 Stimulant",
+  "type": "toggle",
+  "codes": "inv_collect_300_stimulant",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 50 Leech Blood",
+  "type": "toggle",
+  "codes": "inv_collect_50_leech_blood",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 100 Leech Blood",
+  "type": "toggle",
+  "codes": "inv_collect_100_leech_blood",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 50 Achatina Paste",
+  "type": "toggle",
+  "codes": "inv_collect_50_achatina_paste",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 100 Achatina Paste",
+  "type": "toggle",
+  "codes": "inv_collect_100_achatina_paste",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 200 Raw Meat",
+  "type": "toggle",
+  "codes": "inv_collect_200_raw_meat",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 500 Raw Meat",
+  "type": "toggle",
+  "codes": "inv_collect_500_raw_meat",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 20 Raw Prime Meat",
+  "type": "toggle",
+  "codes": "inv_collect_20_raw_prime_meat",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 200 Raw Fish Meat",
+  "type": "toggle",
+  "codes": "inv_collect_200_raw_fish_meat",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 500 Raw Fish Meat",
+  "type": "toggle",
+  "codes": "inv_collect_500_raw_fish_meat",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 20 Raw Prime Fish Meat",
+  "type": "toggle",
+  "codes": "inv_collect_20_raw_prime_fish_meat",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Cooked Meat x50",
+  "type": "toggle",
+  "codes": "inv_cooked_meat_x50",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Cooked Meat x100",
+  "type": "toggle",
+  "codes": "inv_cooked_meat_x100",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Cooked Meat x200",
+  "type": "toggle",
+  "codes": "inv_cooked_meat_x200",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Cooked Meat x500",
+  "type": "toggle",
+  "codes": "inv_cooked_meat_x500",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Cooked Prime Meat x10",
+  "type": "toggle",
+  "codes": "inv_cooked_prime_meat_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Cooked Prime Meat x50",
+  "type": "toggle",
+  "codes": "inv_cooked_prime_meat_x50",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Cooked Fish Meat x50",
+  "type": "toggle",
+  "codes": "inv_cooked_fish_meat_x50",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Cooked Fish Meat x100",
+  "type": "toggle",
+  "codes": "inv_cooked_fish_meat_x100",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Cooked Fish Meat x200",
+  "type": "toggle",
+  "codes": "inv_cooked_fish_meat_x200",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Cooked Prime Fish Meat x10",
+  "type": "toggle",
+  "codes": "inv_cooked_prime_fish_meat_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Cooked Prime Fish Meat x50",
+  "type": "toggle",
+  "codes": "inv_cooked_prime_fish_meat_x50",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Cooked Meat Jerky x10",
+  "type": "toggle",
+  "codes": "inv_cooked_meat_jerky_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Prime Meat Jerky x10",
+  "type": "toggle",
+  "codes": "inv_prime_meat_jerky_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 100 Gasoline",
+  "type": "toggle",
+  "codes": "inv_collect_100_gasoline",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 200 Gasoline",
+  "type": "toggle",
+  "codes": "inv_collect_200_gasoline",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Citronal x20",
+  "type": "toggle",
+  "codes": "inv_citronal_x20",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Citronal x30",
+  "type": "toggle",
+  "codes": "inv_citronal_x30",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Longrass x20",
+  "type": "toggle",
+  "codes": "inv_longrass_x20",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Longrass x30",
+  "type": "toggle",
+  "codes": "inv_longrass_x30",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Rockarrot x20",
+  "type": "toggle",
+  "codes": "inv_rockarrot_x20",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Rockarrot x30",
+  "type": "toggle",
+  "codes": "inv_rockarrot_x30",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Savoroot x20",
+  "type": "toggle",
+  "codes": "inv_savoroot_x20",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Savoroot x30",
+  "type": "toggle",
+  "codes": "inv_savoroot_x30",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Giant Bee Honey x10",
+  "type": "toggle",
+  "codes": "inv_giant_bee_honey_x10",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Rare Flower x20",
+  "type": "toggle",
+  "codes": "inv_rare_flower_x20",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Rare Mushroom x20",
+  "type": "toggle",
+  "codes": "inv_rare_mushroom_x20",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 100 Mejoberries",
+  "type": "toggle",
+  "codes": "inv_collect_100_mejoberries",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 500 Mejoberries",
+  "type": "toggle",
+  "codes": "inv_collect_500_mejoberries",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Collect 1000 Mejoberries",
+  "type": "toggle",
+  "codes": "inv_collect_1000_mejoberries",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Runestone x5",
+  "type": "toggle",
+  "codes": "inv_runestone_x5",
+  "img": "images/apex.png",
+  "disabled_img": "images/apex_off.png"
+ },
+ {
+  "name": "Runestone x10",
+  "type": "toggle",
+  "codes": "inv_runestone_x10",
   "img": "images/apex.png",
   "disabled_img": "images/apex_off.png"
  },
@@ -7073,6 +7906,1406 @@
   "name": "??? Note #14 (Scorched Earth)",
   "type": "toggle",
   "codes": "dossier_note_14_scorched_earth",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #1 (Jotunheim 60.4/26.1)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_1_jotunheim_60_4_26_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #2 (Midgard 94.1/34.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_2_midgard_94_1_34_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #3 (Jotunheim 84.1/56.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_3_jotunheim_84_1_56_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #4 (Midgard Cave 87.9/16.8)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_4_midgard_cave_87_9_16_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #5 (Vanaheim -3.1/102.2)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_5_vanaheim_3_1_102_2",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #6 (Midgard Cave 47.4/7.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_6_midgard_cave_47_4_7_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #7 (Jotunheim 80.2/39.1)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_7_jotunheim_80_2_39_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #8 (Midgard 25.1/51.0)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_8_midgard_25_1_51_0",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #9 (Jotunheim 84.1/46.8)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_9_jotunheim_84_1_46_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #10 (Midgard 18.2/91.2)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_10_midgard_18_2_91_2",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #11 (Vanaheim -2.8/99.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_11_vanaheim_2_8_99_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #12 (Vanaheim 10.6/97.1)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_12_vanaheim_10_6_97_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #13 (Vanaheim 18.9/100.9)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_13_vanaheim_18_9_100_9",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #14 (Vanaheim 29.6/89.9)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_14_vanaheim_29_6_89_9",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #15 (Vanaheim 31.9/83.1)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_15_vanaheim_31_9_83_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #16 (Vanaheim 30.7/75.8)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_16_vanaheim_30_7_75_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #17 (Vanaheim 27.8/63.4)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_17_vanaheim_27_8_63_4",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #18 (Midgard Underwater Cave 5.1/6.0)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_18_midgard_underwater_cave_5_1_6_0",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #19 (Vanaheim 19.6/74.9)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_19_vanaheim_19_6_74_9",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #20 (Vanaheim 12.4/64.5)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_20_vanaheim_12_4_64_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #21 (Midgard 6.9/45.4)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_21_midgard_6_9_45_4",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #22 (Vanaheim 1.3/69.8)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_22_vanaheim_1_3_69_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #23 (Vanaheim -7.6/68.9)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_23_vanaheim_7_6_68_9",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #24 (Vanaheim 11.2/83.1)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_24_vanaheim_11_2_83_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #25 (Midgard Cave 11.3/84.2)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_25_midgard_cave_11_3_84_2",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #26 (Vanaheim 9.3/84.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_26_vanaheim_9_3_84_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #27 (Vanaheim 2.2/91.8)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_27_vanaheim_2_2_91_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #28 (Midgard Cave 27.6/46.1)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_28_midgard_cave_27_6_46_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #29 (Midgard 38.2/60.1)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_29_midgard_38_2_60_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #30 (Midgard 51.8/85.0)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_30_midgard_51_8_85_0",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #31 (Midgard 88.1/92.4)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_31_midgard_88_1_92_4",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #32 (Midgard 73.9/5.3)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_32_midgard_73_9_5_3",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #33 (Midgard 75.5/6.5)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_33_midgard_75_5_6_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #34 (Midgard 85.8/92.1)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_34_midgard_85_8_92_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #35 (Midgard 84.0/96.4)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_35_midgard_84_0_96_4",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #36 (Midgard 75.1/95.6)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_36_midgard_75_1_95_6",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #37 (Midgard Cave 83.6/92.6)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_37_midgard_cave_83_6_92_6",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #38 (Midgard 72.1/89.4)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_38_midgard_72_1_89_4",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #39 (Midgard 81.8/86.1)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_39_midgard_81_8_86_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #40 (Midgard 88.3/84.8)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_40_midgard_88_3_84_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #41 (Midgard Cave 84.8/16.0)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_41_midgard_cave_84_8_16_0",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #42 (Midgard 89.9/85.2)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_42_midgard_89_9_85_2",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #43 (Midgard 64.6/93.2)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_43_midgard_64_6_93_2",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #44 (Midgard 87.1/82.8)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_44_midgard_87_1_82_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #45 (Midgard 83.5/35.4)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_45_midgard_83_5_35_4",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #46 (Midgard 93.0/93.1)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_46_midgard_93_0_93_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #47 (Midgard 91.4/16.4)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_47_midgard_91_4_16_4",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #48 (Midgard 97.0/84.1)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_48_midgard_97_0_84_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #49 (Midgard 96.1/78.3)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_49_midgard_96_1_78_3",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #50 (Midgard 82.2/73.6)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_50_midgard_82_2_73_6",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #51 (Midgard 81.8/79.4)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_51_midgard_81_8_79_4",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #52 (Midgard 75.5/78.8)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_52_midgard_75_5_78_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #53 (Midgard Cave 89.9/83.2)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_53_midgard_cave_89_9_83_2",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #54 (Midgard Cave 88.3/85.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_54_midgard_cave_88_3_85_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #55 (Midgard Wyvern Trench 85.4/71.5)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_55_midgard_wyvern_trench_85_4_71_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #56 (Midgard Wyvern Trench 90.6/73.8)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_56_midgard_wyvern_trench_90_6_73_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #57 (Midgard Wyvern Trench 95.9/81.5)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_57_midgard_wyvern_trench_95_9_81_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #58 (Midgard Wyvern Trench 96.1/84.5)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_58_midgard_wyvern_trench_96_1_84_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #59 (Jotunheim 82.1/36.8)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_59_jotunheim_82_1_36_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #60 (Midgard Wyvern Trench 91.0/91.9)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_60_midgard_wyvern_trench_91_0_91_9",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #61 (Midgard 97.8/5.6)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_61_midgard_97_8_5_6",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #62 (Midgard 97.6/6.5)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_62_midgard_97_6_6_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #63 (Midgard 92.0/1.9)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_63_midgard_92_0_1_9",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #64 (Midgard 89.4/2.6)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_64_midgard_89_4_2_6",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #65 (Midgard 85.8/6.9)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_65_midgard_85_8_6_9",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #66 (Midgard 91.6/7.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_66_midgard_91_6_7_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #67 (Midgard 89.7/13.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_67_midgard_89_7_13_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #68 (Midgard 86.7/13.0)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_68_midgard_86_7_13_0",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #69 (Midgard 86.2/7.0)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_69_midgard_86_2_7_0",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #70 (Midgard 83.3/14.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_70_midgard_83_3_14_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #71 (Midgard 77.8/9.9)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_71_midgard_77_8_9_9",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #72 (Midgard 81.2/4.6)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_72_midgard_81_2_4_6",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #73 (Midgard 78.8/3.4)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_73_midgard_78_8_3_4",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #74 (Jotunheim 91.1/27.1)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_74_jotunheim_91_1_27_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #75 (Midgard 80.1/3.5)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_75_midgard_80_1_3_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #76 (Midgard 69.7/5.0)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_76_midgard_69_7_5_0",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #77 (Midgard 67.8/8.0)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_77_midgard_67_8_8_0",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #78 (Midgard 63.3/10.2)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_78_midgard_63_3_10_2",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #79 (Midgard 63.9/25.9)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_79_midgard_63_9_25_9",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #80 (Midgard 66.1/33.5)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_80_midgard_66_1_33_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #81 (Midgard 60.4/35.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_81_midgard_60_4_35_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #82 (Midgard 51.2/38.3)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_82_midgard_51_2_38_3",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #83 (Midgard 66.6/39.1)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_83_midgard_66_6_39_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #84 (Jotunheim 74.5/24.5)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_84_jotunheim_74_5_24_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #85 (Midgard 74.4/34.0)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_85_midgard_74_4_34_0",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #86 (Midgard 76.8/36.2)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_86_midgard_76_8_36_2",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #87 (Midgard 87.7/45.1)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_87_midgard_87_7_45_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #88 (Midgard 79.9/28.3)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_88_midgard_79_9_28_3",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #89 (Midgard 73.7/19.9)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_89_midgard_73_7_19_9",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #90 (Midgard Cave 88.2/20.2)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_90_midgard_cave_88_2_20_2",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #91 (Midgard Cave 87.6/11.6)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_91_midgard_cave_87_6_11_6",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #92 (Jotunheim 70.6/32.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_92_jotunheim_70_6_32_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #93 (Midgard 46.0/11.5)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_93_midgard_46_0_11_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #94 (Midgard 40.5/5.2)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_94_midgard_40_5_5_2",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #95 (Midgard 42.7/4.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_95_midgard_42_7_4_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #96 (Midgard 44.9/15.9)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_96_midgard_44_9_15_9",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #97 (Midgard Cave 47.7/14.0)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_97_midgard_cave_47_7_14_0",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #98 (Midgard Cave 49.1/10.1)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_98_midgard_cave_49_1_10_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #99 (Midgard Cave 43.1/10.4)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_99_midgard_cave_43_1_10_4",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #100 (Asgard 39.2/50.5)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_100_asgard_39_2_50_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #101 (Midgard Cave 45.6/12.6)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_101_midgard_cave_45_6_12_6",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #102 (Jotunheim 63.2/33.8)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_102_jotunheim_63_2_33_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #103 (Jotunheim 60.3/34.1)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_103_jotunheim_60_3_34_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #104 (Asgard 21.8/9.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_104_asgard_21_8_9_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #105 (Midgard 11.2/5.0)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_105_midgard_11_2_5_0",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #106 (Midgard 2.9/14.3)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_106_midgard_2_9_14_3",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #107 (Asgard 27.2/17.8)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_107_asgard_27_2_17_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #108 (Midgard 19.8/18.8)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_108_midgard_19_8_18_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #109 (Midgard 13.1/17.3)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_109_midgard_13_1_17_3",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #110 (Midgard 33.8/20.1)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_110_midgard_33_8_20_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #111 (Midgard 14.8/2.4)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_111_midgard_14_8_2_4",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #112 (Midgard 34.5/42.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_112_midgard_34_5_42_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #113 (Midgard 28.7/43.6)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_113_midgard_28_7_43_6",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #114 (Midgard 6.3/56.5)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_114_midgard_6_3_56_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #115 (Midgard 6.4/60.8)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_115_midgard_6_4_60_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #116 (Midgard 22.5/61.6)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_116_midgard_22_5_61_6",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #117 (Asgard 32.4/12.8)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_117_asgard_32_4_12_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #118 (Midgard 18.5/79.5)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_118_midgard_18_5_79_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #119 (Midgard 22.8/82.3)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_119_midgard_22_8_82_3",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #120 (Midgard 34.4/82.9)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_120_midgard_34_4_82_9",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #121 (Midgard 30.1/91.3)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_121_midgard_30_1_91_3",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #122 (Midgard 6.5/76.0)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_122_midgard_6_5_76_0",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #123 (Midgard 8.5/92.6)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_123_midgard_8_5_92_6",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #124 (Midgard 37.5/96.9)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_124_midgard_37_5_96_9",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #125 (Midgard 39.3/95.5)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_125_midgard_39_3_95_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #126 (Midgard 52.6/82.4)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_126_midgard_52_6_82_4",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #127 (Midgard 48.3/72.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_127_midgard_48_3_72_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #128 (Asgard 56.7/25.2)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_128_asgard_56_7_25_2",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #129 (Midgard 60.6/70.8)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_129_midgard_60_6_70_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #130 (Midgard 45.6/61.2)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_130_midgard_45_6_61_2",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #131 (Midgard 41.8/52.8)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_131_midgard_41_8_52_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #132 (Midgard 35.5/49.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_132_midgard_35_5_49_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #133 (Midgard 27.2/49.9)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_133_midgard_27_2_49_9",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #134 (Midgard 26.4/64.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_134_midgard_26_4_64_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #135 (Midgard 13.3/63.9)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_135_midgard_13_3_63_9",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #136 (Midgard 19.3/77.4)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_136_midgard_19_3_77_4",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #137 (Midgard 65.9/7.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_137_midgard_65_9_7_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #138 (Midgard 17.7/14.8)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_138_midgard_17_7_14_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #139 (Asgard 63.6/30.0)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_139_asgard_63_6_30_0",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #140 (Asgard 60.4/36.0)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_140_asgard_60_4_36_0",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #141 (Asgard 62.4/48.5)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_141_asgard_62_4_48_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #142 (Midgard Underwater Cave 6.0/10.0)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_142_midgard_underwater_cave_6_0_10_0",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #143 (Asgard 42.5/40.4)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_143_asgard_42_5_40_4",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #144 (Midgard Underwater Cave 8.4/13.5)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_144_midgard_underwater_cave_8_4_13_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #145 (Midgard Cave 7.6/22.5)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_145_midgard_cave_7_6_22_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #146 (Midgard Cave 6.5/23.4)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_146_midgard_cave_6_5_23_4",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #147 (Midgard Cave 6.5/28.3)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_147_midgard_cave_6_5_28_3",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #148 (Midgard 8.2/37.8)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_148_midgard_8_2_37_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #149 (Midgard 7.6/34.4)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_149_midgard_7_6_34_4",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #150 (Midgard 6.9/33.6)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_150_midgard_6_9_33_6",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #151 (Midgard Cave 13.5/67.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_151_midgard_cave_13_5_67_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #152 (Midgard Cave 13.8/85.3)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_152_midgard_cave_13_8_85_3",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #153 (Midgard Cave 18.4/82.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_153_midgard_cave_18_4_82_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #154 (Midgard Cave 19.2/11.8)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_154_midgard_cave_19_2_11_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #155 (Midgard Cave 25.8/40.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_155_midgard_cave_25_8_40_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #156 (Jotunheim 64.6/39.5)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_156_jotunheim_64_6_39_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #157 (Midgard Cave 19.0/59.2)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_157_midgard_cave_19_0_59_2",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #158 (Midgard Cave 16.2/61.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_158_midgard_cave_16_2_61_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #159 (Midgard Cave 17.8/65.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_159_midgard_cave_17_8_65_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #160 (Midgard Underwater Cave 32.1/32.1)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_160_midgard_underwater_cave_32_1_32_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #161 (Midgard Underwater Cave 34.9/33.3)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_161_midgard_underwater_cave_34_9_33_3",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #162 (Midgard Cave 42.8/64.4)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_162_midgard_cave_42_8_64_4",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #163 (Midgard Cave 55.3/67.5)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_163_midgard_cave_55_3_67_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #164 (Midgard Cave 53.8/65.2)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_164_midgard_cave_53_8_65_2",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #165 (Midgard 54.0/83.1)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_165_midgard_54_0_83_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #166 (Midgard 50.4/81.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_166_midgard_50_4_81_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #167 (Midgard Cave 76.4/8.3)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_167_midgard_cave_76_4_8_3",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #168 (Midgard Cave 75.9/70.3)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_168_midgard_cave_75_9_70_3",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #169 (Midgard Cave 73.3/71.9)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_169_midgard_cave_73_3_71_9",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #170 (Midgard Cave 86.9/97.1)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_170_midgard_cave_86_9_97_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #171 (Midgard Cave 83.3/94.6)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_171_midgard_cave_83_3_94_6",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #172 (Midgard 94.1/96.6)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_172_midgard_94_1_96_6",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #173 (Midgard Cave 84.8/15.5)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_173_midgard_cave_84_8_15_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #174 (Midgard Cave 82.5/16.4)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_174_midgard_cave_82_5_16_4",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #175 (Midgard Cave 81.2/13.8)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_175_midgard_cave_81_2_13_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #176 (Midgard 63.9/95.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_176_midgard_63_9_95_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #177 (Asgard 42.6/30.2)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_177_asgard_42_6_30_2",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #178 (Midgard 31.6/66.5)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_178_midgard_31_6_66_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #179 (Midgard 32.3/65.3)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_179_midgard_32_3_65_3",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #180 (Midgard 30.9/52.6)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_180_midgard_30_9_52_6",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #181 (Midgard 60.6/80.6)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_181_midgard_60_6_80_6",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #182 (Midgard 97.0/22.0)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_182_midgard_97_0_22_0",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #183 (Asgard 19.7/25.0)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_183_asgard_19_7_25_0",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #184 (Asgard 20.4/44.0)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_184_asgard_20_4_44_0",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #185 (Midgard 74.9/94.8)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_185_midgard_74_9_94_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #186 (Asgard 31.0/53.6)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_186_asgard_31_0_53_6",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #187 (Midgard 92.7/84.9)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_187_midgard_92_7_84_9",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #188 (Jotunheim 62.8/48.4)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_188_jotunheim_62_8_48_4",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #189 (Midgard Underwater Cave 90.6/39.8)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_189_midgard_underwater_cave_90_6_39_8",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #190 (Midgard Cave 90.2/79.4)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_190_midgard_cave_90_2_79_4",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #191 (Midgard Cave 89.0/86.6)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_191_midgard_cave_89_0_86_6",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #192 (Jotunheim 71.4/48.1)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_192_jotunheim_71_4_48_1",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #193 (Midgard 94.3/7.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_193_midgard_94_3_7_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #194 (Asgard 45.7/55.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_194_asgard_45_7_55_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #195 (Jotunheim 91.9/50.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_195_jotunheim_91_9_50_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #196 (Midgard 89.2/6.5)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_196_midgard_89_2_6_5",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #197 (Midgard 78.8/15.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_197_midgard_78_8_15_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #198 (Asgard 66.5/13.7)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_198_asgard_66_5_13_7",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #199 (Jotunheim 75.9/48.6)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_199_jotunheim_75_9_48_6",
+  "img": "images/dossier.png",
+  "disabled_img": "images/dossier_off.png"
+ },
+ {
+  "name": "Fjordur Rune #200 (Midgard 70.1/12.2)",
+  "type": "toggle",
+  "codes": "dossier_fjordur_rune_200_midgard_70_1_12_2",
   "img": "images/dossier.png",
   "disabled_img": "images/dossier_off.png"
  },

@@ -53,8 +53,6 @@ docs/ADDING_A_MAP.md
 docs/MAP_ASSUMPTIONS.md
 docs/STATE_PERSISTENCE.md
 docs/ARKipelago_Checklist.xlsx
-data/maps.json
-apworld/ark_ase/data/maps.json
 tools/gen_checklist.py
 tools/import_checklist.py
 tools/checklist_schema.py
@@ -64,4 +62,6 @@ tools/download_ue4ss.bat
 docs/island_map.*
 # every map image is a Wildcard asset (ragnarok_map.png, scorched_map.png, ...)
 docs/*_map.*
+# exploration overlay previews embed those Wildcard images - local only, per map
+docs/exploration_overlay*.html
 tools/reference/ARK_Creatures_Checklist.xlsx

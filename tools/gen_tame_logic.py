@@ -14,11 +14,18 @@ validates that every referenced engram exists. Run: python tools/gen_tame_logic.
 This is a SEED tool - data/tame_logic.json is the maintained source afterwards. Re-run only to
 re-import from a changed spreadsheet.
 """
-import json, os, re, sys
+import argparse, json, os, re, sys
 
 HERE = os.path.dirname(__file__)
 ROOT = os.path.normpath(os.path.join(HERE, ".."))
-XLSX = sys.argv[1] if len(sys.argv) > 1 else r"C:\Users\justi\Downloads\Ark IDs (1).xlsx"
+XLSX_DEFAULT = r"C:\Users\justi\Downloads\Ark IDs (1).xlsx"
+# tame_logic.json lives in TWO mirrors; the apworld copy is what build_apworld bundles + ships.
+DATA_DIRS = [os.path.join(ROOT, "data"), os.path.join(ROOT, "apworld", "ark_ase", "data")]
+# Keys this generator does NOT produce - hand-authored in the JSON (count-group macros, the collect/
+# milestone requirement tables, boss-tribute additions). They MUST be preserved across a regenerate,
+# or a re-run silently deletes them (it did, 2026-08-23).
+PRESERVE_KEYS = ("count_macros", "collect_reqs", "milestone_reqs",
+                 "boss_tribute_dino", "_comment_boss_tribute_dino")
 
 # sheet token -> our engrams.json ap_name (WITHOUT the "Engram: " prefix). These are the nodes
 # that are real AP-gated engrams. CONFIRMED = matches verified against engrams.json name list.
@@ -397,7 +404,16 @@ def flatten(node, recipes, seen=None):
 
 
 def main():
-    items, dinos, wb = load_xlsx(XLSX)
+    ap = argparse.ArgumentParser(description="Regenerate tame_logic.json from the Ark IDs workbook. "
+                                 "Report-only by default; needs --write to touch any file.")
+    ap.add_argument("xlsx", nargs="?", default=XLSX_DEFAULT, help="the Ark IDs .xlsx to import")
+    ap.add_argument("--write", action="store_true",
+                    help="actually write tame_logic.json (BOTH mirrors). Default: report only.")
+    ap.add_argument("--force", action="store_true",
+                    help="write even if the regenerated content would CHANGE existing entries "
+                         "(hand-edits to the generated sections would be lost).")
+    a = ap.parse_args()
+    items, dinos, wb = load_xlsx(a.xlsx)
     kills, fight_macros = load_kill_logic(wb)
     fight_macros.update(load_logic_macros(wb))   # UseArrows/CanFly/DeepDive/... macros
     cave_reqs, cave_mounts = load_cave_reqs(wb)   # stage 2: caves from the sheet
@@ -543,9 +559,42 @@ def main():
            "_dino_tame_engrams_ORasAND": "CONSERVATIVE approximation only (OR flattened to AND, so "
                        "it OVER-requires): use for a quick eyeball / validation, NOT as the rule.",
            "dino_tame_engrams_conservative": dino_reqs}
-    dst = os.path.join(ROOT, "data", "tame_logic.json")
-    json.dump(out, open(dst, "w", encoding="utf-8"), indent=2)
-    print(f"\nwrote {dst}")
+    # --- non-destructive write: preserve hand-authored keys, guard against clobbering, both mirrors ---
+    # The apworld copy is authoritative (build_apworld ships it); read it (fall back to data/) to see
+    # what the JSON currently holds.
+    existing = {}
+    for d in DATA_DIRS:                    # apworld dir last in the list -> wins as authoritative read
+        p = os.path.join(d, "tame_logic.json")
+        if os.path.isfile(p):
+            try:
+                existing = json.load(open(p, encoding="utf-8"))
+            except Exception:
+                existing = {}
+    # keep every hand-authored key this generator does not produce (count_macros/collect_reqs/...)
+    preserved = {k: existing[k] for k in existing if k not in out}
+    if preserved:
+        print("\npreserving hand-authored keys (not generated here): " + ", ".join(sorted(preserved)))
+    out = {**out, **preserved}
+    # would regenerating CHANGE an existing generated section? (i.e. the JSON was hand-edited past
+    # the workbook) - overwriting silently loses those edits, so require --force.
+    changed = [k for k in out if k in existing and existing[k] != out[k]]
+    if changed:
+        print("\n!! regenerating would CHANGE these existing sections (hand-edits would be lost):")
+        for k in changed:
+            print(f"     {k}")
+        print("   The workbook is the source for these; if the JSON was hand-edited past it, those "
+              "edits are NOT reproduced here. Reconcile the workbook first, or pass --force.")
+        if a.write and not a.force:
+            raise SystemExit("refusing to overwrite hand-edited sections without --force")
+    if not a.write:
+        print("\nDRY RUN (report only, nothing written). Re-run with --write to apply to BOTH mirrors.")
+        return
+    for d in DATA_DIRS:
+        os.makedirs(d, exist_ok=True)
+        p = os.path.join(d, "tame_logic.json")
+        json.dump(out, open(p, "w", encoding="utf-8"), indent=2)
+        open(p, "a", encoding="utf-8").write("\n")
+        print(f"wrote {p}")
 
 
 def flatten_dino(req, recipes):
