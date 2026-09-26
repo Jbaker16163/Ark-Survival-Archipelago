@@ -1,10 +1,34 @@
 {
   "_comment": "Seeded from Ark IDs.xlsx by tools/gen_tame_logic.py. AP tame/craft logic. item_recipes + dino_tame_raw + alias are the SOURCE. The apworld compiles dino_tame_raw into boolean AP rules (AND='+', OR='|'), expanding macros via item_recipes and mapping engram nodes via alias.",
+  "_comment_crafted_collects": [
+    "Crafted 'Collect N <resource>' checks carry the resource's FULL craft chain here, not just its",
+    "engram (the code-side CRAFTED_COLLECT_ENGRAM rule only required the engram, so Collect 200",
+    "Narcotic needed Engram: Narcotic but no Mortar & Pestle and no foundation). Per Justin 2026-09-25:",
+    "Narcotic + Stimulant need the Mortar & Pestle (-> can_build), Gasoline needs a Metal Pick plus a",
+    "Refining Forge (-> can_build), Element Dust needs a high-tier fight tame (Strong | Insane) and no",
+    "longer requires the Fabricator engram. Cementing Paste keeps Lurch's 'Mortar & Pestle OR",
+    "Beelzebufo' - the frog makes paste without any station."
+  ],
+  "_comment_can_build": [
+    "can_build = you have a foundation to put a crafting station on: Thatch OR Wood OR Stone.",
+    "ASE names a foundation *_Floor internally (PrimalItemStructure_StoneFloor = Stone",
+    "Foundation), so the alias entries below map the foundation nodes onto the Floor engrams.",
+    "Before 2026-09-24 those three nodes had no alias and an empty recipe, which compiles to",
+    "TRUE - so the foundation clause on the Forge and the Mortar & Pestle gated nothing and no",
+    "foundation ever had to appear in a playthrough. Reported by MiniDrachin from a spoiler log.",
+    "The bare Forge node carries can_build too: it is the same structure as Refining Forge, and",
+    "without it Gasoline / Metal Pick / Collect Metal Ingot would be a way around the gate.",
+    "NOTE: progression_tiers TIER_GATES is a separate mechanism and does NOT include a",
+    "foundation - a tier region still opens on the station engrams alone."
+  ],
   "item_recipes": {
+    "KillDeathworm": "StrongFightTames | InsaneFightTames | RideMegatherium",
+    "NoRequirement": "",
     "Campfire": "",
     "Thatch Foundation": "",
     "Stone Foundation": "",
     "Wood Foundation": "",
+    "can_build": "Thatch Foundation | Wood Foundation | Stone Foundation",
     "Large Crop Plot": "",
     "Medium Crop Plot": "",
     "Cooking Pot": "",
@@ -21,12 +45,13 @@
     "Cooked Prime Meat": "Campfire",
     "Cooked Fish Meat": "Campfire",
     "Cooked Prime Fish Meat": "Campfire",
-    "Refining Forge": "(Thatch Foundation | Wood Foundation | Stone Foundation)",
-    "Mortar & Pestle": "(Thatch Foundation | Wood Foundation | Stone Foundation)",
+    "Refining Forge": "can_build",
+    "Mortar & Pestle": "can_build",
     "Narcotic": "Mortar & Pestle",
     "Sparkpowder": "Mortar & Pestle",
     "Cementing Paste": "Mortar & Pestle",
     "Smithy": "Refining Forge",
+    "Forge": "can_build",
     "Gasoline": "Forge",
     "Gunpowder": "Mortar & Pestle + (Campfire | Refining Forge | Cooking Pot) + Sparkpowder",
     "Stimulant": "Sparkpowder",
@@ -143,6 +168,15 @@
     "Absorbent Substrate": "Chemistry Bench + Tree Sap Tap"
   },
   "dino_tame_raw": {
+    "Griffin": "BowKO | CrossbowKO",
+    "Mantis": "(KillDeathworm | KillWoollyRhino) + (BowKO | CrossbowKO)",
+    "Lymantria": "BowKO | CrossbowKO",
+    "Rock Elemental": "(Cannon + Cannon Ball) | (Rocket Launcher + Rocket Ammo)",
+    "Thorny Dragon": "BowKO | CrossbowKO",
+    "Vulture": "BowKO | CrossbowKO",
+    "Wyvern": "BowKO | CrossbowKO",
+    "Morellatops": "BowKO | CrossbowKO",
+    "Jerboa": "NoRequirement",
     "Archaeopteryx": "BowKO | CrossbowKO | RifleKO | ((Bola | UseNet) + (Club | Slingshot)",
     "Dimorphodon": "Slingshot | BowKO | CrossbowKO | RifleKO | (Bola + Club)",
     "Pachy": "Slingshot | BowKO | CrossbowKO | RifleKO",
@@ -238,12 +272,16 @@
     "Fenrir": "StrongFightTames"
   },
   "alias": {
+    "Climbing Pick": "Climbing Pick",
     "Campfire": "Campfire",
     "Cooking Pot": "Cooking Pot",
     "Bow": "Bow",
     "Club": "Stone Club",
     "Slingshot": "Slingshot",
     "Waterskin": "Waterskin",
+    "Thatch Foundation": "Thatch Floor",
+    "Wood Foundation": "Wood Floor",
+    "Stone Foundation": "Stone Floor",
     "Refining Forge": "Forge",
     "Forge": "Forge",
     "Mortar & Pestle": "Mortar And Pestle",
@@ -343,6 +381,17 @@
   },
   "_kill_reqs": "Lurch's per-creature KILL requirements ('KillTame Logic' sheet). Same grammar as dino_tame_raw. Ride<X> = tame X AND hold X's saddle engram; a BARE creature name = just tame it (no saddle needed to fight on it).",
   "kill_reqs": {
+    "Deathworm": "KillDeathworm",
+    "Griffin": "UseArrows | MediumFightTames | StrongFightTames | InsaneFightTames",
+    "Jug Bug": "",
+    "Mantis": "UseArrows | MediumFightTames | StrongFightTames | InsaneFightTames",
+    "Lymantria": "",
+    "Rock Elemental": "RideThylacoleo | StrongFightTames | InsaneFightTames | Grenade | (Rocket Launcher + Rocket Ammo)",
+    "Thorny Dragon": "UseArrows | MediumFightTames | StrongFightTames | InsaneFightTames",
+    "Vulture": "UseArrows | MediumFightTames | StrongFightTames | InsaneFightTames",
+    "Wyvern": "UseShotgun | StrongFightTames | InsaneFightTames",
+    "Morellatops": "UseMelee | UseArrows | MediumFightTames | StrongFightTames | InsaneFightTames",
+    "Jerboa": "",
     "Archaeopteryx": "BasicFightTames | UseArrows | UsePistol | UseRifle | UseShotgun | UseMelee",
     "Dilophosaur": "BasicFightTames | UseArrows | UsePistol | UseRifle | UseShotgun | UsePrimMelee",
     "Dimetrodon": "BasicFightTames | UseArrows | UsePistol | UseRifle | UseShotgun | UsePrimMelee",
@@ -461,6 +510,7 @@
     "Basilisk": "BasicFightTames | UseArrows | UsePistol | UseRifle | UseShotgun | UseMelee"
   },
   "cave_reqs": {
+    "Devious": "Scuba Tank + (Climbing Pick | CanGrapple | Archaeopteryx)",
     "Immune": "(Gas Mask | Scuba Tank) + Bug Repellent + UsefulImmuneTame",
     "Strong": "FurSnow + Grenade + Cryopod + UsefulStrongTame",
     "Skylord": "FurIce + (UseAdvMelee | UseShotgun)",
@@ -896,6 +946,7 @@
     }
   },
   "collect_reqs": {
+    "Alpha Wyvern Trophy": "StrongFightTames | InsaneFightTames",
     "Collect 500 Hide": "Stone Hatchet",
     "Collect 1000 Hide": "Metal Hatchet | Chainsaw",
     "Collect 5 Woolly Rhino Horn": "KillWoollyRhino",
@@ -938,7 +989,13 @@
     "Collect 100 Gunpowder": "Gunpowder",
     "Collect 300 Gunpowder": "Gunpowder",
     "Collect 100 Narcotic": "Narcotic",
+    "Collect 200 Narcotic": "Narcotic",
+    "Collect 300 Narcotic": "Narcotic",
     "Collect 100 Stimulant": "Stimulant + Pelt",
+    "Collect 200 Stimulant": "Stimulant",
+    "Collect 300 Stimulant": "Stimulant",
+    "Collect 100 Element Dust": "StrongFightTames | InsaneFightTames",
+    "Collect 300 Element Dust": "StrongFightTames | InsaneFightTames",
     "Collect 30 Leech Blood": "KillLeech",
     "Collect 30 Achatina Paste": "TameAchatina",
     "Collect 50 Raw Prime Meat": "KillAnyPrimeDropper",
@@ -956,7 +1013,9 @@
     "Collect 50 Angler Gel": "KillAngler",
     "Collect 50 Bio Toxin": "KillCnidaria",
     "Collect 10 Absorbent Substrate": "Absorbent Substrate | KillTusoteuthis",
-    "Collect 50 Gasoline": "Forge + Oil",
+    "Collect 50 Gasoline": "Metal Pick + Forge + Oil",
+    "Collect 100 Gasoline": "Metal Pick + Forge",
+    "Collect 200 Gasoline": "Metal Pick + Forge",
     "Citronal x10": "Citronal",
     "Longrass x10": "Longrass",
     "Rockarrot x10": "Rockarrot",
@@ -967,6 +1026,8 @@
     "Collect 5 Element": "Broodmother | Megapithecus | Dragon | (Chainsaw + (TameParasaur | TameRaptor | TameRex | TameStegosaurus))"
   },
   "milestone_reqs": {
+    "Tame a max-level creature": "CrossbowKO | RifleKO",
+    "Kill a max-level creature": "StrongFightTames | InsaneFightTames",
     "Kill 50 Creatures": "MediumFightTames",
     "Kill 100 Creatures": "MediumFightTames",
     "Kill 20 Species": "MediumFightTames",
@@ -1027,6 +1088,10 @@
     ]
   },
   "world_boss_reqs": {
+    "Iceworm Queen": "StrongFightTames | InsaneFightTames",
+    "Lava Elemental": "StrongFightTames | InsaneFightTames",
+    "Spirit Direwolf": "StrongFightTames | InsaneFightTames",
+    "Spirit Dire Bear": "StrongFightTames | InsaneFightTames",
     "Beyla": "StrongFightTames",
     "Hati and Skoll": "StrongFightTames",
     "Steinbjorn": "StrongFightTames"
@@ -1183,5 +1248,64 @@
       "Fjordur Rune #98 (Midgard Cave 49.1/10.1)": "UsefulHunterTame",
       "Fjordur Rune #99 (Midgard Cave 43.1/10.4)": "UsefulHunterTame"
     }
+  },
+  "_comment_map_cave_reqs": "Per-map artifact cave rules. cave_reqs is keyed by ARTIFACT, but the same artifact sits in a different cave on each map (Hunter: Island Lower South Cave, Ragnarok Jungle Dungeon). An artifact check is reachable if ANY enabled map that has it can reach its cave there; a map with no entry here uses cave_reqs. \"\" means that cave has no gate.",
+  "map_cave_reqs": {
+    "ragnarok": {
+      "Hunter": "CanGrapple",
+      "Brute": "",
+      "Cunning": "CanGrapple | Climbing Pick",
+      "Immune": "CanGrapple | Climbing Pick",
+      "Pack": "EnterSnow",
+      "Clever": "Scuba Tank + (Climbing Pick | CanGrapple | Archaeopteryx)",
+      "Skylord": "Scuba Tank + (Climbing Pick | CanGrapple | Archaeopteryx)",
+      "Devious": "Scuba Tank + (Climbing Pick | CanGrapple | Archaeopteryx)",
+      "Massive": "Scuba Tank + (Climbing Pick | CanGrapple | Archaeopteryx)",
+      "Strong": "",
+      "Devourer": "Basilosaurus | Megalodon | DeepDive"
+    }
+  },
+  "_comment_map_boss_artifacts": "Per-map boss summoning artifacts, overriding boss_artifacts on that map. Ragnarok's Dragon and Manticore spawn together in one arena from the same ten artifacts.",
+  "map_boss_artifacts": {
+    "ragnarok": {
+      "Dragon": [
+        "Clever",
+        "Cunning",
+        "Devious",
+        "Devourer",
+        "Hunter",
+        "Immune",
+        "Massive",
+        "Pack",
+        "Skylord",
+        "Strong"
+      ],
+      "Manticore": [
+        "Clever",
+        "Cunning",
+        "Devious",
+        "Devourer",
+        "Hunter",
+        "Immune",
+        "Massive",
+        "Pack",
+        "Skylord",
+        "Strong"
+      ]
+    }
+  },
+  "_comment_map_boss_reqs": "Extra requirement for a boss on that map, ANDed into that map's variant. '*' = every boss on the map.",
+  "map_boss_reqs": {
+    "ragnarok": {
+      "*": "StrongFightTames | InsaneFightTames"
+    }
+  },
+  "_comment_alpha_kill_reqs": "Per-alpha kill rule overriding the flat apex floor every alpha gets. Deliberately its own table: kill_reqs already holds Alpha Raptor/Rex/... entries that were never wired, and reading them would silently change the Island.",
+  "alpha_kill_reqs": {
+    "Alpha Fire Wyvern": "StrongFightTames | InsaneFightTames"
+  },
+  "_comment_note_requires_tame": "A note you only get by taming a creature (the Griffin dossier): gated exactly like that creature's Tamed: check, including the lock_taming unlock.",
+  "note_requires_tame": {
+    "Dossier: Griffin": "Griffin"
   }
 }

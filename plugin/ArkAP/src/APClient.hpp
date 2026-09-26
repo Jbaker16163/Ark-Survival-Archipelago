@@ -433,8 +433,14 @@ private:
             fatal_ = true;
             std::string err = msg.value("errors", json::array()).dump();
             SetStatus("REFUSED " + err);
-            WriteConnStatus("AP refused '" + cfg_.slot + "': " + err +
-                            " - fix the slot/password and /connect again");
+            std::string hint = " - fix the slot/password and /connect again";
+            // InvalidSlot on a single-word slot is the classic "my slot name has a space and the
+            // command ate half of it" - the second word landed in the password. Say so outright.
+            if (err.find("InvalidSlot") != std::string::npos &&
+                cfg_.slot.find(' ') == std::string::npos)
+                hint += ". If your slot name has a space in it, quote it: "
+                        "/connect <host>:<port> \"Slot Name\"";
+            WriteConnStatus("AP refused '" + cfg_.slot + "': " + err + hint);
         } else if (cmd == "PrintJSON") {
             std::string type = msg.value("type", "");
             if (type == "ItemSend" || type == "ItemCheat") {
@@ -602,16 +608,16 @@ private:
               int loc = 0;
               try { loc = std::stoi(line.substr(line.find(':', p) + 1)); } catch (...) { continue; }
               if (!sentChecks_.insert(loc).second) continue;
-              // A location this slot does not have is silently dropped by the server. Say so, once
+              // A location this slot does not have is silently dropped by the server. Log it once
               // per id, and do NOT count it against `remaining_` - a counter that ticks down for
               // checks the server ignored is worse than no counter, because it looks like progress.
+              // No chat message: this is routine, not an error. The plugin reports every check it
+              // sees, and a slot legitimately omits whole categories (death checks off, fewer notes
+              // than the map has, sanity options) - so players were being told to "raise
+              // dossier_checks" for a fall-damage death that has nothing to do with notes.
               if (!slotLocs_.empty() && !slotLocs_.count(loc)) {
-                  cfg_.log("APC CHECK loc=" + std::to_string(loc) + " IS NOT IN THIS SLOT - the "
-                           "server will ignore it. Usually dossier_checks is lower than the number "
-                           "of notes your maps have, so the location was never created. Regenerate "
-                           "with a higher dossier_checks.");
-                  QueueMsg("AP: that check is not in your slot (loc " + std::to_string(loc) +
-                           ") - raise dossier_checks and regenerate.");
+                  cfg_.log("APC CHECK loc=" + std::to_string(loc) + " is not in this slot - "
+                           "ignored (its category is off or trimmed for this seed).");
                   continue;
               }
               fresh.push_back(loc);

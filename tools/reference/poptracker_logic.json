@@ -1,0 +1,121 @@
+{
+  "_comment": [
+    "PopTracker access rules per map, transcribed from the rules Justin supplied 2026-09-10.",
+    "Syntax is the pack's own: each string is one alternative (OR), commas inside it are AND.",
+    "A bare word is an item code, $Name is a logic.lua macro, @Path is another location.",
+    "An empty list means deliberately no gate - NOT 'not written yet'.",
+    "Where a cave listed 'recommended equipment', only the requirements that actually block",
+    "progress are gated (traversal, cold, air). Recommended-but-optional gear is left out on",
+    "purpose: over-gating a cave can make a seed unwinnable, under-gating only costs a hint."
+  ],
+  "ragnarok": {
+    "tames": {
+      "Griffin": ["$BowKO", "$CrossbowKO"],
+      "Mantis": [
+        "@Ragnarok/Deathworm/Kill a Deathworm, $BowKO",
+        "@Ragnarok/Deathworm/Kill a Deathworm, $CrossbowKO",
+        "@Dinos/Woolly Rhino/Kill a Woolly Rhino, $BowKO",
+        "@Dinos/Woolly Rhino/Kill a Woolly Rhino, $CrossbowKO"
+      ],
+      "Lymantria": ["$BowKO", "$CrossbowKO"],
+      "Rock Elemental": ["cannon, cannon_ball", "rocket_launcher, rocket_ammo"],
+      "Thorny Dragon": ["$BowKO", "$CrossbowKO"],
+      "Vulture": ["$BowKO", "$CrossbowKO"],
+      "Wyvern": ["$BowKO", "$CrossbowKO"],
+      "Morellatops": ["$BowKO", "$CrossbowKO"],
+      "Jerboa": [""]
+    },
+    "kills": {
+      "Deathworm": ["$StrongFightTames", "$InsaneFightTames",
+                    "@Dinos/Megatherium/Tame a Megatherium"],
+      "Griffin": ["$UseArrows", "$MediumFightTames", "$StrongFightTames", "$InsaneFightTames"],
+      "Jugbug": [""],
+      "Mantis": ["$UseArrows", "$MediumFightTames", "$StrongFightTames", "$InsaneFightTames"],
+      "Lymantria": [""],
+      "Rock Elemental": ["@Dinos/Thylacoleo/Tame a Thylacoleo", "$StrongFightTames",
+                         "$InsaneFightTames", "grenade", "rocket_launcher, rocket_ammo"],
+      "Thorny Dragon": ["$UseArrows", "$MediumFightTames", "$StrongFightTames",
+                        "$InsaneFightTames"],
+      "Vulture": ["$UseArrows", "$MediumFightTames", "$StrongFightTames", "$InsaneFightTames"],
+      "Wyvern": ["$UseShotgun", "$StrongFightTames", "$InsaneFightTames"],
+      "Morellatops": ["$UseMelee", "$UseArrows", "$MediumFightTames", "$StrongFightTames",
+                      "$InsaneFightTames"],
+      "Jerboa": [""]
+    },
+    "locations": {
+      "Killed: Alpha Fire Wyvern": ["$StrongFightTames", "$InsaneFightTames"],
+      "Alpha Wyvern Trophy": ["$StrongFightTames", "$InsaneFightTames"],
+      "Dossier: Griffin": ["@Ragnarok/Griffin/Tame a Griffin"]
+    },
+    "artifacts": {
+      "_caves": {
+        "Hunter": "Jungle Dungeon",
+        "Brute": "Fallen Redwood Cave",
+        "Cunning": "Carnivorous Caverns",
+        "Immune": "Carnivorous Caverns",
+        "Pack": "Frozen Dungeon",
+        "Clever": "Life's Labyrinth",
+        "Skylord": "Life's Labyrinth",
+        "Devious": "Life's Labyrinth",
+        "Massive": "Life's Labyrinth",
+        "Strong": "The Monkey's Puzzle",
+        "Devourer": "Pit of Dreen"
+      },
+      "_positions": {
+        "_source": "ark.wiki.gg/wiki/Artifact_of_the_<Name>, ASE Ragnarok row, the ARTIFACT lat/lon (not the entrance). Fetched 2026-09-16.",
+        "Hunter": [21.5, 27.2],
+        "Pack": [33.5, 43.4],
+        "Massive": [48.9, 79.4],
+        "Devious": [49.0, 79.4],
+        "Clever": [48.0, 78.6],
+        "Skylord": [47.7, 78.9],
+        "Devourer": [47.4, 2.3],
+        "Immune": [23.6, 44.5],
+        "Strong": [24.8, 24.7],
+        "Cunning": [20.3, 45.9],
+        "Brute": [35.2, 78.2]
+      },
+      "Hunter": ["$UseGrapple"],
+      "Brute": [""],
+      "Cunning": ["$UseGrapple", "climbing_pick"],
+      "Immune": ["$UseGrapple", "climbing_pick"],
+      "Pack": ["$EnterSnow", "$SnowMountains"],
+      "Clever": ["climbing_pick, scuba_tank", "$UseGrapple, scuba_tank",
+                 "@Dinos/Archaeopteryx/Tame an Archaeopteryx, scuba_tank"],
+      "Skylord": ["climbing_pick, scuba_tank", "$UseGrapple, scuba_tank",
+                  "@Dinos/Archaeopteryx/Tame an Archaeopteryx, scuba_tank"],
+      "Devious": ["climbing_pick, scuba_tank", "$UseGrapple, scuba_tank",
+                  "@Dinos/Archaeopteryx/Tame an Archaeopteryx, scuba_tank"],
+      "Massive": ["climbing_pick, scuba_tank", "$UseGrapple, scuba_tank",
+                  "@Dinos/Archaeopteryx/Tame an Archaeopteryx, scuba_tank"],
+      "Strong": [""],
+      "Devourer": ["@Dinos/Basilosaurus/Tame a Basilosaurus",
+                   "@Dinos/Megalodon/Tame a Megalodon", "$DeepDive"]
+    },
+    "boss_pairs": {
+      "Dragon & Manticore": {
+        "members": ["Dragon", "Manticore"],
+        "_note": "Both spawn together in one arena, so they are one tracker entry.",
+        "artifacts": ["artifact_clever", "artifact_cunning", "artifact_devious",
+                      "artifact_devourer", "artifact_hunter", "artifact_immune",
+                      "artifact_massive", "artifact_pack", "artifact_skylord",
+                      "artifact_strong"]
+      }
+    },
+    "boss_combat": ["$StrongFightTames", "$InsaneFightTames"],
+    "attach": {
+      "_comment": "Checks the pack has no section for, placed on an existing object. The pack already labels our VERY-HIGH checks 'High/Max Level Dino', so the true level-cap checks get a distinct label.",
+      "Tame a max-level creature": ["Milestones/Tame Creatures", "Tame a Level Cap Dino"],
+      "Kill a max-level creature": ["Milestones/Kill Creatures", "Kill a Level Cap Dino"]
+    },
+    "new_items": {
+      "_comment": "Codes the rules above need that the pack has no item for. Ids are ours.",
+      "cannon": {"id": 8730254, "name": "Engram - Cannon"},
+      "cannon_ball": {"id": 8730255, "name": "Engram - Cannon Ball"},
+      "rocket_launcher": {"id": 8730366, "name": "Engram - Rocket Launcher"},
+      "rocket_ammo": {"id": 8730367, "name": "Engram - Rocket Ammo"},
+      "climbing_pick": {"id": 8730495, "name": "Engram - Climbing Pick"},
+      "artifact_devious": {"id": null, "name": "Artifact - Devious", "_note": "no AP item: ticked by the Artifact: Devious check (8757409), like the other artifacts"}
+    }
+  }
+}

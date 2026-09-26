@@ -82,6 +82,11 @@ static bool FlagFor(const std::map<std::string, bool>& m, const std::string& r) 
 static std::unordered_map<std::string, int> g_tameTagToItem;
 static std::unordered_map<std::string, int> g_tameTagToTameLoc;   // DinoNameTag -> "Tamed: X" check loc
 static std::unordered_map<std::string, int> g_killTagToLoc;       // DinoNameTag -> "Killed: X" check loc
+// Variants that share their parent's DinoNameTag: the Unicorn is its own class
+// (Equus_Character_BP_Unicorn_C) but reports "Equus", so without this a Unicorn tame was gated on
+// Tame: Equus and its tame/kill sent the Equus checks - Tamed/Killed: Unicorn could never fire.
+// dinos.json "class_match" -> that entry's dino_tag; matched against the class name first.
+static std::vector<std::pair<std::string, std::string>> g_classTagOverride;
 
 // saddle bundling: tame item id -> its saddle ENGRAM item id; gated PER-ROUTE by g_routeBundleSaddles.
 static std::unordered_map<int, int> g_tameItemToSaddleItem;
@@ -231,7 +236,7 @@ namespace fs = std::filesystem;
 // Which dll is actually loaded. Declared up here rather than beside Load() because the JOIN greet
 // and /apstatus both quote it: "what version are they running?" was answered by asking someone to
 // find a log file on the server box, which is no answer at all when the report comes from a player.
-static const char* ARKAP_BUILD = "v187-dumpinv-class-path";
+static const char* ARKAP_BUILD = "v193-connect-quoted-slot";
 
 // the plugin's own folder: ArkApi/Plugins/ArkAP
 static fs::path PluginDir() {
@@ -471,7 +476,11 @@ static int MaxWildLevel() {
     static int cached = 0;
     if (cached) return cached;
     float d = ReadDifficultySEH();
-    cached = (d > 0.f) ? (int)(d * 30.f + 0.5f) : 30;   // safe floor - stock difficulty
+    // TRUNCATE, do not round. A server reporting difficulty 5.025901 (offset a hair over 1.0) is
+    // still a max wild level of 150, but rounding 150.777 gave 151 - one level high, which moved
+    // both milestone thresholds up by one. The epsilon only guards a difficulty stored as
+    // 4.9999998, which would otherwise truncate to 149.
+    cached = (d > 0.f) ? (int)(d * 30.f + 0.01f) : 30;   // safe floor - stock difficulty
     if (cached < 5) cached = 30;
     DebugLog("MAXWILD level=" + std::to_string(cached) +
              " (difficulty=" + std::to_string(d) + ")");
@@ -481,7 +490,7 @@ static int MaxWildLevel() {
 // A wild creature's level as a PERCENTAGE of this server's maximum. AbsoluteBaseLevel is the level
 // it spawned at, before any taming bonus levels, which is the number a player recognises.
 static void ReportLevelMilestones(APrimalDinoCharacter* dino, const std::string& route,
-                                  const char* hiTag, const char* vhiTag) {
+                                  const char* hiTag, const char* vhiTag, const char* maxTag) {
     if (!dino) return;
     // AbsoluteBaseLevel is the level a WILD creature spawned at - the number a player recognises.
     // But it reads 0 on some modded creatures (BetterDinos on Lurch's server), and the old code
@@ -489,12 +498,23 @@ static void ReportLevelMilestones(APrimalDinoCharacter* dino, const std::string&
     // milestone - silently, with nothing in the log. Fall back to the status component's own level
     // getter, which is the game's authoritative value and is populated for every creature.
     int lvl = dino->AbsoluteBaseLevelField();
-    int absl = lvl;
-    if (lvl <= 0)
-        if (auto* csc = dino->MyCharacterStatusComponentField()) lvl = csc->GetCharacterLevel();
+    const int absl = lvl;
+    int base = 0, extra = 0;
+    if (auto* csc = dino->MyCharacterStatusComponentField()) {
+        base = csc->BaseCharacterLevelField();
+        extra = (int)csc->ExtraCharacterLevelField();
+        // BaseCharacterLevel is the level it SPAWNED at. GetCharacterLevel() adds ExtraCharacterLevel
+        // - the bonus levels from taming, breeding and levelling - which is how a level-174 creature
+        // was measured against a 150 cap, and why six kills logged levels that are not multiples of
+        // five (wild spawns always are). Prefer base; the sum is only a last resort.
+        if (lvl <= 0) lvl = base > 0 ? base : csc->GetCharacterLevel();
+    }
     const int maxw = MaxWildLevel();
-    DebugLog("DINOLEVEL abs=" + std::to_string(absl) + " used=" + std::to_string(lvl) +
-             " max=" + std::to_string(maxw) + " tag=" + hiTag);
+    DebugLog("DINOLEVEL abs=" + std::to_string(absl) + " base=" + std::to_string(base) +
+             " extra=" + std::to_string(extra) + " used=" + std::to_string(lvl) +
+             " max=" + std::to_string(maxw) +
+             " team=" + std::to_string(dino->TargetingTeamField()) +
+             " tamingTeam=" + std::to_string(dino->TamingTeamIDField()) + " tag=" + hiTag);
     if (lvl <= 0) return;
     const double pct = (double)lvl / (double)maxw;
     auto fire = [&](const char* tag) {
@@ -504,6 +524,10 @@ static void ReportLevelMilestones(APrimalDinoCharacter* dino, const std::string&
     if (pct >= 0.50) { DebugLog("LEVEL " + std::to_string(lvl) + "/" + std::to_string(MaxWildLevel()) +
                                 " -> " + hiTag); fire(hiTag); }
     if (pct >= 0.80) fire(vhiTag);
+    // AT the cap. >= rather than ==, because Tek creatures spawn at 1.2x and a Tek at 174 on a
+    // 150 server is at least as rare as a plain 150.
+    if (lvl >= maxw) { DebugLog("LEVEL " + std::to_string(lvl) + "/" + std::to_string(maxw) +
+                                " -> " + maxTag); fire(maxTag); }
 }
 
 static void QueueCountEvent(const char* kind, const std::string& route) {
@@ -573,6 +597,13 @@ static std::string CanonDinoTag(const std::string& raw) {
     return raw;
 }
 static std::string DinoTag(APrimalDinoCharacter* dino) {
+    if (!g_classTagOverride.empty()) {
+        FString fn; dino->GetFullName(&fn, nullptr);
+        const std::string full = fn.ToString();
+        const std::string cls = full.substr(0, full.find(' '));   // class name, as DoBossDeath reads it
+        for (const auto& o : g_classTagOverride)
+            if (cls.find(o.first) != std::string::npos) return o.second;
+    }
     FString fs;
     dino->DinoNameTagField().ToString(&fs);
     return CanonDinoTag(fs.ToString());
@@ -657,7 +688,8 @@ static void DoQueueTameCheck(APrimalDinoCharacter* dino, AShooterPlayerControlle
     { std::ofstream f(PluginDir() / "tame_check_queue.jsonl", std::ios::app);
       if (f) f << tag << "\t" << route << "\n"; }
     QueueCountEvent("tame", route);                 // collective count (drained on the game tick)
-    ReportLevelMilestones(dino, route, "milestone_tamelevel_hi", "milestone_tamelevel_vhi");
+    ReportLevelMilestones(dino, route, "milestone_tamelevel_hi", "milestone_tamelevel_vhi",
+                          "milestone_tamelevel_max");
 }
 static void QueueTameCheck(APrimalDinoCharacter* dino, AShooterPlayerController* forPc) {
     __try { DoQueueTameCheck(dino, forPc); } __except (EXCEPTION_EXECUTE_HANDLER) {}
@@ -949,14 +981,18 @@ void Hook_APrimalDinoCharacter_DoMate(APrimalDinoCharacter* _this, APrimalDinoCh
 // a WILD creature killed by a player -> the high-level kill milestones (tamed ones do not count:
 // you would just be killing your own bred stock).
 static void DoDinoLevelKill(APrimalDinoCharacter* dino, AController* killer, AActor* causer) {
-    if (!dino || dino->TargetingTeamField() >= 50000) return;   // >= 50000 = a tamed/tribe creature
+    // >= 50000 = a tamed/tribe creature. TamingTeamID is the direct signal and is checked too: the
+    // team convention is a heuristic, and a server whose tribe ids fall below it would otherwise
+    // let bred stock satisfy a "high-level creature" kill.
+    if (!dino || dino->TargetingTeamField() >= 50000 || dino->TamingTeamIDField() != 0) return;
     // Attribute to the SPECIFIC killer (same-tribe safe), and fire ONLY on a real player kill. The
     // old code blind-cast `killer` and fired regardless, so a wild-on-wild death reported the
     // milestone to route "" = the player's mailbox. Before v169 the AbsoluteBaseLevel=0 short-
     // circuit hid this; now that levels resolve, every ambient death in range was granting it.
     AShooterPlayerController* killerPc = ResolveKillerPc(killer, causer);
     if (!killerPc) return;                                       // wild-on-wild / environmental - not a player kill
-    ReportLevelMilestones(dino, RouteFor(killerPc), "milestone_killlevel_hi", "milestone_killlevel_vhi");
+    ReportLevelMilestones(dino, RouteFor(killerPc), "milestone_killlevel_hi", "milestone_killlevel_vhi",
+                          "milestone_killlevel_max");
 }
 
 bool Hook_APrimalDinoCharacter_Die(APrimalDinoCharacter* _this, float KillingDamage,
@@ -2730,18 +2766,57 @@ static void WhoAmIChat(AShooterPlayerController* pc, FString*, EChatSendMode::Ty
     __try { DoWhoAmI(pc); } __except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
+// Discord, Word and phone keyboards turn "..." into curly quotes, so a pasted /connect line can
+// carry U+201C/U+201D (or U+2018/U+2019) where the player meant a plain quote. Map them down to
+// ASCII before splitting; if ToString() already flattened them to '?', this is simply a no-op.
+static std::string ApNormalizeQuotes(std::string s) {
+    static const char* const kCurly[] = { "\xE2\x80\x9C", "\xE2\x80\x9D",
+                                          "\xE2\x80\x98", "\xE2\x80\x99" };
+    static const char        kPlain[] = { '"', '"', '\'', '\'' };
+    for (size_t i = 0; i < 4; ++i) {
+        size_t p;
+        while ((p = s.find(kCurly[i])) != std::string::npos) s.replace(p, 3, 1, kPlain[i]);
+    }
+    return s;
+}
+
+// Split a chat command into tokens, honouring "double" and 'single' quotes - so a slot name with
+// a space in it survives:  /connect archipelago.gg:38281 "Rat Ark"
+// Plain >> splitting made that slot "Rat" with password "Ark", and AP answered InvalidSlot with
+// no clue why (live-hit 2026-09-24). An unterminated quote swallows the rest of the line instead
+// of erroring: a player who typed one quote meant "all of this is one name".
+static std::vector<std::string> ApSplitArgs(const std::string& line) {
+    std::vector<std::string> out;
+    std::string cur;
+    bool have = false;                       // "" is a real (empty) token, so track this separately
+    char quote = 0;
+    for (char c : line) {
+        if (quote) {
+            if (c == quote) quote = 0; else cur += c;
+        } else if (c == '"' || c == '\'') {
+            quote = c; have = true;
+        } else if (c == ' ' || c == '\t') {
+            if (have) { out.push_back(cur); cur.clear(); have = false; }
+        } else {
+            cur += c; have = true;
+        }
+    }
+    if (have) out.push_back(cur);
+    return out;
+}
+
 // --- embedded AP client: /connect <host:port> <slot> [password] / /disconnect / /apstatus ---
 // The session runs on its own threads inside the plugin and drives the SAME mailbox files the
 // external connector uses - so /connect and the external connector are interchangeable per slot
 // (don't run both for the same player at once: they'd double-send).
 static void DoApConnect(AShooterPlayerController* pc, FString* message) {
     if (!g_apManager) { ChatNotify(L"ArkAP: embedded AP client not initialised."); return; }
-    std::vector<std::string> tok;
-    { std::istringstream ss(message ? message->ToString() : std::string());
-      std::string t; while (ss >> t) tok.push_back(t); }          // tok[0] = "/connect"
+    std::vector<std::string> tok =                                 // tok[0] = "/connect"
+        ApSplitArgs(ApNormalizeQuotes(message ? message->ToString() : std::string()));
     if (tok.size() < 3) {
         ChatNotify(L"Usage: /connect <host>:<port> <slot> [password]  "
-                   L"e.g. /connect archipelago.gg:38281 Alice");
+                   L"e.g. /connect archipelago.gg:38281 Alice  "
+                   L"(quote a slot name that has a space: \"Rat Ark\")");
         return;
     }
     // Accept EITHER order - "<host:port> <slot>" (new, AP convention) or "<slot> <host:port>"
@@ -2753,11 +2828,14 @@ static void DoApConnect(AShooterPlayerController* pc, FString* message) {
     else if (ArkAP::ApParseServer(tok[2]).valid) { server = tok[2]; slot = tok[1]; }
     else {
         ChatNotify(L"ArkAP: couldn't find a host and port in that command. "
-                   L"Use /connect <host>:<port> <slot>  e.g. /connect archipelago.gg:38281 Alice");
+                   L"Use /connect <host>:<port> <slot>  e.g. /connect archipelago.gg:38281 Alice  "
+                   L"(quote a slot name that has a space: \"Rat Ark\")");
         return;
     }
     std::string password;                        // room passwords may contain spaces
     for (size_t i = 3; i < tok.size(); ++i) { if (i > 3) password += " "; password += tok[i]; }
+    // (a quoted password is one token, so the join is a no-op for it; an unquoted one with
+    //  spaces still rejoins exactly as it did before quoting existed)
     std::string route = RouteFor(pc);            // multiplayer: this player's own mailbox
     // If the survivor name can't be resolved right now (still spawning in, respawn screen...)
     // the route degrades to "_unnamed" - binding the session there would deliver this slot's
@@ -4019,6 +4097,8 @@ static void Load() {
             for (auto& d : dj.value("dinos", nlohmann::json::array())) {
                 try {
                     std::string tag = d.at("dino_tag").get<std::string>();
+                    if (d.contains("class_match") && d["class_match"].is_string())
+                        g_classTagOverride.emplace_back(d["class_match"].get<std::string>(), tag);
                     // untameable kill-only entries have no id/ap_name/tame_loc/saddle -> guard them.
                     if (d.contains("id") && d["id"].is_number()) {
                         int id = d["id"].get<int>();
@@ -4314,6 +4394,7 @@ static void Load() {
              " items=" + std::to_string(g_tables.item_name.size()) +
              " note_locs=" + std::to_string(g_tables.note_index_to_loc.size()) +
              " tame_dinos=" + std::to_string(g_tameTagToItem.size()) +
+             " class_overrides=" + std::to_string(g_classTagOverride.size()) +
              " tame_saddles=" + std::to_string(g_tameItemToSaddleItem.size()) +
              " crate_gates=" + std::to_string(g_crateGateClassToItem.size()) +
              " bosses=" + std::to_string(g_bosses.size()) +

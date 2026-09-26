@@ -212,8 +212,10 @@ The plugin has a built-in AP client - **no extra software to run**. Once the roo
   slot). If it says it can't read your survivor name yet, wait a few seconds and retry.
 - Either argument order works - `/connect <host:port> <slot>` or the older
   `/connect <slot> <host:port>` - the plugin figures out which token is the address.
-- Slot names with **spaces** can't be typed into `/connect` - use space-free `name:` values in
-  your yamls.
+- Slot names with **spaces** need quotes (v193+): `/connect archipelago.gg:38281 "Rat Ark"`.
+  Single quotes and the curly quotes a Discord paste leaves behind work too. On older builds an
+  unquoted space split the name and AP answered *InvalidSlot* - if you're on one, either update
+  the plugin or use space-free `name:` values in your yamls.
 - The address must be reachable **from the Server PC** (chat commands run on the server): a room
   on the server's LAN works for remote players too.
 

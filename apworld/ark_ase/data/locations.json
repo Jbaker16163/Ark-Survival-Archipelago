@@ -3325,6 +3325,18 @@
           "tier": 2
         },
         {
+          "id": 8751057,
+          "name": "Tame a max-level creature",
+          "tag": "milestone_tamelevel_max",
+          "tier": 2
+        },
+        {
+          "id": 8751058,
+          "name": "Kill a max-level creature",
+          "tag": "milestone_killlevel_max",
+          "tier": 2
+        },
+        {
           "id": 8751053,
           "name": "Breed your first dino",
           "tag": "milestone_first_breed",
@@ -3944,6 +3956,13 @@
           "id": 8757009,
           "name": "Artifact: Pack",
           "item_class": "PrimalItemArtifact_02",
+          "qty": 1,
+          "tier": 3
+        },
+        {
+          "id": 8757409,
+          "name": "Artifact: Devious",
+          "item_class": "PrimalItemArtifact_04",
           "qty": 1,
           "tier": 3
         },

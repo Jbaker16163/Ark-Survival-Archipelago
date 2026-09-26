@@ -86,7 +86,9 @@ CRAFTED_COLLECT_ENGRAM = {
     "Narcotic": "Engram: Narcotic", "Stimulant": "Engram: Stimulant",
     "Electronics": "Engram: Electronics", "Cementing Paste": "Engram: Mortar And Pestle",
     "Metal Ingot": "Engram: Forge", "Gasoline": "Engram: Forge",
-    "Absorbent Substrate": "Engram: Fabricator", "Element Dust": "Engram: Fabricator",
+    # Element Dust is NOT here: it is harvested with a high-tier fight tame, not crafted in the
+    # Fabricator - its rule lives in tame_logic.json collect_reqs (Justin, 2026-09-25).
+    "Absorbent Substrate": "Engram: Fabricator",
     "Charcoal": "Engram: Campfire",
 }
 
@@ -306,7 +308,7 @@ class ArkASAWorld(World):
             elif name.startswith("Killed: "):
                 ast = self._kill_ast(name[len("Killed: "):])
             elif name.startswith("Artifact: "):
-                ast = self._cave_ast(name[len("Artifact: "):])
+                ast = self._artifact_ast(name[len("Artifact: "):])
             elif name.startswith("Boss: "):
                 ast = self._boss_ast(name[len("Boss: "):].split(" (")[0])
             else:
@@ -1255,9 +1257,15 @@ class ArkASAWorld(World):
         if cache is None:
             d = self._tame_logic_data
             cache = set()
+            # per-map tables nest one level deeper ({map: {name: expr}}) - flatten them, or a bare
+            # creature named only there (Ragnarok's "Basilosaurus | Megalodon" cave) never gets a
+            # direct node and compiles to a silent true
+            nested = [inner for tbl in ("map_cave_reqs", "map_boss_reqs")
+                      for inner in d.get(tbl, {}).values()]
             for src in (d.get("kill_reqs", {}), d.get("item_recipes", {}),
                         d.get("cave_reqs", {}), d.get("dino_tame_raw", {}),
-                        d.get("collect_reqs", {})):
+                        d.get("collect_reqs", {}), d.get("alpha_kill_reqs", {}),
+                        d.get("world_boss_reqs", {}), *nested):
                 for expr in src.values():
                     for t in re.split(r"[+|()]", str(expr)):
                         t = t.strip()
@@ -1297,9 +1305,58 @@ class ArkASAWorld(World):
                 return m[self._ride_key(cand)]
         return ""
 
-    # cave requirement AST for an artifact short name (e.g. "Hunter").
+    # cave requirement AST for an artifact short name (e.g. "Hunter"). GLOBAL rule only - this is
+    # what explorer notes sitting in an artifact cave use, and those notes are physically on one
+    # map. Artifact CHECKS and boss summons go through _artifact_ast / _map_cave_expr instead.
     def _cave_ast(self, art: str):
         return self._compile_expr(self._tame_logic_data.get("cave_reqs", {}).get(art, ""))
+
+    # ---- per-map artifact caves -----------------------------------------------------------------
+    # The same artifact sits in a different cave on each map: the Hunter is the Island's Lower South
+    # Cave but Ragnarok's Jungle Dungeon, with different gear. cave_reqs is keyed by artifact alone,
+    # so map_cave_reqs overrides it per map, and a check or boss available on several enabled maps
+    # is reachable if ANY of them can do it there. Maps with no override use cave_reqs, so a slot
+    # without such a map compiles exactly the rules it always did.
+    def _map_cave_expr(self, art: str, mk) -> str:
+        over = self._tame_logic_data.get("map_cave_reqs", {}).get(mk, {}) if mk else {}
+        if art in over:                                  # "" is a real override: that cave is free
+            return over[art]
+        return self._tame_logic_data.get("cave_reqs", {}).get(art, "")
+
+    def _maps_holding(self, loc_ids) -> list:
+        """Enabled maps whose maps.json bucket lists any of these location ids, sorted."""
+        ids = set(loc_ids)
+        return sorted(mk for mk in self._active_map_keys()
+                      if ids & set((self._map_content or {}).get(mk, {}).get("locations") or ()))
+
+    @staticmethod
+    def _or_asts(asts: list):
+        """OR of already-compiled ASTs: a free branch wins, impossible ones drop, duplicates fold."""
+        if any(a == ("true",) for a in asts):
+            return ("true",)
+        uniq = []
+        for a in asts:
+            if a != ("false",) and a not in uniq:
+                uniq.append(a)
+        if not uniq:
+            return ("false",)
+        return uniq[0] if len(uniq) == 1 else ("or", uniq)
+
+    @staticmethod
+    def _and_asts(asts: list):
+        if any(a == ("false",) for a in asts):
+            return ("false",)
+        kids = [a for a in asts if a != ("true",)]
+        if not kids:
+            return ("true",)
+        return kids[0] if len(kids) == 1 else ("and", kids)
+
+    def _artifact_ast(self, art: str):
+        """An "Artifact: X" CHECK: reachable through the cave on any enabled map that holds it."""
+        ids = [e["id"] for e in self._locations["location_categories"].get(
+            "inventory_checks", {}).get("entries", []) if e["name"] == "Artifact: " + art]
+        maps = self._maps_holding(ids) or [None]
+        return self._or_asts([self._compile_expr(self._map_cave_expr(art, mk)) for mk in maps])
 
     # boss reachability AST: a boss needs all its artifacts' caves done; Overseer needs the 3
     # island bosses defeated. Boss kills are the goal, gated here so the win requires real prep.
@@ -1307,8 +1364,31 @@ class ArkASAWorld(World):
         tl = self._tame_logic_data
         kids = []
         arts = tl.get("boss_artifacts", {}).get(boss_short)
-        if arts:
+        # PER-MAP summon: which artifacts, which caves, and any extra that map's arena demands.
+        # Ragnarok's Dragon and Manticore share one arena summoned by ten artifacts from Ragnarok's
+        # own caves - nothing like the Island's four or Scorched's three. A boss on several
+        # enabled maps can be fought on whichever is reachable, so the variants are ORed.
+        mba = tl.get("map_boss_artifacts", {})
+        mbr = tl.get("map_boss_reqs", {})
+        mcr = tl.get("map_cave_reqs", {})
+        boss_ids = [b["id"] for b in self._locations["location_categories"]["bosses"]["entries"]
+                    if b["name"].replace("Boss: ", "").split(" (")[0] == boss_short]
+        maps = self._maps_holding(boss_ids)
+        if any(boss_short in mba.get(mk, {}) or mk in mbr or mk in mcr for mk in maps):
+            variants = []
+            for mk in maps:
+                parts = [self._compile_expr(self._map_cave_expr(a, mk))
+                         for a in mba.get(mk, {}).get(boss_short, arts or [])]
+                extra = mbr.get(mk, {}).get(boss_short, mbr.get(mk, {}).get("*"))
+                if extra:
+                    parts.append(self._compile_expr(extra))
+                variants.append(self._and_asts(parts))
+            k = self._or_asts(variants)
+            if k != ("true",):
+                kids.append(k)
+        elif arts:
             kids += [k for k in (self._cave_ast(a) for a in arts) if k != ("true",)]
+        if arts:
             # Some bosses also demand TRIBUTE items on top of the artifacts, and those come off a
             # creature. The Manticore's portal wants 2/10/20 Fire + Lightning + Poison Talon
             # (gamma/beta/alpha) as well as its three artifacts, and every talon drops from a
@@ -1707,6 +1787,8 @@ class ArkASAWorld(World):
         # Unicorn (a rare wandering spawn you may never find) + Yeti (Gigantopithecus, a nasty
         # snow-cave apex) - too luck/gear-dependent to sit key progression behind.
         excluded_progression |= {"Tamed: Unicorn", "Killed: Unicorn", "Killed: Yeti"}
+        # a creature AT the level cap is a lucky spawn you may never meet - same reasoning
+        excluded_progression |= {"Tame a max-level creature", "Kill a max-level creature"}
         for loc_name in self._used_locations():
             if loc_name.startswith("Reach Level "):
                 try:
@@ -1866,7 +1948,7 @@ class ArkASAWorld(World):
                 if name in excluded:
                     continue
                 if name.startswith("Artifact: "):
-                    ast = self._cave_ast(name[len("Artifact: "):])
+                    ast = self._artifact_ast(name[len("Artifact: "):])
                     if ast != ("true",):
                         add_rule(self.multiworld.get_location(name, self.player),
                                  lambda state, a=ast: eval_ast(a, state, self.player))
@@ -1906,6 +1988,22 @@ class ArkASAWorld(World):
                     if ast != ("true",):
                         add_rule(self.multiworld.get_location(name, self.player),
                                  lambda state, a=ast: eval_ast(a, state, self.player))
+            # notes you only get BY taming a creature (the Griffin dossier) are gated exactly like
+            # that creature's "Tamed: X" check - its taming method, plus its unlock under
+            # lock_taming. Without this the dossier sat at sphere 0 and could hold progression the
+            # player has no way to reach before they can tame a Griffin.
+            for name, creature in self._tame_logic_data.get("note_requires_tame", {}).items():
+                if name not in used or name in excluded:
+                    continue
+                loc = self.multiworld.get_location(name, self.player)
+                if creature not in NO_TAME_LOGIC:
+                    ast = self._tame_ast(creature)
+                    if ast != ("true",):
+                        add_rule(loc, lambda state, a=ast: eval_ast(a, state, self.player))
+                if self.options.lock_taming.value:
+                    unlock = self._tame_rep_of("Tame: " + creature)
+                    if unlock in self._tame_item_names:
+                        add_rule(loc, lambda state, it=unlock: state.has(it, self.player))
             # REALISM: tough KILL checks shouldn't sit at sphere 0/1 (a kill has no tame-lock, so
             # by default any Killed: X is instantly reachable). Gate water creatures behind diving
             # gear and apex predators behind a real weapon, so they hold LATER progression. Easy
@@ -1927,7 +2025,9 @@ class ArkASAWorld(World):
                 name = e["name"]
                 if name not in used_kill or name in excluded:
                     continue
-                ast = self._compile_expr(self._KILL_APEX)
+                expr = self._tame_logic_data.get("alpha_kill_reqs", {}).get(
+                    name[len("Killed: "):], self._KILL_APEX)
+                ast = self._compile_expr(expr)
                 if ast != ("true",):
                     add_rule(self.multiworld.get_location(name, self.player),
                              lambda state, a=ast: eval_ast(a, state, self.player))

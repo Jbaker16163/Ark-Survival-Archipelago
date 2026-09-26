@@ -848,13 +848,15 @@
       "dino_tag": "Unicorn",
       "saddle_class": "BlueprintGeneratedClass /Game/PrimalEarth/CoreBlueprints/Items/Armor/Saddles/PrimalItemArmor_EquusSaddle.PrimalItemArmor_EquusSaddle_C",
       "tame_loc": 8753104,
-      "kill_loc": 8755114
+      "kill_loc": 8755114,
+      "class_match": "Equus_Character_BP_Unicorn"
     },
     {
       "name": "Yeti",
       "dino_tag": "Yeti",
       "tameable": false,
-      "kill_loc": 8755115
+      "kill_loc": 8755115,
+      "class_match": "Yeti_Character_BP"
     },
     {
       "name": "Deathworm",

@@ -59,6 +59,13 @@ FORCED_TAMEABLE = [
     ("Carcharodontosaurus", "Carcha", "Engram: Saddle Carcha"),
     ("Unicorn", "Unicorn", "Engram: Saddle Equus"),   # no dedicated saddle - reuses Equus's
 ]
+# variants that REPORT their parent's DinoNameTag in game: the Unicorn is Equus_Character_BP_Unicorn_C
+# but its tag reads "Equus". The plugin matches this class fragment first and treats the creature as
+# the entry's own tag, so the Unicorn gates on Tame: Unicorn and sends Tamed/Killed: Unicorn.
+# Variants that report their PARENT's DinoNameTag, so the plugin must identify them by class.
+# Yeti_Character_BP_C lives in /Dinos/Bigfoot/ and reports "Bigfoot" - its kills fired
+# Killed: Gigantopithecus and Killed: Yeti never could (same bug the Unicorn had with Equus).
+CLASS_MATCH = {"Unicorn": "Equus_Character_BP_Unicorn", "Yeti": "Yeti_Character_BP"}
 FORCED_ID_BASE = 8732100       # tame item ids for FORCED_TAMEABLE
 FORCED_TAME_LOC_BASE = 8753100
 FORCED_KILL_LOC_BASE = 8755110  # matches shipped ids (Onyc 8755110 .. Unicorn 8755114) - do not shift
@@ -238,12 +245,18 @@ def main() -> None:
     for j, entry in enumerate(UNTAMEABLE_KILLS):
         name, tag = entry[0], entry[1]
         loc = entry[2] if len(entry) > 2 else KILL_ONLY_LOC_BASE + j
-        dinos.append({"name": name, "dino_tag": tag, "kill_loc": loc, "tameable": False})
+        ko = {"name": name, "dino_tag": tag, "kill_loc": loc, "tameable": False}
+        if name in CLASS_MATCH:
+            ko["class_match"] = CLASS_MATCH[name]
+        dinos.append(ko)
     # append always-included tameable species (missed by the harvest). saddle = engram ap_name -> class.
     for j, (name, tag, saddle) in enumerate(FORCED_TAMEABLE):
-        dinos.append({"id": FORCED_ID_BASE + j, "ap_name": "Tame: " + name, "dino_tag": tag,
-                      "saddle_class": by_apname.get(saddle) if saddle else None,
-                      "tame_loc": FORCED_TAME_LOC_BASE + j, "kill_loc": FORCED_KILL_LOC_BASE + j})
+        entry = {"id": FORCED_ID_BASE + j, "ap_name": "Tame: " + name, "dino_tag": tag,
+                 "saddle_class": by_apname.get(saddle) if saddle else None,
+                 "tame_loc": FORCED_TAME_LOC_BASE + j, "kill_loc": FORCED_KILL_LOC_BASE + j}
+        if name in CLASS_MATCH:
+            entry["class_match"] = CLASS_MATCH[name]
+        dinos.append(entry)
     # no two entries may share an item id / tame_loc / kill_loc (shipped ids are load-bearing:
     # they're frozen into every generated multidata's datapackage).
     for key in ("id", "tame_loc", "kill_loc"):
