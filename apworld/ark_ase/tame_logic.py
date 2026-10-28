@@ -38,6 +38,13 @@ class TameLogic:
         # Used for the fur-count caves, mirroring Lurch's PopTracker Lua (furcount >= 4 / >= 3 over
         # the five fur engrams + the Otter tame). "of" holds FINAL ap_item_names, so no remap is done.
         self.count_macros: Dict[str, dict] = data.get("count_macros", {})
+        # Full ap_item_name -> the item that actually carries it in the pool (engram/tame grouping
+        # rep, structure bundle). count_macros list FINAL names, and nothing else remaps them: with
+        # engrams_per_item > 1 the fur pieces fold into other reps, the "n of these" count could
+        # never be met, and every fur-gated cave/artifact (and the Dragon behind them) went
+        # unreachable - "Game appears as unbeatable" on Valguero/Fjordur (2026-10-09). The world
+        # sets this; identity by default so the module stays usable on its own.
+        self.item_remap: Callable[[str], str] = lambda name: name
 
     # ---- requirement expression for a roster dino (cave override > sheet > DINO_TIER fallback) ----
     def dino_expr(self, roster_short: str, tier: int) -> str:
@@ -104,6 +111,10 @@ class TameLogic:
             n = int(spec.get("n", 1))
             pool: List[str] = []
             for x in spec.get("of", []):
+                # Remap to the pooled carrier. Duplicates are KEPT on purpose: has_from_list sums
+                # one per listed name, so a rep carrying two fur pieces is listed twice and counts
+                # as two - exactly what holding it means.
+                x = self.item_remap(x)
                 if x in missing:
                     continue                   # can't ever hold it (wrong map) - drop from the pool
                 if x in free:

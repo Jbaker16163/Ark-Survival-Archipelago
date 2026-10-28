@@ -151,3 +151,11 @@ def load_explore_data() -> Dict[str, Any]:
         return _load("explore_areas.json")
     except FileNotFoundError:
         return {}
+
+
+def load_item_aliases() -> Dict[str, Any]:
+    """In-game display names -> AP item names (hint groups). Optional - empty if not bundled."""
+    try:
+        return _load("item_aliases.json")
+    except FileNotFoundError:
+        return {"aliases": {}, "saddle_names": {}}

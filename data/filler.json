@@ -1,5 +1,5 @@
 {
-  "_comment": "Filler + trap items. Effect kinds: 'spawn' = SpawnDino <blueprint> near the player (dino traps); 'give' = GiveItem <gfi> xN; 'buff' = run <command> (ForceGiveBuff ...) as the target player - trap=true entries are debuffs, trap=false are positive buffs. Buff/debuff set curated from the ark.wiki.gg ForceGiveBuff list (permanent/toggle/near-lethal/broken effects excluded on purpose). The plugin reads this; the apworld mixes traps vs good by trap_percentage.",
+  "_comment": "Filler + trap items. Effect kinds: 'spawn' = SpawnDino <blueprint> near the player (dino traps) - level_pct is a PERCENT of the server's max wild level (difficulty x 30, non-Tek), turned into a level by the plugin at spawn time, so traps scale with the server instead of assuming 150; 'give' = GiveItem <gfi> xN; 'buff' = run <command> (ForceGiveBuff ...) as the target player - trap=true entries are debuffs, trap=false are positive buffs. Buff/debuff set curated from the ark.wiki.gg ForceGiveBuff list (permanent/toggle/near-lethal/broken effects excluded on purpose). The plugin reads this; the apworld mixes traps vs good by trap_percentage.",
   "_id_base": 8739500,
   "_comment_gfi_code": "A give may carry \"gfi_code\" instead of relying on its \"gfi\" blueprint path. The path has to be exactly right down to the folder, and three of ours were not (Leech Blood, Achatina Paste, Element Dust all failed with ok=0 on every attempt). A GFI code is the short name ARK's own 'cheat GFI' searches for, so it does not depend on knowing the asset's folder.",
   "filler": [
@@ -42,7 +42,7 @@
         "kind": "spawn",
         "blueprint": "Blueprint'/Game/PrimalEarth/Dinos/Raptor/Raptor_Character_BP.Raptor_Character_BP'",
         "count": 3,
-        "level": 50,
+        "level_pct": 33.33,
         "distance": 2500
       }
     },
@@ -54,7 +54,7 @@
         "kind": "spawn",
         "blueprint": "Blueprint'/Game/PrimalEarth/Dinos/Dilo/Dilo_Character_BP.Dilo_Character_BP'",
         "count": 4,
-        "level": 30,
+        "level_pct": 20.0,
         "distance": 2500
       }
     },
@@ -66,7 +66,7 @@
         "kind": "spawn",
         "blueprint": "Blueprint'/Game/PrimalEarth/Dinos/Carno/Carno_Character_BP.Carno_Character_BP'",
         "count": 1,
-        "level": 90,
+        "level_pct": 60.0,
         "distance": 2500
       }
     },
@@ -78,7 +78,7 @@
         "kind": "spawn",
         "blueprint": "Blueprint'/Game/PrimalEarth/Dinos/TerrorBird/TerrorBird_Character_BP.TerrorBird_Character_BP'",
         "count": 3,
-        "level": 50,
+        "level_pct": 33.33,
         "distance": 2500
       }
     },
@@ -90,7 +90,7 @@
         "kind": "spawn",
         "blueprint": "Blueprint'/Game/PrimalEarth/Dinos/Rex/Rex_Character_BP.Rex_Character_BP'",
         "count": 1,
-        "level": 120,
+        "level_pct": 80.0,
         "distance": 2500
       }
     },
@@ -102,7 +102,7 @@
         "kind": "spawn",
         "blueprint": "Blueprint'/Game/PrimalEarth/Dinos/Direwolf/Direwolf_Character_BP.Direwolf_Character_BP'",
         "count": 4,
-        "level": 60,
+        "level_pct": 40.0,
         "distance": 2500
       }
     },
@@ -114,7 +114,7 @@
         "kind": "spawn",
         "blueprint": "Blueprint'/Game/PrimalEarth/Dinos/Saber/Saber_Character_BP.Saber_Character_BP'",
         "count": 2,
-        "level": 70,
+        "level_pct": 46.67,
         "distance": 2500
       }
     },
@@ -126,7 +126,7 @@
         "kind": "spawn",
         "blueprint": "Blueprint'/Game/PrimalEarth/Dinos/Allosaurus/Allo_Character_BP.Allo_Character_BP'",
         "count": 3,
-        "level": 80,
+        "level_pct": 53.33,
         "distance": 2500
       }
     },
@@ -138,7 +138,7 @@
         "kind": "spawn",
         "blueprint": "Blueprint'/Game/PrimalEarth/Dinos/Kaprosuchus/Kaprosuchus_Character_BP.Kaprosuchus_Character_BP'",
         "count": 2,
-        "level": 60,
+        "level_pct": 40.0,
         "distance": 2500
       }
     },
@@ -150,7 +150,7 @@
         "kind": "spawn",
         "blueprint": "Blueprint'/Game/PrimalEarth/Dinos/Argentavis/Argent_Character_BP.Argent_Character_BP'",
         "count": 3,
-        "level": 50,
+        "level_pct": 33.33,
         "distance": 2500
       }
     },
@@ -162,7 +162,7 @@
         "kind": "spawn",
         "blueprint": "Blueprint'/Game/PrimalEarth/Dinos/Spino/Spino_Character_BP.Spino_Character_BP'",
         "count": 1,
-        "level": 120,
+        "level_pct": 80.0,
         "distance": 2500
       }
     },
@@ -174,7 +174,7 @@
         "kind": "spawn",
         "blueprint": "Blueprint'/Game/PrimalEarth/Dinos/Microraptor/Microraptor_Character_BP.Microraptor_Character_BP'",
         "count": 5,
-        "level": 30,
+        "level_pct": 20.0,
         "distance": 2500
       }
     },
@@ -186,7 +186,7 @@
         "kind": "spawn",
         "blueprint": "Blueprint'/Game/PrimalEarth/Dinos/Troodon/Troodon_Character_BP.Troodon_Character_BP'",
         "count": 4,
-        "level": 40,
+        "level_pct": 26.67,
         "distance": 2500
       }
     },
@@ -198,7 +198,7 @@
         "kind": "spawn",
         "blueprint": "Blueprint'/Game/PrimalEarth/Dinos/Scorpion/Scorpion_Character_BP.Scorpion_Character_BP'",
         "count": 3,
-        "level": 40,
+        "level_pct": 26.67,
         "distance": 2500
       }
     },
@@ -210,7 +210,7 @@
         "kind": "spawn",
         "blueprint": "Blueprint'/Game/PrimalEarth/Dinos/Spider/SpiderS_Character_BP.SpiderS_Character_BP'",
         "count": 3,
-        "level": 40,
+        "level_pct": 26.67,
         "distance": 2500
       }
     },
@@ -222,7 +222,7 @@
         "kind": "spawn",
         "blueprint": "Blueprint'/Game/PrimalEarth/Dinos/Bat/Bat_Character_BP.Bat_Character_BP'",
         "count": 4,
-        "level": 30,
+        "level_pct": 20.0,
         "distance": 2500
       }
     },
@@ -234,7 +234,7 @@
         "kind": "spawn",
         "blueprint": "Blueprint'/Game/PrimalEarth/Dinos/Pegomastax/Pegomastax_Character_BP.Pegomastax_Character_BP'",
         "count": 3,
-        "level": 20,
+        "level_pct": 13.33,
         "distance": 2500
       }
     },

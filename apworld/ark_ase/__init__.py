@@ -18,7 +18,7 @@ from worlds.generic.Rules import add_rule
 from .data import (load_engram_data, load_location_data, load_dino_data, load_crate_data,
                    load_filler_data, load_tek_data, load_spawn_class_data,
                    load_spawn_container_data, load_tame_logic_data, load_mod_catalog,
-                   load_explore_data, load_map_data)
+                   load_explore_data, load_map_data, load_item_aliases)
 from .Items import (ArkItem, build_item_table, FILLER_NAME, FILLER_ID,
                     STRUCTURE_BUNDLES, structure_bundle_members)
 from .Locations import ArkLocation, build_location_table
@@ -96,7 +96,11 @@ CRAFTED_COLLECT_ENGRAM = {
 # free. Sphere-0 in practice (Killed: X on a weak dino has no gate), so deep recipes that need them
 # (Campfire feeds cooked meat -> gunpowder -> Rifle KO) are available from the start - but you still
 # earn it in-world by killing something trivial, not for free. See pre_fill.
-HARD_PLACED = {"Engram: Campfire"}
+# EMPTY since 2026-10-27 (Justin): the Campfire must NOT be in logic from the start. Hard-placed on
+# a sphere-0 kill, UT counted it as already owned and showed every cooked meat check open. It is now
+# an ordinary pool engram, so the Campfire rules wait until it is actually received. The machinery
+# stays in case another engram ever needs hard-placing.
+HARD_PLACED: set = set()
 # weak early dinos whose "Killed: X" check may host a HARD_PLACED engram (seeded pick among those
 # actually present in the seed). All sphere-0 kills. NOTE: these are the LOCATION-name shorts
 # (ap_name-derived), not the dino_tags - "Killed: Compsognathus", not "Killed: Compy".
@@ -156,6 +160,29 @@ class ArkASAWeb(WebWorld):
     )]
 
 
+def build_alias_groups(data: dict, item_names) -> Dict[str, set]:
+    """alias -> {AP item}. Explicit aliases, plus '<X> Saddle' for every 'Engram: Saddle <X>' (the
+    game's word order), using the full creature name where ours is abbreviated. Skips targets that are
+    not items and any alias that would shadow a real item name."""
+    groups: Dict[str, set] = {}
+
+    def add(alias: str, target: str) -> None:
+        if target in item_names and alias not in item_names and alias != target:
+            groups.setdefault(alias, set()).add(target)
+
+    for alias, target in data.get("aliases", {}).items():
+        add(alias, target)
+    names = data.get("saddle_names", {})
+    for item in item_names:
+        if item.startswith("Engram: Saddle "):
+            short = item[len("Engram: Saddle "):]
+            add(f"{short} Saddle", item)
+            base = short.replace(" Platform", "")
+            if base in names:
+                add(f"{names[base]}{' Platform' if short.endswith(' Platform') else ''} Saddle", item)
+    return groups
+
+
 class ArkASAWorld(World):
     """ARK: Survival Evolved - engrams, taming, and dossiers as Archipelago items/checks."""
 
@@ -197,6 +224,8 @@ class ArkASAWorld(World):
     # resource Packs ship weights 2-5 so they show up more than one-off buffs/single-resource gives.
     _filler_weight = {f["ap_name"]: f.get("weight", 1) for f in _filler.get("filler", [])}
     item_name_to_id: Dict[str, int] = build_item_table(_engrams, _dinos, _crates, _filler, _mod_catalog)
+    # In-game names as hint groups: '!hint Smithy' -> Engram: Anvil Bench (data/item_aliases.json).
+    item_name_groups: Dict[str, set] = build_alias_groups(load_item_aliases(), item_name_to_id)
     location_name_to_id: Dict[str, int] = build_location_table(_locations, _dinos, _mod_catalog,
                                                               _explore)
 
@@ -794,11 +823,44 @@ class ArkASAWorld(World):
                         for r in req:
                             extra_alias.setdefault(r.replace("Engram: ", ""),
                                                    r.replace("Engram: ", ""))
-                if extra_alias:
-                    data = dict(data)
+                # GENERATED tokens (Ark IDs v5 audit, 2026-10-09). Each closes a family of names the
+                # sheet uses that used to resolve to nothing - and an unresolved token silently
+                # compiles to "no requirement":
+                #   CaveX  = cave_reqs[X]: "Snow Cave" in the sheet is CaveStrong (its Locations tab
+                #            puts the Artifact of the Strong there). Generated, so it never drifts.
+                #   KillX  = kill_reqs[X], only where no hand-written KillX recipe exists
+                #            (Rhyniognatha's tame needs one).
+                #   CanTame* = "can tame N creatures": hold N Tame: unlocks that count for logic.
+                #            With lock_taming off nothing is locked, so they cost nothing.
+                recipes0 = data.get("item_recipes", {})
+                for art, expr in data.get("cave_reqs", {}).items():
+                    extra_recipes.setdefault("Cave" + art, expr)
+                for name, expr in data.get("kill_reqs", {}).items():
+                    key = "Kill" + re.sub(r"[^A-Za-z]", "", name)
+                    if key not in recipes0:
+                        extra_recipes.setdefault(key, expr)
+                counts = dict(data.get("count_macros", {}))
+                no_logic = {"Tame: " + n for n in NO_TAME_LOGIC}
+                countable = [n for n in sorted(self._tame_item_names)
+                             if n in self.item_name_to_id and n not in no_logic
+                             and n not in self._missing_items()]
+                for tok, n in (("CanTameAnyCreature", 1), ("CanTame5Creatures", 5),
+                               ("CanTame10Creatures", 10), ("CanTame20Creatures", 20),
+                               ("CanTame50Creatures", 50)):
+                    if not self.options.lock_taming.value or not countable:
+                        extra_recipes[tok] = ""
+                    else:
+                        # capped: a map with fewer tameables than N cannot demand more than it has
+                        counts[tok] = {"n": min(n, len(countable)), "of": countable}
+                data = dict(data)
+                data["count_macros"] = counts
+                if extra_alias or extra_recipes:
                     data["alias"] = {**data.get("alias", {}), **extra_alias}
                     data["item_recipes"] = {**data.get("item_recipes", {}), **extra_recipes}
                 tl = TameLogic(data)
+                # Looked up LIVE at compile time (not captured now): _fit_pool_to_locations may
+                # raise the grouping factor later and clear the grouping caches.
+                tl.item_remap = self._pooled_name
             else:
                 tl = None
             self._tame_cache = tl
@@ -902,8 +964,14 @@ class ArkASAWorld(World):
             cache = {}
             if n > 1:
                 skip = self._nonpool_names()
+                # ONLY items this slot's maps actually pool. A group whose representative belongs to
+                # another map is never pooled (the map filter drops the rep) while its members are
+                # skipped as "folded" - so on-map members silently vanished from the seed, e.g. Saddle
+                # Karkinos folded under the off-map Saddle Amargasaurus on Ragnarok.
+                keep = self._map_filter("items")
                 loose = [nm for nm in self._engram_ap_names()
-                         if nm in self.item_name_to_id and nm not in skip]
+                         if nm in self.item_name_to_id and nm not in skip
+                         and keep(self.item_name_to_id[nm])]
                 loose.sort(key=lambda nm: self.item_name_to_id[nm])
                 for i in range(0, len(loose), n):
                     chunk = loose[i:i + n]
@@ -921,8 +989,14 @@ class ArkASAWorld(World):
             cache = {}
             if n > 1:
                 buckets: Dict[int, list] = {}
+                # Same map rule as _engram_groups: chunk only tames this slot pools. Chunking the whole
+                # roster put Scorched's Rex/Spino/Therizino under Tame: Quetzal (not on Scorched), so
+                # the rep was never pooled, the members never could be either, and every Rex/Spino
+                # ride rule compiled to false - "Killed: Alpha Rex ... gated on content those maps do
+                # not have" with tames_per_item > 1 (2026-10-09).
+                keep = self._map_filter("items")
                 for nm in self._tame_item_names:
-                    if nm not in self.item_name_to_id:
+                    if nm not in self.item_name_to_id or not keep(self.item_name_to_id[nm]):
                         continue
                     short = nm[len("Tame: "):] if nm.startswith("Tame: ") else nm
                     buckets.setdefault(self._dino_tier(short), []).append(nm)
@@ -967,6 +1041,15 @@ class ArkASAWorld(World):
         return cache
 
     # a tame item name -> its group representative (itself if ungrouped / a rep).
+    # Any full ap_item_name -> the item that actually carries it in this slot's pool (tame grouping
+    # rep, or engram grouping rep / structure bundle via _bundle_remap). Identity for the rest.
+    def _pooled_name(self, item: str) -> str:
+        if item.startswith("Tame: "):
+            return self._tame_rep_of(item)
+        if item.startswith("Engram: "):
+            return self._bundle_remap()(item[len("Engram: "):])
+        return item
+
     def _tame_rep_of(self, item: str) -> str:
         m = getattr(self, "_tame_rep_cache", None)
         if m is None:
@@ -1104,7 +1187,13 @@ class ArkASAWorld(World):
         cached = getattr(self, "_missing_items_cache", None)
         if cached is None:
             keep = self._map_filter("items")
-            cached = frozenset(n for n, i in self.item_name_to_id.items() if not keep(i))
+            missing = {n for n, i in self.item_name_to_id.items() if not keep(i)}
+            reachable = set(self._boss_events())          # "X Defeated" for bosses this slot has
+            for b in self._locations["location_categories"]["bosses"]["entries"]:
+                ev = b["name"].replace("Boss: ", "").split(" (")[0] + " Defeated"
+                if ev not in reachable:
+                    missing.add(ev)
+            cached = frozenset(missing)
             self._missing_items_cache = cached
         return cached
 
@@ -1247,6 +1336,12 @@ class ArkASAWorld(World):
                 key = self._ride_key(node)
                 if key in rm:
                     cache[node] = rm[key]
+            # A BOSS name used as a token ("Broodmother | Megapithecus | Dragon" in Collect Element)
+            # means "has beaten that boss" - its defeat event. Unreachable bosses' events are in
+            # _missing_items, so such a branch drops out instead of being unsatisfiable.
+            for b in self._locations["location_categories"]["bosses"]["entries"]:
+                short = b["name"].replace("Boss: ", "").split(" (")[0]
+                cache.setdefault(short, [short + " Defeated"])
             self._direct_cache = cache
         return cache
 
@@ -1260,12 +1355,13 @@ class ArkASAWorld(World):
             # per-map tables nest one level deeper ({map: {name: expr}}) - flatten them, or a bare
             # creature named only there (Ragnarok's "Basilosaurus | Megalodon" cave) never gets a
             # direct node and compiles to a silent true
-            nested = [inner for tbl in ("map_cave_reqs", "map_boss_reqs")
-                      for inner in d.get(tbl, {}).values()]
+            nested = [inner for tbl in ("map_cave_reqs", "map_boss_reqs", "map_kill_reqs", "map_note_caves")
+                      for inner in d.get(tbl, {}).values() if isinstance(inner, dict)]
             for src in (d.get("kill_reqs", {}), d.get("item_recipes", {}),
                         d.get("cave_reqs", {}), d.get("dino_tame_raw", {}),
                         d.get("collect_reqs", {}), d.get("alpha_kill_reqs", {}),
-                        d.get("world_boss_reqs", {}), *nested):
+                        d.get("world_boss_reqs", {}), d.get("milestone_reqs", {}),
+                        d.get("cave_tames", {}), *nested):
                 for expr in src.values():
                     for t in re.split(r"[+|()]", str(expr)):
                         t = t.strip()
@@ -1279,7 +1375,23 @@ class ArkASAWorld(World):
         tl = self._tame()
         if not tl:
             return ("true",)
-        expr = self._kill_expr(short, tag)
+        # PER-MAP kill rule (map_kill_reqs, same shape as map_cave_reqs): the Island's Yeti also
+        # needs the Snow Cave, Center/Fjordur's does not. A creature on several enabled maps is
+        # killable if ANY of them allows it. Maps without an override use kill_reqs.
+        mkr = self._tame_logic_data.get("map_kill_reqs", {})
+        if mkr:
+            loc = next((d["kill_loc"] for d in self._dinos.get("dinos", [])
+                        if d.get("kill_loc") and self._dino_short(d) == short), None)
+            maps = self._maps_holding([loc]) if loc else []
+            names = [n for n in (short, self._tame_logic_data.get("dino_alias", {}).get(short), tag) if n]
+            def over(mk):
+                return next((mkr.get(mk, {})[n] for n in names if n in mkr.get(mk, {})), None)
+            if any(over(mk) is not None for mk in maps):
+                return self._or_asts([self._kill_ast_expr(tl, short, over(mk) or self._kill_expr(short, tag))
+                                      for mk in maps])
+        return self._kill_ast_expr(tl, short, self._kill_expr(short, tag))
+
+    def _kill_ast_expr(self, tl, short: str, expr: str):
         # CAVE DWELLERS: killing one also means getting INTO its cave. Lurch's kill table encodes
         # only the weapon/mount, so a cave creature whose expression allows plain melee (Araneo,
         # Dung Beetle) would otherwise be sphere-0 despite his sheet marking it sphere 2. AND in the
@@ -1668,6 +1780,19 @@ class ArkASAWorld(World):
             self._tier_gate_cache = cache
         return cache
 
+    # Pooled carriers of "any foundation" (can_build): Thatch / Wood / Stone Floor after engram
+    # grouping and structure bundling, minus any not on this slot's maps. found_free = a foundation
+    # is already owned at spawn (free starter), so the requirement is met from the start.
+    def _foundation_items(self):
+        remap = self._bundle_remap()
+        free = self._free_items() | self._auto_grant_names() | HARD_PLACED
+        missing = self._missing_items()
+        names = [remap(n) for n in ("Thatch Floor", "Wood Floor", "Stone Floor")]
+        if any(n in free for n in names):
+            return (), True
+        avail = tuple(dict.fromkeys(n for n in names if n not in missing and n in self.item_name_to_id))
+        return avail, not avail
+
     # The effective AP item names a tier gate requires. A gate engram may be non-pooled: folded into
     # a count-group (engrams_per_item -> require its REPRESENTATIVE, which is what actually grants
     # it) or free (starter/auto-grant -> no requirement at all). Mirrors what _bundle_remap does for
@@ -1698,10 +1823,20 @@ class ArkASAWorld(World):
         regions.extend(tiers)
         regions.append(notes)
         menu.connect(tiers[0])
-        for i, gates in enumerate(TIER_GATES):             # T0->T1 needs Anvil Bench + Mortar And Pestle, etc.
+        # T0 -> T1 opens on the Forge + Mortar & Pestle - and both need a FOUNDATION to stand on
+        # (can_build), so the entrance demands one too. Without it the tier opened on the station
+        # engrams alone and a foundation could arrive spheres after the stations it is needed for
+        # (Thatch Floor in sphere 4 under a sphere-1 Forge, 2026-10-22). Later tiers inherit it.
+        found, found_free = self._foundation_items()
+        for i, gates in enumerate(TIER_GATES):             # T0->T1 needs Forge + Mortar And Pestle, etc.
             req = self._gate_items(gates)
-            tiers[i].connect(tiers[i + 1], f"Tier {i} -> Tier {i + 1}",
-                             rule=(lambda state, g=req: state.has_all(g, self.player)) if req else None)
+            alt = found if (i == 0 and not found_free) else ()
+            if req or alt:
+                rule = (lambda state, g=req, a=alt: state.has_all(g, self.player)
+                        and (not a or state.has_any(a, self.player)))
+            else:
+                rule = None
+            tiers[i].connect(tiers[i + 1], f"Tier {i} -> Tier {i + 1}", rule=rule)
         tiers[2].connect(notes, "Tier 2 -> Explorer Notes")   # inherits gates 0 AND 1 transitively
         excluded_progression = self._excluded_progression_names()
         # Never let a TIER-GATE STATION (Forge/Mortar/Smithy/Fabricator) land on an explorer note.
@@ -1901,6 +2036,29 @@ class ArkASAWorld(World):
                         add_rule(self.multiworld.get_location(loc_name, self.player),
                                  lambda state, it=req: state.has(it, self.player))
                     break
+        # "Collect N Explorer Notes" needs N notes you can actually REACH. The milestone lived in a
+        # tier region with no rule, so it opened at sphere 0 - before any single note was in logic
+        # (notes sit behind Tier 2 and their own cave/snow/water gates). Count reachable note
+        # locations and stop at N, so the rule stays cheap once enough are open.
+        used = self._used_locations()
+        note_locs = [self.multiworld.get_location(n, self.player) for n in used if self._is_note(n)]
+        for mst in self._locations["location_categories"].get("milestones", {}).get("entries", []):
+            tag = mst.get("tag", "")
+            if not tag.startswith("milestone_notes_") or mst["name"] not in used:
+                continue
+            try:
+                need = int(tag.rsplit("_", 1)[1])
+            except ValueError:
+                continue
+            def enough_notes(state, n=need, locs=note_locs):
+                got = 0
+                for loc in locs:
+                    if loc.can_reach(state):
+                        got += 1
+                        if got >= n:
+                            return True
+                return False
+            add_rule(self.multiworld.get_location(mst["name"], self.player), enough_notes)
         # TAME/CRAFT ACCESS RULES (always on): "Tamed: X" requires the engrams X's taming method
         # needs (from tame_logic; prevents the fill stranding a needed item behind a dino you can't
         # yet tame). lock_taming ALSO requires the "Tame: X" unlock. Both add_rule -> ANDed.
@@ -2057,7 +2215,9 @@ class ArkASAWorld(World):
             # budget. Compiled through the same recipe graph as the caves, so "Fur" really means
             # the Smithy chain, not a bare item name.
             for r in self._used_explore().values():
-                expr = self._EXPLORE_GATE.get(r.get("gate", ""), "")
+                gate = r.get("gate", "")
+                # legacy keys map to an expression; anything else IS one (EnterSnow, ReachIslands...)
+                expr = self._EXPLORE_GATE.get(gate, gate)
                 name = "Explore: " + r["name"]
                 if not expr or name in excluded:
                     continue

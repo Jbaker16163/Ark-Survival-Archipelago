@@ -832,7 +832,8 @@
       "dino_tag": "Rhynio",
       "saddle_class": "BlueprintGeneratedClass /Game/PrimalEarth/CoreBlueprints/Items/Armor/Saddles/PrimalItemArmor_RhynioSaddle.PrimalItemArmor_RhynioSaddle_C",
       "tame_loc": 8753102,
-      "kill_loc": 8755112
+      "kill_loc": 8755112,
+      "saddle_craft": "Smithy"
     },
     {
       "id": 8732103,
@@ -840,7 +841,8 @@
       "dino_tag": "Carcha",
       "saddle_class": "BlueprintGeneratedClass /Game/PrimalEarth/CoreBlueprints/Items/Armor/Saddles/PrimalItemArmor_CarchaSaddle.PrimalItemArmor_CarchaSaddle_C",
       "tame_loc": 8753103,
-      "kill_loc": 8755113
+      "kill_loc": 8755113,
+      "saddle_craft": "Smithy"
     },
     {
       "id": 8732104,

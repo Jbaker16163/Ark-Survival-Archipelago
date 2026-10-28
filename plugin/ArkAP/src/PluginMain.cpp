@@ -21,6 +21,7 @@
 #include <cctype>
 #include <unordered_map>
 #include <algorithm>   // std::search (case-insensitive Game.ini section find)
+#include <cmath>       // std::lround (trap level_pct -> level)
 #include <Windows.h>   // SEH (__try/__except) to survive access violations in game-data reads
 
 #include <API/ARK/Ark.h>
@@ -118,7 +119,10 @@ static bool ItemAllowedForRoute(const std::string& route, int item_id) {
 }
 
 // trap filler: item id -> dino spawn spec (effect = spawn wild dinos at <distance> in front)
-struct TrapSpawn { std::string blueprint; int count; int level; int distance; };
+// level_pct = percent of the server's max wild level (MaxWildLevel: difficulty x 30, non-Tek). Traps
+// were authored as fixed levels against a 150 cap, so on a 120 or 180 server a "level 120 Rex" was
+// the wrong share of the cap. < 0 = no percent given; fall back to the fixed `level`.
+struct TrapSpawn { std::string blueprint; int count; int level; int distance; double levelPct; };
 static std::unordered_map<int, TrapSpawn> g_fillerSpawn;
 static std::set<APrimalDinoCharacter*> g_trapDinos;   // spawned trap dinos -> the tame gate refuses them
 
@@ -236,7 +240,7 @@ namespace fs = std::filesystem;
 // Which dll is actually loaded. Declared up here rather than beside Load() because the JOIN greet
 // and /apstatus both quote it: "what version are they running?" was answered by asking someone to
 // find a log file on the server box, which is no answer at all when the report comes from a player.
-static const char* ARKAP_BUILD = "v193-connect-quoted-slot";
+static const char* ARKAP_BUILD = "v201-hint-aliases";
 
 // the plugin's own folder: ArkApi/Plugins/ArkAP
 static fs::path PluginDir() {
@@ -1502,11 +1506,17 @@ static bool DoSpawnTrapOn(AShooterPlayerController* pc, const TrapSpawn& t) {
         if (fn.ToString().find(leaf) != std::string::npos) preexisting.insert(a);
     }
 
+    // Resolved HERE, not at load: MaxWildLevel reads the live difficulty, which is not readable yet
+    // while the plugin loads. Rounded to nearest - level_pct is stored to 2 decimals, so on a 150 cap
+    // every trap lands exactly on the level it was authored at (33.33% -> 49.995 -> 50).
+    int level = t.level;
+    if (t.levelPct >= 0.0)
+        level = (std::max)(1, (int)std::lround(t.levelPct / 100.0 * MaxWildLevel()));
     int count = t.count > 0 ? t.count : 1;
     for (int i = 0; i < count; ++i) {
         int yoff = (i - count / 2) * 350;              // spread the pack sideways
         std::string c = "SpawnDino \"" + t.blueprint + "\" " + std::to_string(t.distance) + " " +
-                        std::to_string(yoff) + " 5000 " + std::to_string(t.level);   // Z+5000 = drop from sky
+                        std::to_string(yoff) + " 5000 " + std::to_string(level);     // Z+5000 = drop from sky
         FString cmd(ArkApi::Tools::Utf8Decode(c).c_str()); FString res;
         pc->ConsoleCommand(&res, &cmd, true);
     }
@@ -1520,6 +1530,9 @@ static bool DoSpawnTrapOn(AShooterPlayerController* pc, const TrapSpawn& t) {
         if (fn.ToString().find(leaf) != std::string::npos) { g_trapDinos.insert(d); ++tagged; }
     }
     DebugLog("TRAP spawndino req=" + std::to_string(count) + " dist=" + std::to_string(t.distance) +
+             " lvl=" + std::to_string(level) +
+             (t.levelPct >= 0.0 ? " (" + std::to_string(t.levelPct) + "% of max " +
+                                  std::to_string(MaxWildLevel()) + ")" : std::string()) +
              " pre=" + std::to_string(preexisting.size()) + " tagged=" + std::to_string(tagged) +
              " bp=" + t.blueprint);
     return true;
@@ -2718,6 +2731,7 @@ static void DumpPosChat(AShooterPlayerController* pc, FString* m, EChatSendMode:
     __try { DoDumpPos(pc, m); } __except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
+
 static void DumpDinosChat(AShooterPlayerController* pc, FString*, EChatSendMode::Type) {
     __try { DoDumpDinos(pc); } __except (EXCEPTION_EXECUTE_HANDLER) {}
 }
@@ -3212,14 +3226,79 @@ static int CountResource(UPrimalInventoryComponent* inv, const std::string& cls)
     }
     return total;
 }
-// fuzzy-match a query against the AP item names. returns id (0 = none) + fills name.
-static int MatchItem(const std::string& query, std::string& name) {
-    std::string ql = query; for (auto& ch : ql) ch = (char)std::tolower((unsigned char)ch);
-    for (auto& [id, nm] : g_tables.item_name) {
-        std::string nl = nm; for (auto& ch : nl) ch = (char)std::tolower((unsigned char)ch);
-        if (nl.find(ql) != std::string::npos) { name = nm; return id; }
+// In-game display names -> AP item name, lower-cased keys (item_aliases.json, the same file the
+// apworld turns into hint groups). "Smithy" -> "Engram: Anvil Bench". Filled at load.
+static std::unordered_map<std::string, std::string> g_itemAliases;
+
+static std::string Lower(std::string s) {
+    for (auto& ch : s) ch = (char)std::tolower((unsigned char)ch);
+    return s;
+}
+
+// Match a /hint query to an AP item. returns id (0 = none) + fills name; `others` gets the runners-
+// up when the query was only a partial match. Order:
+//   1. exact item name (case-insensitive)
+//   2. an in-game alias, typed bare or with the "Engram: " prefix ("Engram: Smithy" -> Anvil Bench)
+//   3. partial match - VANILLA items before mod items, then the shortest name. It used to take the
+//      first substring hit in id order, so "Engram: Smithy" matched the S+ mod's "Engram: Smithy
+//      Plus" instead of the vanilla Smithy (Engram: Anvil Bench) (2026-10-22).
+static int MatchItem(const std::string& query, std::string& name, std::vector<std::string>* others = nullptr) {
+    const std::string ql = Lower(query);
+    auto byName = [](const std::string& want, std::string& out) -> int {
+        for (auto& [id, nm] : g_tables.item_name)
+            if (Lower(nm) == want) { out = nm; return id; }
+        return 0;
+    };
+    if (int id = byName(ql, name)) return id;
+    std::string bare = ql;
+    if (bare.rfind("engram: ", 0) == 0) bare = bare.substr(8);
+    for (const std::string& key : { ql, bare }) {
+        auto ait = g_itemAliases.find(key);
+        if (ait != g_itemAliases.end())
+            if (int id = byName(Lower(ait->second), name)) return id;
     }
-    return 0;
+    struct Cand { int id; std::string nm; bool mod; };
+    std::vector<Cand> cands;
+    for (auto& [id, nm] : g_tables.item_name)
+        if (Lower(nm).find(ql) != std::string::npos)
+            cands.push_back({ id, nm, g_tables.item_to_mod.count(id) > 0 });
+    if (cands.empty()) return 0;
+    std::stable_sort(cands.begin(), cands.end(), [](const Cand& a, const Cand& b) {
+        if (a.mod != b.mod) return !a.mod;                 // vanilla first
+        return a.nm.size() < b.nm.size();                  // then the closest (shortest) name
+    });
+    if (others)
+        for (size_t i = 1; i < cands.size() && others->size() < 3; ++i) others->push_back(cands[i].nm);
+    name = cands.front().nm;
+    return cands.front().id;
+}
+
+// item_aliases.json -> g_itemAliases. Mirrors the apworld's build_alias_groups: explicit aliases,
+// plus "<X> Saddle" for every "Engram: Saddle <X>" and the full creature name from saddle_names.
+static void LoadItemAliases(const fs::path& file) {
+    g_itemAliases.clear();
+    try {
+        if (!fs::exists(file)) return;
+        nlohmann::json j; std::ifstream(file) >> j;
+        // NAMED object: .items() on a .value(...) temporary dangles and iterates nothing (see the
+        // DataPackage note in APClient.hpp) - which is exactly how the first build loaded 0 of these.
+        auto aliases = j.value("aliases", nlohmann::json::object());
+        for (auto& [alias, target] : aliases.items())
+            if (target.is_string()) g_itemAliases[Lower(alias)] = target.get<std::string>();
+        auto names = j.value("saddle_names", nlohmann::json::object());
+        const std::string pre = "Engram: Saddle ";
+        for (auto& [id, nm] : g_tables.item_name) {
+            if (nm.rfind(pre, 0) != 0) continue;
+            std::string shortName = nm.substr(pre.size());
+            g_itemAliases.emplace(Lower(shortName + " Saddle"), nm);
+            const std::string plat = " Platform";
+            bool isPlat = shortName.size() > plat.size() &&
+                          shortName.compare(shortName.size() - plat.size(), plat.size(), plat) == 0;
+            std::string base = isPlat ? shortName.substr(0, shortName.size() - plat.size()) : shortName;
+            if (names.contains(base) && names[base].is_string())
+                g_itemAliases.emplace(Lower(names[base].get<std::string>() + (isPlat ? plat : "") + " Saddle"), nm);
+        }
+    } catch (...) {}
 }
 static std::string HintQuery(FString* message) {     // text after the command word
     if (!message) return "";
@@ -3359,8 +3438,15 @@ static void ApRecoverChat(AShooterPlayerController* pc, FString*, EChatSendMode:
 static void DoHint(AShooterPlayerController* pc, FString* message) {
     std::string q = HintQuery(message);
     if (q.empty()) { ChatNotify(L"Usage: /hint <item name>"); return; }
-    std::string name; int id = MatchItem(q, name);
+    std::string name; std::vector<std::string> others;
+    int id = MatchItem(q, name, &others);
     if (!id) { ChatNotify((L"No item matches '" + ArkApi::Tools::Utf8Decode(q) + L"'").c_str()); return; }
+    if (!others.empty()) {                         // partial match: say what else it could have meant
+        std::string alt;
+        for (auto& o : others) { if (!alt.empty()) alt += ", "; alt += o; }
+        ChatNotify(ArkApi::Tools::Utf8Decode("'" + q + "' also matches: " + alt +
+                                             " - type the full name to pick one.").c_str());
+    }
     std::string route = RouteFor(pc);              // the asker's own slot receives the hint
     // A BUNDLED item (count-group member, S+ variant, structure-bundle member, mod-group member, or
     // a saddle bundled with its tame) is never a placed AP item, so hinting it fails with "item
@@ -4150,7 +4236,8 @@ static void Load() {
                 std::string kind = eff.value("kind", "");
                 if (kind == "spawn")
                     g_fillerSpawn[id] = { eff.value("blueprint", ""), eff.value("count", 1),
-                                          eff.value("level", 30), eff.value("distance", 2500) };
+                                          eff.value("level", 30), eff.value("distance", 2500),
+                                          eff.value("level_pct", -1.0) };
                 else if (kind == "give") {
                     std::vector<FillerGive> gives;
                     if (eff.contains("gives")) for (auto& g : eff["gives"])
@@ -4314,7 +4401,12 @@ static void Load() {
                 else if (r.contains("polygon"))                       addPart(r["polygon"]);
                 // optional Z band for altitude-stacked realms (Fjordur). Missing edge = open on that
                 // side, so z_min alone means "at or above", z_max alone "at or below".
-                if (r.contains("z_min") || r.contains("z_max")) {
+                // ONLY for realm regions. The Island's z_min/z_max are just the heights the /dumppos
+                // samples were taken at ("recorded but NOT used for membership" - gen_explore_map).
+                // v179-v199 enforced them anyway, so an Island region only counted inside a band as
+                // thin as 1-2 m (obelisks, Tek Cave entrance) or 27 m (Eastern Swamp): flying in
+                // above it never fired the check (live-hit 2026-10-22).
+                if (r.contains("realm") && (r.contains("z_min") || r.contains("z_max"))) {
                     ea.hasZ = true;
                     ea.zMin = r.value("z_min", -1e12);
                     ea.zMax = r.value("z_max",  1e12);
@@ -4385,12 +4477,17 @@ static void Load() {
     ArkApi::GetCommands().AddChatCommand("/aprecover", &ApRecoverChat);
     ArkApi::GetCommands().AddChatCommand("/confirm", &ApConfirmChat);
 
+    // /hint aliases ("Smithy" -> Engram: Anvil Bench). Loaded here, after every table has filled
+    // item_name, because the saddle aliases are derived from the item names.
+    LoadItemAliases(PluginDir() / "item_aliases.json");
+
     // 1s game-thread tick (reliable ArkApi timer; API::Timer registered at DLL-load didn't fire).
     ArkApi::GetCommands().AddOnTimerCallback("ArkAP_tick", []() { Tick(); });
 
     DebugLog(std::string("LOAD ") + ARKAP_BUILD + " mode=" + (g_mode == Mode::Offline ? "offline" : "ap") +
              std::string(" multiplayer=") + (g_multiplayer ? "1" : "0") +
              " engram_classes=" + std::to_string(g_tables.engram_class_to_item.size()) +
+             " hint_aliases=" + std::to_string(g_itemAliases.size()) +
              " items=" + std::to_string(g_tables.item_name.size()) +
              " note_locs=" + std::to_string(g_tables.note_index_to_loc.size()) +
              " tame_dinos=" + std::to_string(g_tameTagToItem.size()) +

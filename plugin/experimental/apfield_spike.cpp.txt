@@ -1,0 +1,344 @@
+// PARKED - NOT COMPILED. Region-locking / forcefield test spike (plugin v196-v198), removed from
+// the main build 2026-10-09 when region locking was shelved. If it is picked up again, build it
+// as a SEPARATE plugin/module, not inside ArkAP (decision: keep it out of the main build).
+// Depends on PluginMain.cpp helpers: g_itemToEngram, g_tables, EngramClassToBlueprintPath,
+// ClassShortName, ChatNotify, DebugLog, PluginDir. Registration was:
+//   ArkApi::GetCommands().AddChatCommand("/apfield", &ApFieldChat);
+//   ArkApi::GetCommands().AddChatCommand("/dumpactors", &DumpActorsChat);
+// Design notes (never tested in-game): per-player bounce-back on the explore_areas polygons as
+// enforcement; tall shared "fence posts" (squashed Tek Forcefield, extended NetCullDistance) as
+// the far visual; owner-only (bOnlyRelevantToOwner) wall panels near locked players only.
+// Open questions: post view distance on clients, whether scaled actors replicate their scale,
+// restart persistence of spawned structures, cave regions on drawn maps have no Z band.
+
+// ---- /apfield : FORCEFIELD TEST SPIKE (admin only) ---------------------------------------------
+// Answers the open questions before committing to a design for blocking areas with forcefields:
+//   * does a spawned Tek Forcefield show its dome with no tribe and no Element in it?
+//   * does a SQUASHED one (SetActorScale3D) show flat to players, or only on the server?
+//   * do spawned structures block movement, and can they be damaged?
+//   * do they survive a restart (saved with the map) - which would duplicate them every boot?
+// Structure classes are never guessed: each comes from its engram ITEM class (engrams.json, already
+// resolved by the registry) through the item's StructureToBuild - exactly what the game builds when
+// a player places one.
+//   /apfield wall [n] [yaw]   n Tek Walls side by side, 6 m in front of you (yaw = extra degrees)
+//   /apfield glass [n] [yaw]  the same with Greenhouse Walls (flat, see-through)
+//   /apfield gate [yaw]       one Tek Gate Large (big flat Tek panel)
+//   /apfield dome             Tek Forcefield, normal
+//   /apfield flat [yaw]       Tek Forcefield squashed to 5% thickness (a flat energy sheet)
+//   add "nocol" to any spawn  collision off = visual only (the per-player bounce-back design)
+//   /apfield pillar [h]       one tall glowing COLUMN (a Tek Forcefield squashed thin, h = height
+//                             scale, default 1.5) - the "fence post" for region boundaries
+//   /apfield pillar tek [n]   fallback post: n Tek Pillars stacked (default 4)
+//   /apfield posts [n] [m] [h] n columns (default 8) every m metres (default 100), height scale h
+//                             (default 1.5 - raise it until the columns reach the flight ceiling),
+//                             with an extended send distance - walk/fly away and note where they
+//                             vanish. Add "always" to make them always-relevant instead.
+//   /apfield mine [n]         n Tek Walls (default 3) ONLY YOU can see (owner-only relevancy, no
+//                             collision) - a second player beside you should see nothing
+//   /apfield off              remove everything /apfield spawned since the server started
+//   /apfield list [radius]    those classes near you that NO player owns (after a restart: anything
+//                             listed survived the map save)
+//   /apfield purge [radius]   destroy what list shows (never touches player/tribe structures)
+// /dumpactors [radius]       every actor class within radius (default 1500), across all loaded
+//                             levels - stand at a built-in barrier (boss arena, Tek Cave) to read
+//                             off its class. Full list -> ArkAP_actors.txt.
+struct FieldRec { AActor* actor; std::string what; };
+static std::vector<FieldRec> g_fields;               // spawned this server session (game thread only)
+static const int kFieldItemTekWall = 8730442;        // Engram: Tek Wall
+static const int kFieldItemGlass   = 8730297;        // Engram: Greenhouse Wall
+static const int kFieldItemTekGate = 8730430;        // Engram: Tek Gate Large
+static const int kFieldItemShield  = 8730428;        // Engram: Tek Shield (the Tek Forcefield)
+static const int kFieldItemPillar  = 8730439;        // Engram: Tek Pillar
+// Extended send distance for boundary posts: 2 km (ARK units are cm, and the field is SQUARED).
+// Server side only - the client still decides how far it will DRAW the mesh; that is what
+// /apfield posts measures.
+static const float kFieldPostCullSq = 200000.f * 200000.f;
+// Player and tribe ids are >= 50000 (the same split the tamed-dino guard uses). Anything below that
+// was not placed by a player, so list/purge can never remove someone's own Tek wall.
+static const int kFieldPlayerTeamMin = 50000;
+
+static UClass* FieldStructureClass(int itemId) {
+    UClass* itemCls = nullptr;
+    auto it = g_itemToEngram.find(itemId);
+    if (it != g_itemToEngram.end() && !it->second.empty()) itemCls = it->second.front();
+    if (!itemCls) {                                  // registry missed it: load by its engrams.json path
+        for (auto& [path, id] : g_tables.engram_class_to_item) {
+            if (id != itemId) continue;
+            FString f(ArkApi::Tools::Utf8Decode(EngramClassToBlueprintPath(path)).c_str());
+            itemCls = UVictoryCore::BPLoadClass(&f);
+            break;
+        }
+    }
+    if (!itemCls) return nullptr;
+    auto* cdo = static_cast<UPrimalItem*>(itemCls->GetDefaultObject(true));
+    return cdo ? cdo->StructureToBuildField().uClass : nullptr;
+}
+
+static FVector FieldActorPos(AActor* a) {
+    USceneComponent* root = a ? a->RootComponentField() : nullptr;
+    return root ? root->RelativeLocationField() : FVector(0.f, 0.f, 0.f);   // root: relative == world
+}
+
+static std::string FieldActorClass(AActor* a) {
+    FString fn; a->GetFullName(&fn, nullptr);
+    std::string full = fn.ToString();
+    return full.substr(0, full.find(' '));
+}
+
+// Every actor in every loaded level (the authoritative "is it still alive" set - a raw pointer from
+// earlier is only safe to touch once it is confirmed here).
+static std::set<AActor*> FieldAllActors() {
+    std::set<AActor*> out;
+    UWorld* w = ArkApi::GetApiUtils().GetWorld();
+    if (!w) return out;
+    for (ULevel* lvl : w->LevelsField()) {
+        if (!lvl) continue;
+        for (AActor* a : lvl->GetActorsField()) if (a) out.insert(a);
+    }
+    return out;
+}
+
+struct FieldOpts {
+    bool noCol = false;
+    AActor* ownerOnly = nullptr;     // non-null: replicate to THIS controller's player only
+    bool alwaysRelevant = false;     // replicate to everyone regardless of distance
+    float cullSq = 0.f;              // > 0: override NetCullDistanceSquared
+};
+static float g_fieldDefaultCullSq = -1.f;            // what the game gave the first spawned piece
+static AActor* FieldSpawnOne(UClass* cls, FVector at, float yaw, FVector scale, const FieldOpts& o,
+                             const std::string& what) {
+    UWorld* w = ArkApi::GetApiUtils().GetWorld();
+    if (!w || !cls) return nullptr;
+    FRotator rot(0.f, yaw, 0.f);
+    FActorSpawnParameters sp;
+    sp.bNoCollisionFail = 1;                         // spawn even where it overlaps terrain/us
+    AActor* a = w->SpawnActor(cls, &at, &rot, &sp);
+    if (!a) return nullptr;
+    a->bCanBeDamaged() = false;                      // C4 / rockets must not open it
+    if (g_fieldDefaultCullSq < 0.f) g_fieldDefaultCullSq = a->NetCullDistanceSquaredField();
+    // Relevancy is set in the SAME call as the spawn - before the end-of-tick network pass - so
+    // the actor is never sent to anyone it should not reach.
+    if (o.ownerOnly) { a->SetOwner(o.ownerOnly); a->bOnlyRelevantToOwner() = true; }
+    if (o.alwaysRelevant) a->bAlwaysRelevant() = true;
+    if (o.cullSq > 0.f) a->NetCullDistanceSquaredField() = o.cullSq;
+    if (scale.X != 1.f || scale.Y != 1.f || scale.Z != 1.f) a->SetActorScale3D(&scale);
+    if (o.noCol) a->SetActorEnableCollision(false);
+    g_fields.push_back({ a, what });
+    return a;
+}
+
+static void DoApField(AShooterPlayerController* pc, FString* message) {
+    if (!pc) return;
+    if (!pc->bIsAdmin()()) {
+        ChatNotify(L"/apfield is admin-only: log in with 'enablecheats <adminpassword>' first.");
+        return;
+    }
+    std::vector<std::string> tok;
+    { std::istringstream ss(message ? message->ToString() : std::string());
+      std::string t; while (ss >> t) { for (auto& c : t) c = (char)std::tolower((unsigned char)c);
+                                       tok.push_back(t); } }
+    const std::string mode = tok.size() > 1 ? tok[1] : "";
+    bool noCol = false, always = false, tekPost = false;
+    std::vector<float> nums;
+    for (size_t i = 2; i < tok.size(); ++i) {
+        if (tok[i] == "nocol") { noCol = true; continue; }
+        if (tok[i] == "always") { always = true; continue; }
+        if (tok[i] == "tek") { tekPost = true; continue; }
+        try { nums.push_back(std::stof(tok[i])); } catch (...) {}
+    }
+    auto num = [&](size_t i, float def) { return i < nums.size() ? nums[i] : def; };
+
+    if (mode == "off") {
+        std::set<AActor*> alive = FieldAllActors();
+        int removed = 0, gone = 0;
+        for (auto& f : g_fields) {
+            if (alive.count(f.actor)) { f.actor->Destroy(false, true); ++removed; }
+            else ++gone;
+        }
+        g_fields.clear();
+        ChatNotify((L"APField: removed " + std::to_wstring(removed) + L" spawned forcefield piece(s)" +
+                    (gone ? L" (" + std::to_wstring(gone) + L" were already gone)" : L"")).c_str());
+        DebugLog("APFIELD off removed=" + std::to_string(removed) + " gone=" + std::to_string(gone));
+        return;
+    }
+    if (mode == "list" || mode == "purge") {
+        std::set<UClass*> ours;
+        for (int id : { kFieldItemTekWall, kFieldItemGlass, kFieldItemTekGate, kFieldItemShield,
+                        kFieldItemPillar })
+            if (UClass* c = FieldStructureClass(id)) ours.insert(c);
+        const float radius = num(0, 5000.f);
+        FVector p = ArkApi::GetApiUtils().GetPosition(pc);
+        int n = 0;
+        for (AActor* a : ArkApi::GetApiUtils().GetAllActorsInRange(p, radius, EServerOctreeGroup::STRUCTURES)) {
+            if (!a || !ours.count(a->ClassField())) continue;
+            int team = a->TargetingTeamField();
+            if (team >= kFieldPlayerTeamMin) continue;          // a player's own structure - never ours
+            ++n;
+            FVector ap = FieldActorPos(a);
+            std::string line = FieldActorClass(a) + " team=" + std::to_string(team) +
+                               " dist=" + std::to_string((int)FVector::Distance(p, ap));
+            DebugLog("APFIELD " + mode + " " + line);
+            if (mode == "purge") a->Destroy(false, true);
+            else if (n <= 8) ChatNotify(ArkApi::Tools::Utf8Decode("  " + line).c_str());
+        }
+        if (mode == "purge") g_fields.clear();
+        ChatNotify((L"APField: " + std::to_wstring(n) + L" unowned forcefield piece(s) within " +
+                    std::to_wstring((int)radius) + L" units" +
+                    (mode == "purge" ? L" - destroyed." : L".")).c_str());
+        return;
+    }
+
+    // shared geometry: where you stand and which way you look
+    const FVector me = ArkApi::GetApiUtils().GetPosition(pc);
+    const float lookYaw = pc->ControlRotationField().Yaw;
+    const float lookRad = lookYaw * 3.14159265f / 180.f;
+    const FVector lookFwd(std::cos(lookRad), std::sin(lookRad), 0.f);
+    const FVector lookRight(-std::sin(lookRad), std::cos(lookRad), 0.f);
+    auto report = [&](const std::string& m, int n, UClass* c, const std::string& extra) {
+        const std::string cn = c ? ClassShortName(c) : std::string("?");
+        DebugLog("APFIELD " + m + " class=" + cn + " spawned=" + std::to_string(n) + extra +
+                 " defaultCullSq=" + std::to_string((long long)g_fieldDefaultCullSq) +
+                 " at=" + std::to_string((long long)me.X) + "," + std::to_string((long long)me.Y) + "," +
+                 std::to_string((long long)me.Z) + " yaw=" + std::to_string(lookYaw));
+        ChatNotify(ArkApi::Tools::Utf8Decode("APField: " + m + " -> " + std::to_string(n) + "x " + cn +
+                   extra + ". '/apfield off' removes it.").c_str());
+    };
+
+    if (mode == "pillar") {
+        const FVector at(me.X + lookFwd.X * 800.f, me.Y + lookFwd.Y * 800.f, me.Z - 90.f);
+        FieldOpts o; o.noCol = noCol;
+        if (tekPost) {                                   // fallback: stacked Tek Pillars
+            UClass* c = FieldStructureClass(kFieldItemPillar);
+            int n = (std::max)(1, (std::min)((int)num(0, 4.f), 12)), made = 0;
+            for (int i = 0; i < n; ++i)
+                if (FieldSpawnOne(c, FVector(at.X, at.Y, at.Z + i * 300.f), lookYaw,
+                                  FVector(1.f, 1.f, 1.f), o, "pillar-tek")) ++made;
+            report("pillar tek", made, c, "");
+            return;
+        }
+        UClass* c = FieldStructureClass(kFieldItemShield);
+        float h = num(0, 1.5f);
+        int made = FieldSpawnOne(c, at, lookYaw, FVector(0.04f, 0.04f, h), o, "pillar") ? 1 : 0;
+        report("pillar", made, c, " (scale 0.04 x 0.04 x " + std::to_string(h) + ")");
+        return;
+    }
+    if (mode == "posts") {
+        UClass* c = FieldStructureClass(kFieldItemShield);
+        int n = (std::max)(1, (std::min)((int)num(0, 8.f), 30));
+        float spacing = num(1, 100.f) * 100.f;           // metres -> ARK units (cm)
+        const float postH = num(2, 1.5f);                // height scale - one stretched actor, so free
+        FieldOpts o; o.noCol = noCol;
+        if (always) o.alwaysRelevant = true; else o.cullSq = kFieldPostCullSq;
+        int made = 0;
+        // NOTE: every post sits at YOUR height - no terrain trace in this test, so on hills some
+        // will float or sink. Fine for measuring how far away they stay visible.
+        for (int i = 0; i < n; ++i) {
+            float d = 1000.f + i * spacing;
+            if (FieldSpawnOne(c, FVector(me.X + lookFwd.X * d, me.Y + lookFwd.Y * d, me.Z - 90.f),
+                              lookYaw, FVector(0.04f, 0.04f, postH), o, "posts")) ++made;
+        }
+        report("posts", made, c, " every " + std::to_string((int)(spacing / 100.f)) + " m, height x" +
+               std::to_string(postH) + ", " +
+               (always ? std::string("always-relevant") : std::string("send distance 2 km")));
+        return;
+    }
+    if (mode == "mine") {
+        UClass* c = FieldStructureClass(kFieldItemTekWall);
+        int n = (std::max)(1, (std::min)((int)num(0, 3.f), 12)), made = 0;
+        FieldOpts o; o.noCol = true; o.ownerOnly = pc;   // only this player is ever sent it
+        for (int i = 0; i < n; ++i) {
+            float side = (i - (n - 1) / 2.f) * 300.f;
+            FVector at(me.X + lookFwd.X * 600.f + lookRight.X * side,
+                       me.Y + lookFwd.Y * 600.f + lookRight.Y * side, me.Z - 90.f);
+            if (FieldSpawnOne(c, at, lookYaw, FVector(1.f, 1.f, 1.f), o, "mine")) ++made;
+        }
+        report("mine", made, c, " (visible ONLY to you, no collision)");
+        return;
+    }
+
+    int itemId = 0; int count = 1; float extraYaw = 0.f; FVector scale(1.f, 1.f, 1.f);
+    if (mode == "wall")       { itemId = kFieldItemTekWall; count = (int)num(0, 3.f); extraYaw = num(1, 0.f); }
+    else if (mode == "glass") { itemId = kFieldItemGlass;   count = (int)num(0, 3.f); extraYaw = num(1, 0.f); }
+    else if (mode == "gate")  { itemId = kFieldItemTekGate; extraYaw = num(0, 0.f); }
+    else if (mode == "dome")  { itemId = kFieldItemShield; }
+    else if (mode == "flat")  { itemId = kFieldItemShield;  extraYaw = num(0, 0.f); scale = FVector(0.05f, 1.f, 1.f); }
+    else {
+        ChatNotify(L"Usage: /apfield wall|glass [n] [yaw] | gate [yaw] | dome | flat [yaw] | pillar [h] "
+                   L"| pillar tek [n] | posts [n] [metres] [height] [always] | mine [n]  (+ nocol) "
+                   L"| off | list [radius] | purge [radius]");
+        return;
+    }
+    count = (std::max)(1, (std::min)(count, 12));
+    UClass* cls = FieldStructureClass(itemId);
+    if (!cls) {
+        ChatNotify(L"APField: could not resolve that structure class (see ArkAP_debug.log).");
+        DebugLog("APFIELD no structure class for item " + std::to_string(itemId));
+        return;
+    }
+    // 6 m ahead of where you are LOOKING, on the ground under you (capsule centre minus ~90).
+    FVector p = ArkApi::GetApiUtils().GetPosition(pc);
+    const float yaw = pc->ControlRotationField().Yaw;
+    const float rad = yaw * 3.14159265f / 180.f;
+    const FVector fwd(std::cos(rad), std::sin(rad), 0.f), right(-std::sin(rad), std::cos(rad), 0.f);
+    const float ahead = (itemId == kFieldItemShield && mode == "dome") ? 1500.f : 600.f;
+    const float spacing = 300.f;                     // one ARK wall is 300 units wide
+    int spawned = 0, team = 0;
+    for (int i = 0; i < count; ++i) {
+        float side = (i - (count - 1) / 2.f) * spacing;
+        FVector at(p.X + fwd.X * ahead + right.X * side, p.Y + fwd.Y * ahead + right.Y * side, p.Z - 90.f);
+        FieldOpts o; o.noCol = noCol;
+        if (AActor* a = FieldSpawnOne(cls, at, yaw + extraYaw, scale, o, mode)) {
+            ++spawned; team = a->TargetingTeamField();
+        }
+    }
+    std::string cname = ClassShortName(cls);
+    DebugLog("APFIELD " + mode + " class=" + cname + " spawned=" + std::to_string(spawned) + "/" +
+             std::to_string(count) + " team=" + std::to_string(team) + " yaw=" + std::to_string(yaw + extraYaw) +
+             (noCol ? " nocol" : "") + " at=" + std::to_string((long long)p.X) + "," +
+             std::to_string((long long)p.Y) + "," + std::to_string((long long)p.Z));
+    ChatNotify(ArkApi::Tools::Utf8Decode("APField: " + mode + " -> " + std::to_string(spawned) + "x " +
+               cname + " (team " + std::to_string(team) + (noCol ? ", no collision" : "") +
+               "). '/apfield off' removes it.").c_str());
+}
+static void ApFieldChat(AShooterPlayerController* pc, FString* m, EChatSendMode::Type) {
+    __try { DoApField(pc, m); } __except (EXCEPTION_EXECUTE_HANDLER) {
+        ChatNotify(L"APField: the game faulted on that - see ArkAP_debug.log.");
+    }
+}
+
+static void DoDumpActors(AShooterPlayerController* pc, FString* message) {
+    if (!pc) return;
+    if (!pc->bIsAdmin()()) { ChatNotify(L"/dumpactors is admin-only (enablecheats first)."); return; }
+    float radius = 1500.f;
+    { std::string t = message ? message->ToString() : std::string();
+      auto sp = t.find(' ');
+      if (sp != std::string::npos) try { radius = std::stof(t.substr(sp + 1)); } catch (...) {} }
+    FVector p = ArkApi::GetApiUtils().GetPosition(pc);
+    std::map<std::string, std::pair<int, int>> seen;     // class -> (count, nearest distance)
+    for (AActor* a : FieldAllActors()) {
+        int d = (int)FVector::Distance(p, FieldActorPos(a));
+        if (d > radius) continue;
+        std::string c = FieldActorClass(a);
+        auto& e = seen[c];
+        if (e.first == 0 || d < e.second) e.second = d;
+        ++e.first;
+    }
+    std::vector<std::pair<int, std::string>> byDist;
+    { std::ofstream f(PluginDir() / "ArkAP_actors.txt");
+      f << "actors within " << (int)radius << " of " << (long long)p.X << "," << (long long)p.Y << ","
+        << (long long)p.Z << "\n";
+      for (auto& [c, e] : seen) {
+          f << e.second << "\t" << e.first << "x\t" << c << "\n";
+          byDist.push_back({ e.second, c });
+      } }
+    std::sort(byDist.begin(), byDist.end());
+    ChatNotify((L"DumpActors: " + std::to_wstring(seen.size()) + L" classes within " +
+                std::to_wstring((int)radius) + L" - nearest first, full list in ArkAP_actors.txt").c_str());
+    for (size_t i = 0; i < byDist.size() && i < 12; ++i)
+        ChatNotify(ArkApi::Tools::Utf8Decode("  " + std::to_string(byDist[i].first) + "  " +
+                                             byDist[i].second).c_str());
+    DebugLog("DUMPACTORS radius=" + std::to_string((int)radius) + " classes=" + std::to_string(seen.size()));
+}
+static void DumpActorsChat(AShooterPlayerController* pc, FString* m, EChatSendMode::Type) {
+    __try { DoDumpActors(pc, m); } __except (EXCEPTION_EXECUTE_HANDLER) {}
+}

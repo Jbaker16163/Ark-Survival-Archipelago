@@ -326,8 +326,10 @@ class Bridge:
         room = json.loads(await ws.recv())[0]
         self._room_games = room.get("games", [])
         self._hint_cost_pct = room.get("hint_cost", 10)   # % of total locations per hint
-        self._seed = room.get("seed_name", "")            # identifies THIS multiworld/regen
-        self._reset_on_new_seed()
+        # identifies THIS multiworld/regen. Remembered here but NOT acted on yet: RoomInfo arrives
+        # before the server has accepted our slot, so it may belong to a room we are about to be
+        # refused by. The new-seed reset runs on Connected instead (see _handle).
+        self._seed = room.get("seed_name", "")
         await ws.send(json.dumps([{
             "cmd": "Connect",
             "game": GAME,
@@ -363,6 +365,13 @@ class Bridge:
                 self.game_items[game] = {v: k for k, v in gd.get("item_name_to_id", {}).items()}
                 self.game_locs[game] = {v: k for k, v in gd.get("location_name_to_id", {}).items()}
         elif cmd == "Connected":
+            # The new-seed reset belongs HERE, once the server has accepted this slot - never on
+            # RoomInfo. archipelago.gg recycles ports: a sleeping room wakes on a new port and its
+            # old port goes to someone else's room. Resetting on RoomInfo meant a reconnect to the
+            # stale port wiped this slot's mailbox for a room it was then refused by (InvalidSlot),
+            # and the correct connect afterwards "changed seed" back and replayed every item -
+            # every resource pack and boon fired again (Open Space, 2026-09-27).
+            self._reset_on_new_seed()
             self.players = {p["slot"]: (p.get("alias") or p.get("name", ""))
                             for p in msg.get("players", [])}
             self.my_slot = msg.get("slot")

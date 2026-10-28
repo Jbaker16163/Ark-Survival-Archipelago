@@ -18,7 +18,10 @@ import argparse, json, os, re, sys
 
 HERE = os.path.dirname(__file__)
 ROOT = os.path.normpath(os.path.join(HERE, ".."))
-XLSX_DEFAULT = r"C:\Users\justi\Downloads\Ark IDs (1).xlsx"
+# The logic workbook (Lurch's "Ark IDs" sheet) lives IN the repo so the default is never a stale
+# Downloads copy. Current = v6 (2026-10-19). NOTE: this generator cannot parse the v5+ KillTame
+# layout, and a --write would revert hand-fixes in tame_logic.json - treat the workbook as reference.
+XLSX_DEFAULT = os.path.join(HERE, "reference", "Ark_IDs.xlsx")
 # tame_logic.json lives in TWO mirrors; the apworld copy is what build_apworld bundles + ships.
 DATA_DIRS = [os.path.join(ROOT, "data"), os.path.join(ROOT, "apworld", "ark_ase", "data")]
 # Keys this generator does NOT produce - hand-authored in the JSON (count-group macros, the collect/

@@ -5,7 +5,7 @@
     "deepocean": {
       "id": 8758000,
       "name": "Deep Ocean",
-      "gate": "Scuba",
+      "gate": "DeepDive",
       "map": "island",
       "polygon": [],
       "z_below": -35253
@@ -421,7 +421,7 @@
     "themaw": {
       "id": 8758007,
       "name": "The Maw",
-      "gate": "",
+      "gate": "EnterSnow",
       "map": "island",
       "polygon": [
         [
@@ -495,7 +495,7 @@
     "whitesky": {
       "id": 8758008,
       "name": "Whitesky Peak",
-      "gate": "Fur",
+      "gate": "SnowMountains",
       "map": "island",
       "polygon": [
         [
@@ -561,7 +561,7 @@
     "whiteskymountain": {
       "id": 8758009,
       "name": "Whitesky Mountain",
-      "gate": "Fur",
+      "gate": "SnowMountains",
       "map": "island",
       "polygon": [
         [
@@ -627,7 +627,7 @@
     "wintersmouth": {
       "id": 8758010,
       "name": "Winter's Mouth",
-      "gate": "Fur",
+      "gate": "SnowMountains",
       "map": "island",
       "polygon": [
         [
@@ -709,7 +709,7 @@
     "frozentooth": {
       "id": 8758011,
       "name": "The Frozen Tooth",
-      "gate": "Fur",
+      "gate": "SnowMountains",
       "map": "island",
       "polygon": [
         [
@@ -763,7 +763,7 @@
     "frozenfang": {
       "id": 8758012,
       "name": "The Frozen Fang",
-      "gate": "Fur",
+      "gate": "SnowMountains",
       "map": "island",
       "polygon": [
         [
@@ -829,7 +829,7 @@
     "frigidplains": {
       "id": 8758013,
       "name": "The Frigid Plains",
-      "gate": "Fur",
+      "gate": "EnterSnow",
       "map": "island",
       "polygon": [
         [
@@ -891,7 +891,7 @@
     "southerniceberg": {
       "id": 8758014,
       "name": "Southern Iceberg",
-      "gate": "Fur",
+      "gate": "EnterSnow",
       "map": "island",
       "polygon": [
         [
@@ -937,7 +937,7 @@
     "icespikes": {
       "id": 8758015,
       "name": "The Ice Spikes",
-      "gate": "Fur",
+      "gate": "EnterSnow",
       "map": "island",
       "polygon": [
         [
@@ -975,7 +975,7 @@
     "icebergwitharch": {
       "id": 8758016,
       "name": "Iceberg Arch",
-      "gate": "Fur",
+      "gate": "EnterSnow + ReachIslands",
       "map": "island",
       "polygon": [
         [
@@ -1079,7 +1079,7 @@
     "deadisland": {
       "id": 8758018,
       "name": "The Dead Island (Carno Island)",
-      "gate": "",
+      "gate": "ReachIslands",
       "map": "island",
       "polygon": [
         [
@@ -1129,7 +1129,7 @@
     "southhaven": {
       "id": 8758019,
       "name": "South Haven (Herbivore Island)",
-      "gate": "",
+      "gate": "ReachIslands",
       "map": "island",
       "polygon": [
         [
@@ -1933,7 +1933,7 @@
     "blueobelisk": {
       "id": 8758031,
       "name": "Blue Obelisk",
-      "gate": "",
+      "gate": "SnowMountains",
       "map": "island",
       "polygon": [
         [

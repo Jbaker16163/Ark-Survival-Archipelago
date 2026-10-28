@@ -1,3 +1,157 @@
+## Added 2026-10-27: Kevin's UT vs PopTracker report (Kairuku, note milestones, cooked meat)
+
+- Killed: Kairuku had no kill rule (absent from kill_reqs, so it compiled to "no requirement").
+  Fix: kill_reqs "Kairuku": "EnterSnow + KillKairuku" - the sheet's own encoding (its Organic Polymer
+  row already uses EnterSnow + KillKairuku). Now needs 3 fur pieces (or Otter) plus a ranged weapon.
+- "Collect N Explorer Notes" sat in a tier region with no rule, so UT showed it open before any
+  single note was in logic. Fix: the milestone requires N REACHABLE note locations (counted, stops
+  at N). Island spoiler: Collect 25 now lands in sphere 3, the same sphere as the first notes.
+- Cooked Meat without a Campfire: Campfire was HARD_PLACED on an easy early kill, so UT counted it
+  as owned from the start. Justin: it must not be in logic straight away. Fix: HARD_PLACED is now
+  empty - Campfire is an ordinary pool engram and every Campfire rule waits for it. Spoilers over the
+  sweep: Campfire found in sphere 1 (15 seeds) up to sphere 6.
+- Verified: sweep 52/52; island / scorched / fjordur / center / valguero, island dossier_checks 30
+  and progression_tiers off all beatable with 0 unreachable.
+
+## Added 2026-10-22: in-game /hint picked mod items (v201)
+
+- "/hint Engram: Smithy" asked for S+'s "Engram: Smithy Plus": MatchItem took the first substring
+  hit in id order, and the plugin never knew the hint aliases (those were AP name groups only).
+- Fix (plugin v201-hint-aliases): exact name first, then item_aliases.json (now shipped in the
+  plugin zip; same saddle rules as the apworld), then partial matches ranked vanilla-before-mod and
+  shortest name, with the runners-up shown in chat. First build loaded 0 explicit aliases - .items()
+  on a .value() temporary (the known nlohmann trap); caught by an extracted-function test, fixed.
+- Verified: standalone test over all 1292 item names (558 mod): Smithy / Engram: Smithy -> Anvil
+  Bench, Refining Forge -> Forge, Stone Foundation -> Stone Floor, Engram: Smithy Plus still exact.
+
+## Added 2026-10-22: foundation arrived spheres after the stations (Thatch Floor in sphere 4)
+
+- progression_tiers opened Tier 1 on the Forge + Mortar & Pestle engrams alone, while every rule
+  that USES those stations needs can_build. So a foundation was only demanded by deeper checks and
+  could land in sphere 4 under a sphere-1 Forge.
+- Fix: the T0 -> T1 entrance also needs any foundation carrier (_foundation_items: Thatch / Wood /
+  Stone Floor after engram grouping + structure bundles, minus off-map; no requirement if one is a
+  free starter). T2/T3 inherit it through T1.
+- Verified: T1 unreachable without a foundation (plain, bundle_structures, engrams_per_item 4) and
+  open when Thatch Floor is a free starter; sweep 52/52; six-map 0 unreachable; 51 tiered spoilers:
+  foundation never after the Anvil Bench (now sphere 1-2).
+
+## Added 2026-10-22: Collect 30 Sap had no rule (Stone Hatchet landed on it in sphere 2)
+
+- The sheet lists Sap x10/x20/x50; our checks are 10/30/50, so Collect 30 Sap never got the
+  UseTaps rule. Same shape: Cooked Meat Jerky x10 (sheet has only x5). Both now copy their sibling
+  tier. Fiber 300/500 and Mejoberries 100/200 stay free on purpose (sheet blank: hand-gathered).
+- Also: Tree Sap Tap and Canteen were recipe nodes with no alias, so the engram itself was never
+  required (only its station chain). Aliased - Sap checks now need Engram: Tree Sap Tap.
+- Verified: sweep 52/52; Island + six-map 0 unreachable.
+
+## Added 2026-10-22: Island explore regions only fired inside a thin altitude band (v200)
+
+- Report: entered the Eastern Swamp, no check; flew out and back in lower, it fired.
+- Cause: v179 (Fjordur realm z-bands) made ExploreArea honour z_min/z_max on ANY region. The
+  Island's 44 regions also carry z_min/z_max - but those are just the heights the /dumppos samples
+  were taken at (gen_explore_map: "recorded but NOT used for membership"). So from v179 to v199 an
+  Island region only counted inside its sampled band: 1-2 m for the obelisks / Tek Cave entrance /
+  Lava Cave, 27 m for the Eastern Swamp. Flying over or walking a hill above the samples = no check.
+- Fix (plugin v200-explore-zband-realm-only): the band is enforced only for regions carrying a
+  "realm" tag (all 81 Fjordur banded regions; no Island region). Island regions are altitude-free
+  again, as originally designed. Fjordur unchanged.
+
+## Added 2026-10-19: full re-audit vs Ark IDs v6 (tools/reference/Ark_IDs.xlsx)
+
+- Every logic tab compared after spelling normalisation (KillTame Island+SE, tier gates recipes +
+  caves, Logic Macros, Regions, Saddles, CollectMilestones, Explorer Notes). Fixed what was left:
+  Pelt / Oil were requirements with no definition (free) - now the sheet's own Collect Pelt / Collect
+  Oil logic; Bug Repellent + Pelt; UseAdvMelee / UsePrimMelee back to the sheet (dropped Sickle /
+  Chainsaw / Torch / Club extras - RESTORED same day at the user's request, deliberate deviation); Mining Drill option on Collect 1000 Metal Ore / 300 Metal Ingot;
+  Collect 100 Stimulant = Stimulant + Sparkpowder; Kill 100 Species = sheet rule.
+- Remaining differences are equivalent wording or recorded decisions: Manta tame (water access),
+  Yeti/Anglerfish Snow Cave via map_kill_reqs, Scorched creature rules (sheet blank, Justin's spec),
+  Giant Bee on Scorched, Gasoline + Metal Pick, Element Dust, Thatch without RideTrike, UseArrows
+  grouping, GhillieSet + Smithy, ShallowTames with Diplocaulus (the sheet's KillTame column has it,
+  the Logic Macros tab does not), Unstable Element (no such item).
+- Verified: token audit leaves only Stone Pickaxe (auto-granted); sweep 52/52; Island, Scorched and
+  six-map cluster beatable with 0 unreachable.
+
+## Added 2026-10-19: Island note gates follow Ark IDs v6 (Lurch) + kevinkong's note reports
+
+- v6 change from Lurch: Swamp Cave dossiers Tapejara / Terror Bird / Titanosaur gated "Immune"
+  (Gas Mask or full Scuba Set + Bug Repellent + useful tame). They had no rule at all.
+- Full Explorer Notes tab compare: map_note_caves.island was a hand-simplified copy - every snow
+  note was FurIce, Dead Island / South Haven notes took any water/fly access, Ocean Cave notes took
+  one Scuba Tank. Now the sheet's region names are recipes (Whitesky Peak / Winter's Mouth / Frozen
+  Tooth = SnowMountains, The Maw = EnterSnow, Dead Island / South Haven = ReachIslands) and 74 note
+  gates are the sheet's logic (UseGrapple -> CanGrapple, Parachute added, two sheet typos fixed;
+  Tek Cave notes keep "tek"). Dossier: Beelzebufo / Thylacoleo were ungated - now gated.
+- map_note_caves added to the _logic_nodes scan (mounts named only there could resolve to nothing).
+- Verified: token audit = only the 5 free names; sweep 52/52; Island + six-map 0 unreachable.
+
+## Added 2026-10-19: Island bosses need a strong fight tame + Hologram: Overseer was ungated
+
+- kevinkong (v0.3.1): Bronto/Mosasaur tames in logic with only Slingshot + Club - the misspelled
+  kill/tame key bug, already fixed on 2026-10-09 (not yet released). "Hologram: Overseer" in logic
+  early: it was simply missing from map_note_caves.island (the other three holograms are there), so
+  it had no rule at all. Now "tek" = can reach the Overseer.
+- User: Island bosses get the same combat floor as Ragnarok - map_boss_reqs.island["*"] =
+  StrongFightTames | InsaneFightTames (Broodmother, Megapithecus, Dragon, Overseer).
+- KNOWN GAP (not changed): Ride<X> / combat macros only require HOLDING Tame: X + its saddle, not
+  the means to tame X - so "strong fight tame" is satisfied by a Rex unlock with no tranq weapon.
+- Verified: without strong/insane tame unlocks the bosses and the hologram drop out of logic; sweep
+  52/52; Island + six-map cluster beatable with 0 unreachable.
+
+## Added 2026-10-09: Ark IDs v5 audit - silent "no requirement" rules + sheet logic
+
+- Source: the user's Ark IDs (5).xlsx, compared sheet-by-sheet against the data. Token audit: any
+  rule name with no recipe/alias/direct node compiles to "no requirement" - found and fixed:
+  CanTame* milestones (now generated count macros: hold N countable Tame: unlocks; free when
+  lock_taming is off), boss names in Collect Element (-> "X Defeated" events; unreachable bosses
+  are missing), RideTrike in Collect 1500 Thatch (removed - user), spaced "Bow KO"/"Rifle KO" in
+  cave_tames (Megalania/Megalosaurus/Pulmonoscorpius tames were free), irrigation pipe and tree
+  platform names, "Kill Rhyniognatha" (KillX now generated from kill_reqs), cake crop plots,
+  aliases carrying an "Engram: " prefix (resolved to "Engram: Engram: X", never satisfiable).
+- BIGGEST: kill_reqs / dino_tame_raw keys spelled as in the sheet (Brontosaurus, Therizinosaur,
+  Mosasaurus, Tusotuethis, Dunkleosteus, Anglerfish, Hesperonis, Meganuera, Beezlebufo,
+  Pulmomoscorpius) never matched the roster, so those KILLS had no rule at all. Keys renamed to
+  roster names. Sheet tames marked None got NoRequirement (else DINO_TIER invents a weapon).
+- 37 higher Collect tiers had no rule (Cooked Meat x50 needed no Campfire...) - filled from the
+  sheet, copying the sibling tier's rule where the sheet logic matched.
+- Sheet logic implemented: Unicorn kill; Yeti = fight + Snow Cave on the Island only (new
+  map_kill_reqs, CaveX tokens = cave_reqs[X]; Snow Cave = CaveStrong per the sheet's Locations
+  tab); Anglerfish Snow Cave alternative (Island); Giant Queen Bee = Dire Bear (Scorched keeps Bug
+  Repellent - no Dire Bears there); Manta tame = ShallowFightTames (user); recipes (Grenade, Simple
+  Shotgun, metal tools, Sickle/Chainsaw/Drill, Gas Mask, DeepDive + flippers); UseArrows /
+  UseCrossbow need Stone Arrows; full ScubaSet / GhillieSet; SnowMountains = 5 fur | 3 fur + Otter;
+  Strong/Skylord fur per sheet; Devourer needs ReachIslands (Island only, other maps keep old);
+  Island explore gates (DeepDive / EnterSnow / SnowMountains / ReachIslands); Rhynio + Carcha
+  saddle_craft Smithy.
+- Verified: token audit leaves only genuinely free names (Oil, Pelt, Stone Pick, Torch); every
+  previously-free rule is gated; all 6 maps + lock_taming off: 0 permanently unreachable; sweep 52/52.
+- NOTE: Lurch's PopTracker pack still uses its own fur counts / gates - it will now differ from AP
+  on Strong/Skylord caves and snow regions until his pack is updated.
+
+## Added 2026-10-09: grouping broke every non-Island map (engrams/tames_per_item > 1)
+
+- Report: engrams_per_item 4 + tames_per_item 4 + bundle_structures + bundle_saddles + dossier 0
+  failed to generate. Two independent bugs, both invisible on the Island (the only map the old
+  sweep grouped on).
+- 1) Group builders ignored the map filter. _engram_groups / _tame_groups chunked the WHOLE roster,
+  so a group's representative could be an item from another map. The map filter dropped the rep from
+  the pool and its on-map members were skipped as "folded" - those items silently never existed in
+  the seed. Scorched tames_per_item 4: Rex/Spino/Therizino under Tame: Quetzal -> every Rex ride
+  rule compiled to false -> OptionError "Killed: Alpha Rex ... gated on content those maps do not
+  have". Measured before the fix: 12 broken groups on Scorched, more on Valguero/Fjordur/Ragnarok/
+  Center; after: 0 on all 6 maps x both options x factors 2 and 4. Fix: both builders only chunk
+  items keep(id) passes.
+- 2) count_macros (FurSnow/FurIce "n of these fur pieces + Otter") listed final item names that
+  nothing remapped. With engram grouping the fur pieces fold into other reps, the count could never
+  be met, fur-gated caves/artifacts went unreachable and the Dragon behind them - "Game appears as
+  unbeatable" on Valguero/Fjordur. Fix: TameLogic.item_remap (world._pooled_name) maps each listed
+  name to its pooled carrier; duplicates kept so a rep carrying two furs counts as two.
+- Verified: the reported combo passes on all 6 maps alone, Island default goal, Island+Scorched and
+  the six-map cluster; full sweep 52/52 (now includes the grouped combos per map).
+- Harness note: a failed ArchipelagoGenerate ends on "Press enter to close" - run it with stdin
+  closed or a failing config hangs until timeout instead of reporting.
+
 ## Added 2026-07-26: 270-generation fuzz sweep (2 passes)
 
 - Sweep #1 (160 gens, all solo): fuzzed goal/tiers/lock_taming/lock_crates/bundle_saddles/

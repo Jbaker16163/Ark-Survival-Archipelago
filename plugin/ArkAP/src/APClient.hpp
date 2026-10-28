@@ -366,7 +366,9 @@ private:
             roomGames_.clear();                          // for the datapackage request below
             for (auto& g : msg.value("games", json::array()))
                 if (g.is_string()) roomGames_.push_back(g.get<std::string>());
-            ResetOnNewSeed(msg.value("seed_name", ""));
+            // Remember the seed but do NOT act on it yet - RoomInfo comes before the server has
+            // accepted our slot. The new-seed reset runs in OnConnected (see there for why).
+            roomSeed_ = msg.value("seed_name", "");
             SendJson({ {"cmd", "Connect"}, {"game", AP_GAME}, {"name", cfg_.slot},
                        {"password", cfg_.password}, {"uuid", "ark-embedded-client"},
                        {"version", { {"major",0},{"minor",6},{"build",7},{"class","Version"} }},
@@ -483,6 +485,15 @@ private:
     }
 
     void OnConnected(const json& msg) {
+        // New-seed reset only once the server has ACCEPTED this slot, never on RoomInfo.
+        // archipelago.gg recycles ports: a sleeping room wakes on a new port and its old port goes
+        // to someone else's room. The resumed session (ap_connections.json) dialled the stale
+        // port, read the OTHER room's seed_name, wiped this slot's mailbox and state, and was then
+        // refused (InvalidSlot). The player's /connect to the right port then looked like a seed
+        // change back, and Archipelago's full resend replayed every item - every resource pack and
+        // boon fired again (Open Space, 2026-09-27). Must run before sentChecks_ is seeded below,
+        // since the reset clears it.
+        ResetOnNewSeed(roomSeed_);
         mySlot_ = msg.value("slot", -1);
         for (auto& p : msg.value("players", json::array()))
             players_[p.value("slot", -1)] = p.value("alias", "").empty()
@@ -778,6 +789,7 @@ private:
     mutable ApLock itemsMx_;
     std::vector<PendingItem> pendingItems_;     // written to disk but not yet confirmed
     std::set<int> receivedIdx_;                 // item indices CONFIRMED on disk this connection
+    std::string roomSeed_;                      // RoomInfo seed_name, acted on only at Connected
     std::set<int> sentChecks_;                  // persists across reconnects (AP reseeds it too)
     std::set<int> slotLocs_;                    // every location id this slot HAS (from Connected)
     std::set<std::string> goalBossTags_;        // required boss base-tags (goal via boss_out.jsonl)
