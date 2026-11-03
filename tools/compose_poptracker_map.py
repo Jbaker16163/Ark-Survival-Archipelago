@@ -201,7 +201,7 @@ def chip(draw, x, y, size, text):
         draw.text((x + 3, y + 3 + i * 10), wd[:8], fill=(210, 210, 215), font=font)
 
 
-def main():
+def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("map")
     ap.add_argument("--source", required=True, help="the bare map image (GPS 0-100 edge to edge)")
@@ -210,7 +210,7 @@ def main():
     ap.add_argument("--slots", default=None)
     ap.add_argument("--pop-name", default=None,
                     help="the map name inside the pack; never cropped from")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
     if not args.pop_name:
         args.pop_name = "_".join(w.capitalize() for w in args.map.split("_"))
 
@@ -231,8 +231,14 @@ def main():
     # the pack paints each boss's required artifacts under its portrait; do the same, reading
     # the requirement from the same spec that gated the boss so the two cannot disagree
     import poptracker_logic_apply as L
-    spec = L.load_logic(args.map)
+    spec = L.load_logic(args.map, args.pack)
     boss_arts = {k: v["artifacts"] for k, v in (spec.get("boss_pairs") or {}).items()}
+    # single bosses too: the artifact toggles their generated rule asks for
+    for boss, rule in (spec.get("boss_rules") or {}).items():
+        need = [term.strip() for term in (rule or [""])[0].split(",")
+                if term.strip().lower().startswith("artifact_")]
+        if need:
+            boss_arts.setdefault("Boss: " + boss, need)
 
     painted, cropped, chipped = 0, 0, []
     for s in slots:
@@ -273,8 +279,8 @@ def main():
                 per, w2 = 5, 26
                 mid = (left + right) / 2
                 for k, a in enumerate(need):
-                    ic = pool.get(a.replace("_", "")) or pool.get(
-                        re.sub(r"[^a-z0-9]", "", "artifactofthe" + a.split("_")[-1]))
+                    ic = pool.get(a.lower().replace("_", "")) or pool.get(
+                        re.sub(r"[^a-z0-9]", "", "artifactofthe" + a.split("_")[-1].lower()))
                     if not ic:
                         continue
                     t2 = Image.open(ic).convert("RGBA").resize((w2, w2), Image.LANCZOS)
@@ -283,7 +289,10 @@ def main():
                                       int(bottom + 6 + row * w2)), t2)
             continue
         size = TILE
-        x, y = s["x"] - size // 2, s["y"] - size // 2
+        # same geometry as the pack's own canvases: the pin sits at the tile's lower right
+        # (ART_LEAD of CROP across), not its centre; clamped so column 1 / row 1 stay on canvas
+        lead = round(ART_LEAD * size / CROP)
+        x, y = max(s["x"] - lead, 0), max(s["y"] - lead, 0)
         im = None
         # 1. the pack's own canvas for a map this object already appears on - exact, and the only
         #    source for milestone drop art

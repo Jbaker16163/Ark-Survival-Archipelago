@@ -56,6 +56,7 @@ static std::map<std::string, std::time_t> g_suppressDeathUntil;  // per-route an
 // the game tick drains new lines (persisted queue_pos) into these totals.
 static std::map<std::string, int> g_totalTames, g_totalKills, g_totalBreeds, g_totalDeaths;
 static bool  g_countersLoaded = false;
+static bool  g_countersDirty = false;      // totals changed outside the queue drain (boot self-heal)
 static bool  g_registry_built = false;
 static bool  g_tickFaulted = false;    // set by Tick's __except, logged next tick
 static bool  g_pollFaulted = false;
@@ -240,7 +241,7 @@ namespace fs = std::filesystem;
 // Which dll is actually loaded. Declared up here rather than beside Load() because the JOIN greet
 // and /apstatus both quote it: "what version are they running?" was answered by asking someone to
 // find a log file on the server box, which is no answer at all when the report comes from a player.
-static const char* ARKAP_BUILD = "v201-hint-aliases";
+static const char* ARKAP_BUILD = "v202-counters-load";
 
 // the plugin's own folder: ArkApi/Plugins/ArkAP
 static fs::path PluginDir() {
@@ -3637,14 +3638,60 @@ static void DoProcessPending() {
                   g_totalTames[""] = j.value("tames", 0); g_totalKills[""] = j.value("kills", 0);
                   g_totalBreeds[""] = j.value("breeds", 0);
                   g_totalDeaths[""] = j.value("deaths", 0);
-                  for (auto& [name, pl] : j.value("players", nlohmann::json::object()).items()) {
+                  // NAMED local: `for (... : j.value(...).items())` iterated a temporary that C++17
+                  // destroys before the loop body runs, so no route's totals ever loaded and every
+                  // restart started all counts from 0 (live: Die 40 times never fired).
+                  const nlohmann::json players = j.value("players", nlohmann::json::object());
+                  for (auto& [name, pl] : players.items()) {
                       g_totalTames[name] = pl.value("tames", 0);
                       g_totalKills[name] = pl.value("kills", 0);
                       g_totalBreeds[name] = pl.value("breeds", 0);
                       g_totalDeaths[name] = pl.value("deaths", 0);
+                      DebugLog("COUNTERS loaded" + (name.empty() ? std::string() : " [" + name + "]") +
+                               " tames=" + std::to_string(g_totalTames[name]) +
+                               " kills=" + std::to_string(g_totalKills[name]) +
+                               " breeds=" + std::to_string(g_totalBreeds[name]) +
+                               " deaths=" + std::to_string(g_totalDeaths[name]));
                   }
               }
+        } catch (const std::exception& e) {
+            DebugLog(std::string("COUNTERS counters.json unreadable, starting from 0: ") + e.what());
         } catch (...) {}
+        // SELF-HEAL. Builds before v202 never loaded the per-route totals (above), so every restart
+        // began at 0 and then overwrote counters.json - those servers hold only "since the last
+        // restart". events_queue.jsonl is the append-only history of every event, so recount it
+        // and keep the larger of the two per route and kind: a healed server gets its true totals
+        // back with no manual step, and a count raised by hand in counters.json is never lowered.
+        std::map<std::string, int> rT, rK, rB, rD;
+        long long n = 0;
+        {   std::ifstream f(PluginDir() / "events_queue.jsonl");
+            std::string line;
+            while (std::getline(f, line)) {
+                if (line.empty()) continue;
+                ++n;
+                std::string kind, route;
+                SplitQueueLine(line, kind, route);
+                if (kind == "tame")       ++rT[route];
+                else if (kind == "kill")  ++rK[route];
+                else if (kind == "breed") ++rB[route];
+                else if (kind == "death") ++rD[route];
+            }
+        }
+        auto heal = [](std::map<std::string, int>& total, const std::map<std::string, int>& recount,
+                       const char* kind) {
+            for (auto& [route, c] : recount)
+                if (c > total[route]) {
+                    DebugLog(std::string("COUNTERS healed ") + kind +
+                             (route.empty() ? std::string() : " [" + route + "]") + ": " +
+                             std::to_string(total[route]) + " -> " + std::to_string(c) +
+                             " (recounted from events_queue.jsonl)");
+                    total[route] = c;
+                }
+        };
+        heal(g_totalTames, rT, "tames"); heal(g_totalKills, rK, "kills");
+        heal(g_totalBreeds, rB, "breeds"); heal(g_totalDeaths, rD, "deaths");
+        queuePos = n;                                  // every line is now counted exactly once
+        g_countersDirty = true;                        // write the healed totals out now
     }
     {   std::vector<std::string> lines;
         {   std::ifstream f(PluginDir() / "events_queue.jsonl");
@@ -3652,7 +3699,8 @@ static void DoProcessPending() {
             while (std::getline(f, line)) if (!line.empty()) lines.push_back(line);
         }
         if ((long long)lines.size() < queuePos) queuePos = 0;   // queue reset -> resync
-        if ((long long)lines.size() > queuePos) {
+        if ((long long)lines.size() > queuePos || g_countersDirty) {
+            g_countersDirty = false;
             for (size_t i = (size_t)queuePos; i < lines.size(); ++i) {
                 std::string kind, route;
                 SplitQueueLine(lines[i], kind, route);
@@ -4429,7 +4477,8 @@ static void Load() {
             std::unordered_map<std::string, int> nameToId;
             for (auto& [id, nm] : g_tables.item_name) nameToId[nm] = id;
             nlohmann::json tj; std::ifstream(base / "tek_grants.json") >> tj;
-            for (auto& [bossTag, names] : tj.value("grants", nlohmann::json::object()).items())
+            const nlohmann::json grants = tj.value("grants", nlohmann::json::object());   // named: see COUNTERS
+            for (auto& [bossTag, names] : grants.items())
                 for (auto& n : names) {
                     auto it = nameToId.find(n.get<std::string>());
                     if (it != nameToId.end()) g_tekGrants[bossTag].push_back(it->second);

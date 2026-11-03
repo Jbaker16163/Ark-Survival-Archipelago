@@ -559,6 +559,16 @@
     "Shinehorn": "BasicFightTames | UseArrows | UsePistol | UseRifle | UseShotgun | UseMelee",
     "Rock Drake": "BasicFightTames | UseArrows | UsePistol | UseRifle | UseShotgun | UseMelee",
     "Basilisk": "BasicFightTames | UseArrows | UsePistol | UseRifle | UseShotgun | UseMelee",
+    "Featherlight": "BasicFightTames | UseArrows | UsePistol | UseRifle | UseShotgun | UseMelee",
+    "Glowtail": "BasicFightTames | UseArrows | UsePistol | UseRifle | UseShotgun | UseMelee",
+    "Bulbdog": "BasicFightTames | UseArrows | UsePistol | UseRifle | UseShotgun | UseMelee",
+    "Glowbug": "BasicFightTames | UseArrows | UsePistol | UseRifle | UseShotgun | UseMelee",
+    "Roll Rat": "MediumFightTames | UsePistol | UseRifle | UseShotgun | UseCrossbow | ((Bola | UseNet) + UseMelee)",
+    "Seeker": "MediumFightTames | StrongFightTames | InsaneFightTames",
+    "Lamprey": "BasicFightTames | UseArrows | UsePistol | UseRifle | UseShotgun | UseMelee",
+    "Ravager": "MediumFightTames | UsePistol | UseRifle | UseShotgun | UseCrossbow | ((Bola | UseNet) + UseMelee)",
+    "Deinonychus": "MediumFightTames | UsePistol | UseRifle | UseShotgun | UseCrossbow | ((Bola | UseNet) + UseMelee)",
+    "Karkinos": "MediumFightTames | UseCrossbow | UsePistol | UseRifle | UseShotgun | (UseNet + UseAdvMelee)",
     "Unicorn": "MediumFightTames | UseCrossbow | UsePistol | UseRifle | UseShotgun | (UseNet + UseAdvMelee)"
   },
   "cave_reqs": {
@@ -1019,6 +1029,15 @@
   },
   "collect_reqs": {
     "Alpha Wyvern Trophy": "StrongFightTames | InsaneFightTames",
+    "Alpha Deathworm Trophy": "StrongFightTames | InsaneFightTames",
+    "Fire Talon x2": "UseShotgun | StrongFightTames | InsaneFightTames",
+    "Fire Talon x10": "UseShotgun | StrongFightTames | InsaneFightTames",
+    "Lightning Talon x2": "UseShotgun | StrongFightTames | InsaneFightTames",
+    "Lightning Talon x10": "UseShotgun | StrongFightTames | InsaneFightTames",
+    "Poison Talon x2": "UseShotgun | StrongFightTames | InsaneFightTames",
+    "Poison Talon x10": "UseShotgun | StrongFightTames | InsaneFightTames",
+    "Wyvern Milk x5": "StrongFightTames | InsaneFightTames",
+    "Deathworm Horn x5": "KillDeathworm",
     "Collect 500 Hide": "Stone Hatchet",
     "Collect 1000 Hide": "Metal Hatchet | Chainsaw",
     "Collect 5 Woolly Rhino Horn": "KillWoollyRhino",
@@ -1152,6 +1171,9 @@
     "Tame a high-level creature": "CanTameAnyCreature",
     "Tame your first dino": "CanTameAnyCreature",
     "Breed your first dino": "CanTameAnyCreature",
+    "Breed 5 Dinos": "CanTameAnyCreature",
+    "Breed 10 Dinos": "CanTameAnyCreature",
+    "Breed 20 Dinos": "CanTameAnyCreature",
     "Kill 100 Species": "MediumFightTames + DeepFightTames + DeepDive"
   },
   "map_boss_extra": {

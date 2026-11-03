@@ -1,0 +1,63 @@
+{
+  "_comment": [
+    "Per-map input for tools/poptracker_add_map.py. Everything else (pins, rules, grids) comes from data/.",
+    "pop    = the map's name inside the pack (its tab, maps.json entry and image file name).",
+    "source = the bare map image. It must span GPS 0-100 edge to edge in the same coordinate system",
+    "         import_drawn_regions.KNOWN converts that map's regions into; the canvas calibration is",
+    "         derived from that, so there is no second patcher pass.",
+    "artifact_caves / artifact_positions = optional: pin artifacts ON the map at their cave (one pin",
+    "         per cave). Without them artifacts sit in the sidebar grid. Positions must come from a",
+    "         real source (say which in _source) - never estimated.",
+    "Hand-written rule overrides live in poptracker_logic.json; Ragnarok's caves/positions are there."
+  ],
+  "_base_pack": "C:/Users/justi/Downloads/PoptrackerWork/Arkipelago-Poptracker-0.0.9/Arkipelago-Poptracker-0.0.9",
+  "_base_tabs": {
+    "_comment": "The base pack's own map tabs, by the apworld's `maps` option name (slot_data['maps']). On connect only the slot's maps' tabs are shown.",
+    "the_island": "The Island Tracker",
+    "scorched_earth": "Scorched Earth Tracker"
+  },
+  "ragnarok": {
+    "ap_option": "ragnarok",
+    "pop": "Ragnarok",
+    "source": "docs/ragnarok_map.jpg",
+    "_note": "Image spans compass 0-100 and KNOWN ragnarok is true compass: the wiki's setplayerpos world coords for Hunter/Brute/Devourer/Cunning convert to the wiki's compass lat/lon within 0.3 deg, and the artifacts plot onto their caves (Pit of Dreen in the west ocean). Checked 2026-10-29. Caves/positions live in poptracker_logic.json."
+  },
+  "center": {
+    "ap_option": "the_center",
+    "pop": "The_Center",
+    "source": "docs/center_map.png",
+    "_note": "Image checked 2026-10-29: wiki spawn points follow the coastlines and the artifacts plot onto their caves (lava ones on the volcano island, ice ones in the snow). Hunter's setplayerpos converts through KNOWN center to 16.78/54.32 vs the wiki's 16.8/54.3.",
+    "artifact_caves": {
+      "Hunter": "Lava Oasis Cave", "Massive": "LavaCave", "Strong": "LavaCave",
+      "Clever": "North Ice Cave", "Devourer": "North Ice Cave", "Cunning": "Cliffside Cavern",
+      "Skylord": "South Ice Cave", "Immune": "Jungle Cave", "Pack": "Underground World",
+      "Brute": "Southeast Trench"
+    },
+    "artifact_positions": {
+      "_source": "ark.wiki.gg/wiki/Artifact_of_the_<Name>, Map Location table, The Center column: the red ARTIFACT marker (not the entrance). Fetched 2026-10-29.",
+      "Hunter": [16.8, 54.3], "Massive": [10.3, 52.9], "Strong": [15.3, 57.5],
+      "Clever": [19.3, 24.2], "Devourer": [24.1, 26.2], "Cunning": [35.1, 18.0],
+      "Skylord": [54.1, 20.9], "Immune": [49.3, 65.5], "Pack": [60.7, 53.8],
+      "Brute": [71.6, 87.3]
+    }
+  },
+  "valguero": {
+    "ap_option": "valguero",
+    "pop": "Valguero",
+    "source": "docs/valguero_map.jpg",
+    "_note": "Image checked 2026-10-29: wiki spawn points hug the lake shores and the artifacts plot onto their caves (Snow Mountains and Great Trench in the snow, Jungle in the jungle).",
+    "artifact_caves": {
+      "Brute": "The Lost Temple", "Devourer": "The Lost Temple", "Immune": "The Lair",
+      "Pack": "The Lair", "Strong": "The Lair", "Cunning": "Snow Mountains",
+      "Skylord": "The Great Trench", "Crag": "Boreal Forest", "Destroyer": "Jungle",
+      "Gatekeeper": "The Unknown"
+    },
+    "artifact_positions": {
+      "_source": "ark.wiki.gg/wiki/Artifact_of_the_<Name>, Map Location table, Valguero column: the red ARTIFACT marker (not the entrance). Fetched 2026-10-29.",
+      "Brute": [47.7, 88.0], "Devourer": [48.7, 90.3], "Immune": [74.3, 35.8],
+      "Pack": [70.1, 39.2], "Strong": [72.2, 36.5], "Cunning": [14.5, 26.3],
+      "Skylord": [13.4, 72.7], "Crag": [35.0, 52.2], "Destroyer": [67.0, 89.1],
+      "Gatekeeper": [48.0, 58.9]
+    }
+  }
+}

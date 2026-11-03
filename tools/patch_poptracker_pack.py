@@ -91,17 +91,50 @@ def _span(text, start):
     raise ValueError("unbalanced braces from offset %d" % start)
 
 
-def add_layout_tab(path, pop, model_title):
+def tab_title(pop):
+    """The map's top-level tab title, quoted as it appears in the layout ("The Center Tracker")."""
+    return '"%s Tracker"' % pop.replace("_", " ")
+
+
+def _array_close(text, start):
+    """Index of the `]` closing the array that holds the value starting at `start`. Skips strings
+    and // comments, like _span, so a bracket inside either does not count."""
+    depth, j, n = 0, start, len(text)
+    while j < n:
+        c = text[j]
+        if c == '"':
+            j += 1
+            while j < n and text[j] != '"':
+                j += 2 if text[j] == chr(92) else 1
+        elif c == "/" and j + 1 < n and text[j + 1] == "/":
+            j = text.find(chr(10), j)
+            if j < 0:
+                break
+            continue
+        elif c in "{[":
+            depth += 1
+        elif c in "}]":
+            if depth == 0 and c == "]":
+                return j
+            depth -= 1
+        j += 1
+    raise ValueError("no closing ] after offset %d" % start)
+
+
+def add_layout_tab(path, pop, model_title, caves=()):
     """Clone the pack's existing tracker tab for a new map, so it gets its own top-level tab.
 
     Registering a map in maps.json only makes the IMAGE available - nothing displays it. The tab
     strip comes from the layout, so a map added without this step is fully wired and completely
     invisible, which is exactly how it looks when you load the pack and find nothing changed.
+
+    `caves` = [(title, map name)]: one more inner tab each, the way the Island tab lists its caves.
+    The new tab goes at the END of the tab strip, so maps appear in the order they were added.
     """
     raw = open(path, "rb").read()
     bom = raw.startswith(b"\xef\xbb\xbf")
     text = raw.decode("utf-8-sig")
-    title = '"%s Tracker"' % pop
+    title = tab_title(pop)
     if title in text:
         return False
 
@@ -128,22 +161,26 @@ def add_layout_tab(path, pop, model_title):
                 break
         b += 1
     pad = " " * 22
-    strip = "\n".join([
-        "[",
-        pad + "{",
-        pad + '  "title": "%s",' % pop.replace("_", " "),
-        pad + '  "content": {',
-        pad + '    "type": "map",',
-        pad + '    "maps": ["%s"]' % pop,
-        pad + "  }",
-        pad + "}",
-        " " * 20 + "]",
-    ])
+    entries = []
+    for tab, mp in [(pop.replace("_", " "), pop)] + list(caves):
+        entries.append("\n".join([
+            pad + "{",
+            pad + '  "title": %s,' % json.dumps(tab),
+            pad + '  "content": {',
+            pad + '    "type": "map",',
+            pad + '    "maps": [%s]' % json.dumps(mp),
+            pad + "  }",
+            pad + "}",
+        ]))
+    strip = "[\n" + ",\n".join(entries) + "\n" + " " * 20 + "]"
     block = block[:a] + strip + block[b + 1:]
     block = block.replace('"title": "%s"' % model_title, '"title": %s' % title, 1)
 
     indent = " " * (lo - text.rfind("\n", 0, lo) - 1)
-    out = text[:hi] + ",\n" + indent + block + text[hi:]
+    close = _array_close(text, lo)
+    before = text[:close].rstrip()
+    sep = "" if before.endswith(",") else ","
+    out = before + sep + "\n" + indent + block + "\n" + " " * max(0, len(indent) - 2) + text[close:]
     with open(path, "wb") as fh:
         if bom:
             fh.write(b"\xef\xbb\xbf")
@@ -184,7 +221,12 @@ def add_dino_grid(path, pop, wanted, habitat=None):
     text = raw.decode("utf-8-sig")
     key = "%s_dino_grid" % pop.lower()
 
-    pool = set(_grid_codes(text, "dino_grid")) | set(_grid_codes(text, "scorched_dino_grid"))
+    # every per-map roster the pack has so far, not just the Island's and Scorched's: a map added
+    # in an earlier run (Ragnarok's Griffin, Wyvern) is a valid source for the next one
+    pool = set(_grid_codes(text, "dino_grid"))
+    for gk in re.findall(r'"([a-z0-9_]+_dino_grid)"\s*:', text):
+        if gk != key:
+            pool |= set(_grid_codes(text, gk))
     by = {}
     for c in sorted(pool):
         by.setdefault(re.sub(r"[^a-z0-9]", "", c.replace("_ride", "")), c)
@@ -233,7 +275,7 @@ def add_dino_grid(path, pop, wanted, habitat=None):
         text = text[:anchor] + block + text[anchor:]
 
     # point only THIS map's tab at the new grid
-    tab = text.index('"%s Tracker"' % pop)
+    tab = text.index(tab_title(pop))
     lo, hi = tab, _span(text, text.rfind("{", 0, tab))[1]
     seg = text[lo:hi].replace('"key": "dino_grid"', '"key": "%s"' % key, 1)
     text = text[:lo] + seg + text[hi:]
@@ -288,6 +330,10 @@ def build_item_grids(path, pop, map_key, model, extra, add=None):
     map_locs = set(load("maps.json").get("content", {}).get(map_key, {}).get("locations") or [])
     cats = load("locations.json")["location_categories"]
     checks = [e["name"] for e in cats["inventory_checks"]["entries"] if e["id"] in map_locs]
+    # the artifact CHECKS this map has ("Artifact: Hunter" in locations.json). crates.json's
+    # artifact_locations ids are mostly untagged, so they alone kept only 2 of The Center's 10.
+    art_checks = {re.sub(r"[^a-z0-9]", "", c[len("Artifact: "):].lower())
+                  for c in checks if c.startswith("Artifact: ")}
     bosses = [e["name"] for e in cats["bosses"]["entries"] if e["id"] in map_locs]
 
     def keep(code):
@@ -307,8 +353,8 @@ def build_item_grids(path, pop, map_key, model, extra, add=None):
         # artifacts and boss trophies
         m = re.match(r"^artifact_([a-z]+)$", code)
         if m:
-            return m.group(1) in arts and (arts[m.group(1)] in map_locs
-                                           or arts[m.group(1)] is None)
+            return m.group(1) in art_checks or (m.group(1) in arts and (
+                arts[m.group(1)] in map_locs or arts[m.group(1)] is None))
         m = re.match(r"^([a-z]+)_trophy$", code)
         if m:
             # a boss trophy belongs if this map HAS that boss; a few (the alpha wyvern) are only
@@ -362,7 +408,7 @@ def build_item_grids(path, pop, map_key, model, extra, add=None):
             text = text[:anchor] + block + text[anchor:]
         made[base] = (key, len(pool), len(codes))
 
-    tab = text.index('"%s Tracker"' % pop)
+    tab = text.index(tab_title(pop))
     lo, hi = tab, _span(text, text.rfind("{", 0, tab))[1]
     seg = text[lo:hi]
     for base, (key, _, _) in made.items():
@@ -377,7 +423,7 @@ def build_item_grids(path, pop, map_key, model, extra, add=None):
 
 
 
-def main():
+def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("map")
     ap.add_argument("--pack", required=True, help="path to the unpacked pack directory")
@@ -393,7 +439,7 @@ def main():
                     help="prefix of the pack's other per-map grids, unioned with the model's")
     ap.add_argument("--model-tab", default="The Island Tracker",
                     help="existing tab to clone for this map's tab")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
 
     pop = args.pop_name or "_".join(w.capitalize() for w in args.map.split("_"))
     w, h = (int(v) for v in args.size.lower().split("x"))
@@ -420,7 +466,9 @@ def main():
         paths = re.findall(r'"@([^"]+)"', m.group(2))
         if not paths:
             item_only.add(i)
-        elif all(re.search(r" \((The Island|Scorched Earth)\)(/|$)", pth) for pth in paths):
+        # any map's Exploration group, so a pack that already gained a map (Ragnarok) still hands
+        # the next one its own counter section
+        elif all(re.match(r"^Milestones/Exploration \([^)]+\)(/|$)", pth) for pth in paths):
             per_map_line[i] = paths[0]
         else:
             id_to_path[i] = paths[0]
@@ -500,6 +548,15 @@ def main():
         if e.get("kill_loc"):
             names[e["kill_loc"]] = ("kills", "Kill: %s" % label)
 
+    # Artifacts and bosses are PER MAP even though each is one AP id: the Hunter sits in a different
+    # cave on every map, with a different rule, and each map summons its bosses with its own
+    # artifacts. Pinning a later map onto the object an earlier map created would show that map's
+    # cave and rule. So these always get this map's own object, and the id's mapping line gains one
+    # more path - the one check then ticks every map's copy.
+    def per_map(loc_id):
+        cat, nm = names.get(loc_id, ("", ""))
+        return cat == "bosses" or nm.startswith("Artifact: ")
+
     # --- 1. existing objects: one more pin ---------------------------------------------------
     slot = [0]
 
@@ -523,7 +580,7 @@ def main():
     patched, touched, dirty = 0, set(), set()
     for loc_id in sorted(want):
         p = id_to_path.get(loc_id)
-        if not p:
+        if not p or per_map(loc_id):
             continue
         parent = "/".join(p.split("/")[:2])
         if parent in touched:
@@ -559,14 +616,15 @@ def main():
         o["sections"] = [{"name": sec, "item_count": 1}] if sec else [{"item_count": 1}]
         return o
 
-    logic = L.load_logic(args.map)
+    # rules generated from data/tame_logic.json against THIS pack's item codes, hand spec on top
+    logic = L.load_logic(args.map, args.out)
     explore_group = "Exploration (%s)" % pop
     boss_objs = {}
     new_children, explore_children, new_mapping, off_image = [], [], [], 0
     reused, attached, progress_secs, skipped_item_only = [], [], [], 0
     PROGRESS_NAME = "Explore Regions"
     suffix = " (%s)" % pop
-    for loc_id in sorted(want - set(id_to_path)):
+    for loc_id in sorted(i for i in want if i not in id_to_path or per_map(i)):
         if loc_id in regions:
             r = regions[loc_id]
             poly = r["polygon"]
@@ -581,7 +639,11 @@ def main():
             base = r["name"][:-len(suffix)] if r["name"].endswith(suffix) else r["name"]
             nm = "Visit %s" % base
             explore_children.append(obj(nm, x, y, None))
-            new_mapping.append('[%d] = {{"@Milestones/%s/%s"}},' % (loc_id, explore_group, nm))
+            # trailing "/" = the object's unnamed section. Without it the code resolves to the
+            # Location itself, which has no AvailableChestCount: onClear's reset loop raised on the
+            # first one and never applied slot_data (every setting dark, 2026-11-01), and
+            # onLocation could never clear the visit
+            new_mapping.append('[%d] = {{"@Milestones/%s/%s/"}},' % (loc_id, explore_group, nm))
         elif loc_id in item_only and not names.get(loc_id, ("", ""))[1].startswith("Artifact: "):
             skipped_item_only += 1          # a counter in the pack (levels): no pin by design
             continue
@@ -597,7 +659,7 @@ def main():
             cat, nm = names.get(loc_id, ("unknown", "Location %d" % loc_id))
             # a check the pack has no section for, on an object it DOES have: add the section
             # there (Collect 100 Mejoberries -> Mejoberry/x100) instead of a loose new object
-            att = L.attach_section(nm, objs, logic.get("attach", {}))
+            att = L.attach_section(nm, objs, logic.get("attach", {}), logic.get("locations"))
             if att:
                 path, o, secname, fnm = att
                 new_mapping.append('[%d] = {{"@%s/%s"}},' % (loc_id, path, secname))
@@ -614,8 +676,8 @@ def main():
             # An object of this name may ALREADY exist: the pack authored Mantis, Wyvern,
             # Deathworm and friends for Scorched but never wired their ids, so they look new to
             # the id index. Reuse it instead of creating a second object of the same name.
-            hit = L.resolve_existing(nm, objs)
-            if hit and cat != "bosses":
+            hit = None if per_map(loc_id) else L.resolve_existing(nm, objs)
+            if hit:
                 path, o, secname = hit
                 fn = next(f for pth, (f, ob) in objs.items() if pth == path)
                 if not any(ml.get("map") == pop for ml in o.get("map_locations") or []):
@@ -695,6 +757,20 @@ def main():
     new_children, new_mapping, on_map = L.group_artifacts_by_cave(
         new_children, new_mapping, logic, pop,
         lambda lat, lon: (round(ix + sx * lon), round(iy + sy * lat)))
+
+    # one tab per artifact cave, like the Island's cave tabs: a Coming Soon card (or a real cave map
+    # dropped into poptracker_art/maps/) with the cave's artifact pin on it
+    art_cave = {a: c for a, c in (logic.get("artifacts", {}).get("_caves") or {}).items()}
+    cave_tabs = []
+    for c in new_children:
+        if c["name"] not in on_map:
+            continue
+        cmap = L.cave_map_name(pop, c["name"])
+        arts = sorted(a for a, cv in art_cave.items() if cv == c["name"])
+        c["map_locations"].append({"map": cmap, "x": L.CAVE_PIN[0], "y": L.CAVE_PIN[1],
+                                   "shape": "diamond", "size": L.CAVE_MARKER_SIZE})
+        cave_tabs.append((c["name"], cmap, arts))
+    cave_tabs.sort()
 
     # Pairing frees the slot the second boss held, so reflow the strip - otherwise there is a
     # visible hole where Manticore used to be. Widest entry first, since a paired boss also has
@@ -799,7 +875,16 @@ def main():
     if not any(m["name"] == pop for m in maps):
         maps.append({"name": pop, "location_size": args.dot,
                      "location_border_thickness": max(2, args.dot // 4), "img": args.image})
-        dump(mj, maps)
+    made_cards = 0
+    for cave, cmap, arts in cave_tabs:
+        img = "images/maps/%s.png" % cmap
+        if not any(m["name"] == cmap for m in maps):
+            # the pack's own cave maps use location_size 10-20; 20 matches Central Cave
+            maps.append({"name": cmap, "location_size": 20, "location_border_thickness": 5,
+                         "img": img})
+        made_cards += L.cave_placeholder(args.out, os.path.join(args.out, *img.split("/")), cave,
+                                         pop.replace("_", " "), arts)
+    dump(mj, maps)
 
     # The pack keeps commented-out placeholder lines for content it planned but never authored.
     # Ours supersede them, and leaving both makes the next reader guess which is live.
@@ -831,7 +916,15 @@ def main():
         with open(init, "w", encoding="utf-8") as fh:
             fh.write(body.rstrip() + "\n" + line + "\n")
 
+    # the generated rules' Lua side, rebuilt from every map this pack has been given so far
+    n_rules, lua = L.generator().write_lua(args.out)
+
     print("pack patched -> %s" % args.out)
+    print("  scripts/logic_ap.lua: %d rule functions, %d shared recipe nodes"
+          % (n_rules, len(lua.order)))
+    if logic.get("_overridden"):
+        print("  hand spec (poptracker_logic.json) overrides %d generated entries: %s"
+              % (len(logic["_overridden"]), ", ".join(logic["_overridden"])))
     print("  %d existing objects gained a %s pin" % (patched, pop))
     print("  %d new objects in locations/%s, plus %d exploration nodes at real pixels"
           % (len(new_children), new_file, len(explore_children)))
@@ -866,10 +959,11 @@ def main():
             dino_names.append((e.get("ap_name") or "").replace("Tame: ", "") or e["dino_tag"])
 
     lay = os.path.join(args.out, "layouts", args.layout)
-    if add_layout_tab(lay, pop, args.model_tab):
-        print("  added a '%s Tracker' tab to layouts/%s" % (pop, args.layout))
+    if add_layout_tab(lay, pop, args.model_tab, [(cv, cm) for cv, cm, _ in cave_tabs]):
+        print("  added a %s tab to layouts/%s, with %d cave tabs (%d Coming Soon cards drawn)"
+              % (tab_title(pop), args.layout, len(cave_tabs), made_cards))
     else:
-        print("  layouts/%s already has a '%s Tracker' tab" % (args.layout, pop))
+        print("  layouts/%s already has a %s tab" % (args.layout, tab_title(pop)))
     codes, no_code = add_dino_grid(lay, pop, dino_names, habitat)
     print("  %s_dino_grid: %d creatures" % (pop.lower(), len(codes)))
     for n in no_code:

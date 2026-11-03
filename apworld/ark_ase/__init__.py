@@ -96,11 +96,11 @@ CRAFTED_COLLECT_ENGRAM = {
 # free. Sphere-0 in practice (Killed: X on a weak dino has no gate), so deep recipes that need them
 # (Campfire feeds cooked meat -> gunpowder -> Rifle KO) are available from the start - but you still
 # earn it in-world by killing something trivial, not for free. See pre_fill.
-# EMPTY since 2026-10-27 (Justin): the Campfire must NOT be in logic from the start. Hard-placed on
-# a sphere-0 kill, UT counted it as already owned and showed every cooked meat check open. It is now
-# an ordinary pool engram, so the Campfire rules wait until it is actually received. The machinery
-# stays in case another engram ever needs hard-placing.
-HARD_PLACED: set = set()
+# Universal Tracker regenerates the world but stops after generate_basic - it never runs pre_fill -
+# so a hard-placed engram does not exist on UT's side until the server actually sends it. UT's
+# cooked meat checks therefore wait for the Campfire item, while the generator still knows it is
+# sitting on an early kill (Justin, 2026-10-29: keep it on the early kill, just not open in UT).
+HARD_PLACED = {"Engram: Campfire"}
 # weak early dinos whose "Killed: X" check may host a HARD_PLACED engram (seeded pick among those
 # actually present in the seed). All sphere-0 kills. NOTE: these are the LOCATION-name shorts
 # (ap_name-derived), not the dino_tags - "Killed: Compsognathus", not "Killed: Compy".
@@ -2040,6 +2040,8 @@ class ArkASAWorld(World):
         # tier region with no rule, so it opened at sphere 0 - before any single note was in logic
         # (notes sit behind Tier 2 and their own cave/snow/water gates). Count reachable note
         # locations and stop at N, so the rule stays cheap once enough are open.
+        # Collect 25 stays rule-free (Justin, 2026-10-29): 25 open-ground notes are easy to pick up
+        # with nothing, so it is in logic from the start even though Tier 2 still holds the notes.
         used = self._used_locations()
         note_locs = [self.multiworld.get_location(n, self.player) for n in used if self._is_note(n)]
         for mst in self._locations["location_categories"].get("milestones", {}).get("entries", []):
@@ -2049,6 +2051,8 @@ class ArkASAWorld(World):
             try:
                 need = int(tag.rsplit("_", 1)[1])
             except ValueError:
+                continue
+            if need <= 25:
                 continue
             def enough_notes(state, n=need, locs=note_locs):
                 got = 0
@@ -2110,7 +2114,9 @@ class ArkASAWorld(World):
                     if ast != ("true",):
                         add_rule(self.multiworld.get_location(name, self.player),
                                  lambda state, a=ast: eval_ast(a, state, self.player))
-                else:                                   # tribute organ check -> can kill the source dino
+                elif name not in self._collect_gates():  # tribute organ check -> can kill the source dino
+                    # (a collect gate on the same name wins: the Wyvern talons need the Wyvern KILL
+                    #  rule, not its tame rule - Justin 2026-10-30)
                     tast = self._tribute_ast(name)
                     if tast and tast != ("true",):
                         add_rule(self.multiworld.get_location(name, self.player),

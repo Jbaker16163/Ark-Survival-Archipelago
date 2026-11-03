@@ -19,14 +19,36 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SPEC = os.path.join(ROOT, "tools", "reference", "poptracker_logic.json")
 
 
-def load_logic(map_key):
+_GEN = []
+
+
+def generator():
+    """The one RuleGen of this process: it collects every map's rules for logic_ap.lua."""
+    if not _GEN:
+        import poptracker_rules
+        _GEN.append(poptracker_rules.RuleGen())
+    return _GEN[0]
+
+
+def load_logic(map_key, pack=None):
+    """The map's rule spec. With a pack, rules are GENERATED from data/tame_logic.json (see
+    poptracker_rules.py) and the hand spec only overrides what it names; without one, the hand
+    spec alone (old behaviour, kept for callers that only need its static tables)."""
+    if pack is not None:
+        import poptracker_rules
+        return poptracker_rules.merge_hand(generator().spec(map_key, pack), map_key)
     if not os.path.exists(SPEC):
         return {}
     return json.load(open(SPEC, encoding="utf-8")).get(map_key, {})
 
 
 def _placeholder_icon(path, label):
-    """A visibly-placeholder icon, so a missing asset reads as missing rather than as artwork."""
+    """A visibly-placeholder icon, so a missing asset reads as missing rather than as artwork.
+
+    Never over an existing file: Windows paths ignore case, so `mining_drill.png` once silently
+    replaced the pack's real `Mining_Drill.png`."""
+    if os.path.exists(path):
+        return
     try:
         from PIL import Image, ImageDraw, ImageFont
     except ImportError:
@@ -43,6 +65,71 @@ def _placeholder_icon(path, label):
         d.text((5, 18 + i * 14), w[:9], fill=(215, 215, 225, 255), font=font)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     im.save(path)
+
+
+# --- cave tabs. The pack gives every Island cave its own tab with a cave map; we have no cave maps
+# for the other maps yet, so each cave gets a "Coming Soon" card in the same look (dark field, cave
+# name in blue top left), carrying its artifacts' pin. Drop a real map at
+# tools/reference/poptracker_art/maps/<file> and it replaces the card on the next build.
+CAVE_SIZE = (1000, 600)
+CAVE_PIN = (500, 520)
+CAVE_MARKER_SIZE = 20
+
+
+def cave_map_name(pop, cave):
+    return "%s_%s" % (pop, re.sub(r"[^A-Za-z0-9]+", "_", cave).strip("_"))
+
+
+def cave_placeholder(pack, path, cave, map_title, artifacts):
+    """Write the Coming Soon card for one cave, unless an image is already there."""
+    if os.path.exists(path):
+        return False
+    from PIL import Image, ImageDraw, ImageFont
+    w, h = CAVE_SIZE
+    im = Image.new("RGBA", (w, h), (8, 14, 28, 255))
+    d = ImageDraw.Draw(im)
+    for y in range(h):                       # a faint vertical fade, like the cave maps' backdrop
+        a = int(26 * (1 - abs(y - h / 2) / (h / 2)))
+        d.line([(0, y), (w, y)], fill=(20 + a, 40 + a, 70 + a, 255))
+
+    def font(size, bold=False):
+        for name in (("arialbd.ttf", "arial.ttf") if bold else ("arial.ttf",)):
+            try:
+                return ImageFont.truetype(name, size)
+            except OSError:
+                continue
+        return ImageFont.load_default()
+
+    d.text((28, 22), cave, fill=(52, 152, 219, 255), font=font(44))
+    d.text((30, 76), map_title, fill=(150, 160, 175, 255), font=font(22))
+    big = font(86, bold=True)
+    tw = d.textlength("Coming Soon", font=big)
+    d.text(((w - tw) / 2, 200), "Coming Soon", fill=(235, 238, 245, 255), font=big)
+    small = font(22)
+    note = "Cave map not drawn yet - its artifacts are tracked on the pin below"
+    d.text(((w - d.textlength(note, font=small)) / 2, 312), note, fill=(150, 160, 175, 255),
+           font=small)
+    # the artifacts this cave holds, with the pack's own icons where it ships them
+    icons = {}
+    for sub in ("engrams", "crates", "dinos"):
+        folder = os.path.join(pack, "images", sub)
+        if os.path.isdir(folder):
+            for f in os.listdir(folder):
+                icons.setdefault(re.sub(r"[^a-z0-9]", "", f[:-4].lower()), os.path.join(folder, f))
+    step = 200
+    x0 = (w - step * len(artifacts)) / 2
+    for i, art in enumerate(artifacts):
+        cx = x0 + step * i + step / 2
+        ic = icons.get("artifact" + art.lower()) or icons.get("artifactofthe" + art.lower())
+        if ic:
+            t = Image.open(ic).convert("RGBA").resize((54, 54), Image.LANCZOS)
+            im.paste(t, (int(cx - 27), 372), t)
+        label = art
+        d.text((cx - d.textlength(label, font=small) / 2, 432), label, fill=(210, 215, 225, 255),
+               font=small)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    im.convert("RGB").save(path)
+    return True
 
 
 def add_missing_items(pack, spec):
@@ -64,10 +151,13 @@ def add_missing_items(pack, spec):
         if code.startswith("_"):
             continue
         img = "images/engrams/%s.png" % code
+        # a creature unlock shows the creature's own art when the pack (or poptracker_art) has it
+        if meta.get("name", "").startswith("Tame - ") and \
+                os.path.exists(os.path.join(pack, "images", "dinos", "%s.png" % code)):
+            img = "images/dinos/%s.png" % code
         if code not in have:
             items.append({"name": meta["name"], "type": "toggle", "codes": code, "img": img})
-            _placeholder_icon(os.path.join(pack, "images", "engrams", "%s.png" % code),
-                              meta["name"])
+            _placeholder_icon(os.path.join(pack, *img.split("/")), meta["name"])
             added.append(code)
         if meta.get("id") is None:
             continue                    # not an AP item: a location check ticks it instead
@@ -174,7 +264,7 @@ def _stem(word):
     return w[:-1] if w.endswith("s") else w
 
 
-def attach_section(name, objs, table):
+def attach_section(name, objs, table, rules=None):
     """Give a check the pack has no section for a section on the object that should hold it.
 
     Two sources. `table` (spec "attach") names the object and section outright - used where the
@@ -187,7 +277,8 @@ def attach_section(name, objs, table):
         secs = o.setdefault("sections", [])
         if any(x.get("name") == sec for x in secs):
             return
-        new = {"name": sec, "item_count": 1, "access_rules": [""]}
+        # the check's own rule, when the spec has one (Collect 100 Mejoberries keeps its gate)
+        new = {"name": sec, "item_count": 1, "access_rules": list((rules or {}).get(name) or [""])}
         if like and like.get("visibility_rules"):
             n_new = re.sub(r"\D", "", sec)
             n_old = re.sub(r"\D", "", like["name"])
@@ -326,13 +417,15 @@ def ap_location_ids(load):
 def add_artifact_toggles(lines, pop, codes):
     """Tick the artifact_* toggle as well as the pin, the way the pack wires every artifact check.
 
-    The Dragon & Manticore rule reads those toggles, so a pin alone would leave the boss red."""
+    The Dragon & Manticore rule reads those toggles, so a pin alone would leave the boss red.
+    Matched case-insensitively: the pack spells one of them `artifact_Crag`."""
+    by_lower = {c.lower(): c for c in codes}
     out = []
     for line in lines:
         m = (re.match(r'^\[(\d+)\] = \{\{"@%s/Artifact: (\w+)/' % re.escape(pop), line) or
              re.match(r'^\[(\d+)\] = \{\{"@%s/[^/"]+/Artifact of the (\w+)"' % re.escape(pop), line))
-        code = "artifact_%s" % m.group(2).lower() if m else None
-        if code and code in codes:
+        code = by_lower.get("artifact_%s" % m.group(2).lower()) if m else None
+        if code:
             line = line.replace("{{", '{{"%s"}, {' % code, 1)
         out.append(line)
     return out
@@ -420,6 +513,7 @@ def apply_rules(children, logic, pop):
     arts = logic.get("artifacts", {})
     locs = logic.get("locations", {})
     combat = logic.get("boss_combat", [])
+    per_boss = logic.get("boss_rules", {})
     touched = 0
     for c in children:
         name = c["name"]
@@ -429,6 +523,10 @@ def apply_rules(children, logic, pop):
             touched += 1
         elif name in locs:
             c["access_rules"] = locs[name]
+            touched += 1
+        elif name.startswith("Boss: ") and name[len("Boss: "):] in per_boss:
+            # generated: the boss's own artifacts and extras on this map
+            c["access_rules"] = per_boss[name[len("Boss: "):]] or [""]
             touched += 1
         elif name.startswith("Boss: ") and combat:
             c["access_rules"] = list(combat)

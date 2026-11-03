@@ -23,8 +23,12 @@ AST = tuple
 DEEP_WATER = {"Mosasaur", "Tusoteuthis", "Plesiosaur", "Angler", "Dunkle", "Megalodon",
               "Liopleurodon"}
 
-# DINO_TIER -> fallback requirement expression (for dinos the sheet doesn't cover).
-_TIER_REQ = {0: "", 1: "Slingshot | (Bola + Club)", 2: "Crossbow KO", 3: "Rifle KO"}
+# DINO_TIER -> fallback requirement expression (for dinos the sheet doesn't cover). Tokens must be
+# real item_recipes keys: these used to read "Crossbow KO" / "Rifle KO" / "Deep Dive" (with spaces),
+# which match nothing, so every tier-2/3 and deep-water fallback compiled to NO requirement (Dire
+# Bear, Deinonychus, ...). Found by tools/poptracker_rules.py's free-token report, 2026-10-29.
+_TIER_REQ = {0: "", 1: "Slingshot | (Bola + Club)", 2: "CrossbowKO", 3: "RifleKO"}
+_DEEP_DIVE = "DeepDive"
 
 
 class TameLogic:
@@ -56,7 +60,7 @@ class TameLogic:
             return expr
         base = _TIER_REQ.get(tier, "")
         if roster_short in DEEP_WATER:
-            base = (base + " + Deep Dive") if base else "Deep Dive"
+            base = (base + " + " + _DEEP_DIVE) if base else _DEEP_DIVE
         return base
 
     # ---- compile an expression string into an AST over ('has', ap_item_name) ----
