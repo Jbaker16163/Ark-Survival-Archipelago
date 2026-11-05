@@ -71,6 +71,10 @@
     {"file": "scripts/autotracking/archipelago.lua", "pattern": "\\n        local val = INCLUDED_LOCATIONS\\[", "repl": "\n        if next(INCLUDED_LOCATIONS) == nil then return true end\n        local val = INCLUDED_LOCATIONS[", "count": 2,
      "why": "same empty-table guard for both tame sanity functions (hid every Tame section while offline)"}
   ],
+  "remove_section": [
+    {"file": "locations/milestones.json", "object": "Milestones/Tame Species", "section": "x1",
+     "why": "phantom check (2026-11-04): no AP location maps to Tame Species/x1 (location_mapping has only x5/x10/x20/x50 = 8751020-8751023, the apworld has no 'Tame 1 Species'), so it never cleared - a Ragnarok bronto tame left it open. The first-tame check is 'Tame your first dino' (8751000) = Tame Creatures/x1"}
+  ],
   "remove_pin": [
     {"file": "locations/milestones.json", "object": "Milestones/Raw Prime Fish Meat", "map": "Scorched_Earth", "at": [92, 422],
      "why": "no prime fish on Scorched Earth: maps.json no longer gives the Raw/Cooked Prime Fish Meat checks to a Scorched-only slot (Justin 2026-10-30). The pin was also stacked on Raw Prime Meat's"}
@@ -81,7 +85,9 @@
   ],
   "new_items": {
     "parachute": {"id": 8730082, "name": "Engram - Parachute",
-                  "_why": "0.0.9 note rules need `parachute` but the pack never defined it (its 8730082 mapping is commented out); 8730082 is Engram: Parachute"}
+                  "_why": "0.0.9 note rules need `parachute` but the pack never defined it (its 8730082 mapping is commented out); 8730082 is Engram: Parachute"},
+    "phoenix": {"id": 8732114, "name": "Tame - Phoenix",
+                "_why": "the pack has a `phoenix` item on the Scorched grid but never mapped an id to it, and no rule names it, so the generator never wired Tame: Phoenix (8732114) either - receiving it never lit the icon (2026-11-04)"}
   },
   "rule_from_data": [
     {"file": "locations/milestones.json", "object": "Milestones/Wyvern Milk", "location": "Wyvern Milk x5", "expect": "Needs Logic",

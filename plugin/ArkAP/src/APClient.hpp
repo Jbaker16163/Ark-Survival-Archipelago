@@ -453,7 +453,15 @@ private:
                 if (mySlot_ >= 0 && sender == mySlot_ && receiver != mySlot_ && receiver >= 0) {
                     std::string rn = players_.count(receiver) ? players_[receiver]
                                                               : ("player " + std::to_string(receiver));
-                    QueueMsg(cfg_.slot + " sent " + ItemName(receiver, item.value("item", 0)) + " to " + rn);
+                    // SAY WHY, like our own unlock line: the check that released it goes at the
+                    // end ("... to Zero (from Explore: X)"). The location is OURS (the sender's),
+                    // so name it from our slot's datapackage. Unknown -> old wording, never a guess.
+                    std::string loc = item.contains("location")
+                                    ? LocName(sender, item.value("location", 0)) : std::string();
+                    if (loc == "a location") loc.clear();
+                    std::string line = cfg_.slot + " sent " + ItemName(receiver, item.value("item", 0)) +
+                                       " to " + rn;
+                    QueueMsg(loc.empty() ? line : line + " (from " + loc + ")");
                 }
             } else if (type == "Hint") {
                 json item = msg.value("item", json::object());

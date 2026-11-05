@@ -2,9 +2,10 @@
   "_comment": [
     "Per-map input for tools/poptracker_add_map.py. Everything else (pins, rules, grids) comes from data/.",
     "pop    = the map's name inside the pack (its tab, maps.json entry and image file name).",
-    "source = the bare map image. It must span GPS 0-100 edge to edge in the same coordinate system",
-    "         import_drawn_regions.KNOWN converts that map's regions into; the canvas calibration is",
-    "         derived from that, so there is no second patcher pass.",
+    "source = the bare map image, in the same coordinate system import_drawn_regions.KNOWN converts",
+    "         that map's regions into. gps_span = the GPS range it covers edge to edge (default [0, 100]).",
+    "         It must be right: region pins and the drawer both rely on it.",
+    "         The canvas calibration is derived from that, so there is no second patcher pass.",
     "artifact_caves / artifact_positions = optional: pin artifacts ON the map at their cave (one pin",
     "         per cave). Without them artifacts sit in the sidebar grid. Positions must come from a",
     "         real source (say which in _source) - never estimated.",
@@ -20,7 +21,8 @@
     "ap_option": "ragnarok",
     "pop": "Ragnarok",
     "source": "docs/ragnarok_map.jpg",
-    "_note": "Image spans compass 0-100 and KNOWN ragnarok is true compass: the wiki's setplayerpos world coords for Hunter/Brute/Devourer/Cunning convert to the wiki's compass lat/lon within 0.3 deg, and the artifacts plot onto their caves (Pit of Dreen in the west ocean). Checked 2026-10-29. Caves/positions live in poptracker_logic.json."
+    "gps_span": [10, 90],
+    "_note": "KNOWN ragnarok is true compass (wiki setplayerpos for Hunter/Brute/Devourer/Cunning converts to the wiki's lat/lon within 0.3 deg, 2026-10-29). The IMAGE does NOT span 0-100: it covers GPS 10-90 (2026-11-04). Four in-game /dumppos points (Blue/Green/Red Obelisk, Olga Beach) against regions drawn on this image fit a pure 0.80 scale on both axes, and only 10-90 puts Olga Beach on the beach and Red Obelisk on the east-coast outcrop. The 10-29 'artifacts plot onto their caves' check could not tell the two apart. Pit of Dreen (lon 2.3) lies just off the image and is held on its west edge. Caves/positions live in poptracker_logic.json."
   },
   "center": {
     "ap_option": "the_center",

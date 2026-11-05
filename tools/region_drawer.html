@@ -145,7 +145,10 @@ const FJORDUR_REALMS = [
 const MAPS = [
   {key:"island", name:"The Island", cal:true},
   {key:"scorched", name:"Scorched Earth", cal:true},
-  {key:"ragnarok", name:"Ragnarok", cal:true},
+  // img: the GPS span the map IMAGE covers edge to edge (default 0-100). docs/ragnarok_map.jpg
+  // covers 10-90: drawing on it as if it were 0-100 stretched every Ragnarok region 1.25x out from
+  // the centre (2026-11-04, fitted from 4 in-game /dumppos points: 0.799 on both axes).
+  {key:"ragnarok", name:"Ragnarok", cal:true, img:[10, 90]},
   {key:"aberration", name:"Aberration", cal:false},
   {key:"extinction", name:"Extinction", cal:false},
   {key:"genesis1", name:"Genesis: Part 1", cal:false},
@@ -296,6 +299,10 @@ function refresh(){
   const base = imgBase();
   let dragged = null;
   try { dragged = localStorage.getItem('arkap_img_' + base); } catch (e) {}
+  // place the image at the GPS span it really covers; the svg viewBox stays 0-100 = GPS
+  const [lo, hi] = m.img || [0, 100];
+  Object.assign(img.style, {left: lo + '%', top: lo + '%', width: (hi - lo) + '%',
+                            height: (hi - lo) + '%', right: 'auto', bottom: 'auto'});
   const show = src => { if (imgBase() !== base) return;      // user switched again while loading
                         if (src){ img.src = src; img.hidden = false; }
                         else { img.removeAttribute('src'); img.hidden = true; } };

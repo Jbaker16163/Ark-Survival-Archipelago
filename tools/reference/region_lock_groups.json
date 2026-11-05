@@ -1,0 +1,28 @@
+{
+  "_comment": [
+    "DRAFT region-lock groups (regionlock branch, 2026-11-03). One unlock item per group, named '<Map>: <Group>'.",
+    "Region keys are the ids in apworld/ark_ase/data/explore_areas.json. 'open' = unlocked from the start (unless",
+    "start_area is random, see below). 'caves' = one key item per cave, named '<Map>: <Cave> Key'.",
+    "Membership rule: a spot is blocked if ANY locked group's region covers it; inside a cave (outline + depth band)",
+    "only the cave key counts; ground outside every outline is always open.",
+    "Island reviewed by Justin 2026-11-03 ('looks right for the most part'); other maps not drafted yet."
+  ],
+  "island": {
+    "item_prefix": "TheIsland",
+    "open": ["southernislets", "footpaw", "southernrockpillars", "westernpeninsula", "weathertop",
+             "redobelisk", "greenobelisk"],
+    "groups": {
+      "Snow Biome": ["whitesky", "whiteskymountain", "wintersmouth", "frozentooth", "frozenfang", "frigidplains",
+                     "icespikes", "southerniceberg", "icebergwitharch", "themaw", "blueobelisk"],
+      "Redwoods": ["redwoods", "redpeak"],
+      "Swamp": ["westernswamp", "centralswamp", "easternswamp"],
+      "Highlands": ["volcano", "volcanicmaw", "grandhills", "farspeak"],
+      "Jungle": ["southernjungle", "hiddenlake"],
+      "Far Islands": ["craggs", "deadisland", "southhaven", "drayoscove"],
+      "Deep Ocean": ["deepocean"]
+    },
+    "caves": ["centralcave", "lowersouthcave", "uppersouthcave", "northeastcave", "northwestcave", "lavacave",
+              "swampcave", "snowcave", "cavernsoflosthope", "cavernsoflostfaith"],
+    "_not_locked": "tekcave (endgame, the bosses already gate it)"
+  }
+}

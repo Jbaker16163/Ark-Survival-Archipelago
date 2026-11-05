@@ -1,3 +1,189 @@
+## Fix pending live test 2026-11-05 (plugin v203): "sent X to Y" line gave no reason
+
+- Our own unlocks lead with the check that earned them ("<location> unlocked for everyone: ...").
+  An item our check sent to another game only said "<slot> sent <item> to <player>", with no
+  location, so nobody knew which check released it.
+- Fix: the PrintJSON ItemSend line now names our location at the end (user's choice):
+  "<slot> sent <item> to <player> (from <location>)". The location is named from OUR game's datapackage
+  (the sender's); unknown -> old wording, never a guess. Both the embedded client
+  (plugin/ArkAP/src/APClient.hpp) and the external connector (connector/ark_ap_connector.py, exe
+  rebuilt).
+
+## Fix pending live test 2026-11-05 (plugin v203): remote DeathLink killed one survivor, not the server
+
+- Shared slot (multiplayer=false), two survivors. One of us dying in ARK killed the other survivor
+  and the other games (fan-out works). A death from ANOTHER game killed only one survivor.
+- The incoming path (DoApplyDeaths) called Die inside the PlayerControllerList walk, with a single
+  __try around the whole pass, so anything that stopped the walk after the first kill (a fault in
+  Die, or Die changing what the walk sees) left the rest alive with nothing in the log. The exact
+  trigger is NOT confirmed: the old build logged only a count.
+- Fix: both DeathLink paths now use KillSurvivors(): victims snapshotted before any Die runs, each
+  Die guarded on its own (GuardedDie), and every victim logged by name with the result
+  (`DEATHLINK received: '<name>' -> killed / Die REFUSED / !! FAULT in Die`, plus skips for no
+  body / already dead).
+- To verify: have another game die with both survivors spawned in, then read the DEATHLINK lines in
+  ArkAP_debug.log. If one survivor still lives, the per-name line says why.
+
+## Fixed 2026-11-04 (tracker): Griffin missing from the Ragnarok Tames grid
+
+- Tame: Griffin was received but the Ragnarok grid had no Griffin icon. add_dino_grid
+  (tools/patch_poptracker_pack.py) only took codes from grids that already existed, and no grid
+  had `griffin`, so it printed "no item code" and dropped it. Same for Valguero's Karkinos,
+  Ravager, Deinonychus, Featherlight, Glowtail, Roll Rat and Bulbdog.
+- Fix: fall back to the pack's "Tame - X" item when no grid lists the creature yet (existing
+  composites like bronto_ride are never replaced).
+- Also: Tame: Phoenix (8732114) had no item mapping (no rule names it), so the Scorched grid's
+  phoenix icon never lit. Mapped via new_items in poptracker_pack_fixes.json.
+
+## Fixed 2026-11-04 (tracker): Tame Species x1 never cleared
+
+- Taming a Bronto on Ragnarok left "Tame Species / x1" open. That section is in Lurch's pack only:
+  no AP location maps to it (location_mapping has x5/x10/x20/x50 = 8751020-8751023 and the apworld
+  has no "Tame 1 Species"), so nothing could ever clear it. The real first-tame check is "Tame your
+  first dino" (8751000) = Tame Creatures / x1.
+- Fix: new `remove_section` fix type in tools/poptracker_add_map.py, entry in
+  tools/reference/poptracker_pack_fixes.json drops the section (ap_reset.lua follows automatically).
+
+## Fixed 2026-11-04 (data): Ragnarok Blue Obelisk visit never fired
+
+- Standing on the Blue Obelisk sent nothing. /dumppos there read X -427263 Y -416813
+  (GPS 17.95 / 17.15), but the hand-drawn ragnarok_blueobelisk polygon sat at roughly
+  lat 5-15 / lon 3-13, nowhere near the obelisk, and the point was inside no Ragnarok region.
+- Fix: polygon replaced with 5 in-game /dumppos samples walked around the platform (z band
+  recorded only; not used off-realm). Same data in data/ and apworld/ark_ase/data/.
+- Red and Green Obelisk (Ragnarok) were drawn the same way (see root cause below).
+- ROOT CAUSE (same day): every drawn Ragnarok region was stretched 1.25x out from the map centre.
+  docs/ragnarok_map.jpg covers GPS 10-90, but tools/region_drawer.html laid every map image over
+  0-100. Four in-game /dumppos points (Blue, Olga Beach, Green, Red) fit a pure scale of 0.799 on
+  both axes; as drawn only Green (near the centre) was inside its region, and Olga Beach fired
+  Slosher Slope instead. Fix: all 36 other Ragnarok polygons scaled x0.80 about the world origin
+  (Blue keeps its measured polygon); all 4 points now land in their own region. The drawer now
+  places the Ragnarok image at GPS 10-90 (`img` bounds per map) so new drawings come out right.
+- The PopTracker canvas made the same 0-100 assumption, so once the regions were true their pins
+  slid toward the centre (they only "looked right" before because both errors matched). Fix:
+  `gps_span: [10, 90]` for Ragnarok in tools/reference/poptracker_maps.json feeds the canvas
+  calibration; pins past the image edge (Pit of Dreen, lon 2.3) are held on the edge. The old
+  10-29 note there ("image spans 0-100") was wrong and is corrected.
+
+## Fixed 2026-11-02 (tracker): every food check hidden while not connected
+
+- Screenshot: all Food sanity pins (crops, meats, jerky, honey, raw fish) had no square. The AP
+  server was down, so slot_data never arrived. PopTracker's autosave still restored op_FS/op_NS/
+  op_TS/op_DS (badges showed 100/369), but INCLUDED_LOCATIONS is plain Lua and starts empty, so
+  every "is this id in the slot" visibility function (food, explorer notes, tame, death sanity)
+  returned false and hid its check.
+- Fix (tools/reference/poptracker_pack_fixes.json, 3 replaces): an empty INCLUDED_LOCATIONS means
+  no slot data yet, so those functions return true. Once connected the slot's list takes over.
+
+## Fixed 2026-11-01 (plugin v202-counters-load): collective counters reset on every restart
+
+- Live (Yoshi + Justin's test): "Die 40 times" never sent; counters.json edited to 40 with the
+  server stopped still dropped to 1 on the next death. The loader did
+  `for (auto& [name, pl] : j.value("players", ...).items())` - .items() on the value() TEMPORARY,
+  which C++17 destroys before the loop body (same trap as v106 item_groups). No route's totals ever
+  loaded, so EVERY restart restarted tames/kills/breeds/deaths at 0 and the next event overwrote
+  the file. Every count milestone (Tame/Kill/Breed N, Die N times) only fired if reached within one
+  server run. Same pattern fixed in the tek_grants loader (grants never loaded either).
+- Fix: iterate a named local. Boot now logs "COUNTERS loaded [route] ... deaths=N" per route, and
+  an unreadable counters.json logs why instead of silently starting from 0.
+- SELF-HEAL at boot: events_queue.jsonl is the append-only history of every event, so v202
+  recounts it and keeps max(counters.json, recount) per route and kind, then rewrites counters.json
+  ("COUNTERS healed deaths [route]: 1 -> 43" in the log). Servers that ran an old build get their
+  true totals back just by updating the plugin; a count raised by hand is never lowered. Affects 20
+  checks: first tame/breed, Tame 5-100, Kill 5-100, Breed 5-20, Die once-40 times. Species and
+  explore milestones were never affected (they count checked locations). Load + heal logic checked
+  in a standalone build against the same nlohmann json.hpp. Not counted even now: deaths the
+  plugin skips by design (DeathLink, unresolved route) and anything before a reset deleted the queue.
+
+## Fixed 2026-11-01 (tracker): slot settings never applied - every setting dark, Die N hidden
+
+- Live slot GhiosTesting: slot_data had death_milestones/bundle_saddles/lock_taming/
+  lock_supply_crates = true and dossier_checks 400 (pulled straight from the server), yet every
+  setting toggle stayed dark and the autosave held Explorer Notes/Foodsanity/Deathsanity at 0.
+- PopTracker log: `Error calling Archipelago ClearHandler ... archipelago.lua:897: Unknown property
+  "AvailableChestCount" for "Location"`. The 78 generated "Visit <region>" checks for Ragnarok,
+  Valguero and The Center mapped to `@Milestones/Exploration (<Map>)/Visit X`, which resolves to
+  the Location, not its unnamed section. onClear's reset loop raised on the first one, so
+  apply_slot_data never ran: no settings, no included_locations (so nothing was hidden either, by
+  accident), and onLocation could never clear those visits. Broken since the Ragnarok tab was added.
+- Fix: patch_poptracker_pack.py writes `@.../Visit X/` (trailing slash = the unnamed section);
+  the new-seed reset now covers unnamed sections; validate() fails the build on any mapping code
+  that is not a section.
+- Also: the Die N sections go through `$death_milestones_enabled` (op_DM on OR any of
+  8751039-8751043 in included_locations) instead of the bare op_DM toggle.
+
+## Added 2026-10-30: Prime fish checks on Scorched Earth
+
+- Collect 20/50 Raw Prime Fish Meat and Cooked Prime Fish Meat x10/x20/x50 (8757359, 8757377,
+  8757309, 8757387, 8757388) were "any" content, so a Scorched-only slot got them. Justin: no
+  prime fish there.
+- Fix: maps.json moves the five ids from "any" to every other map's list (both mirrors), so any slot
+  with a non-Scorched map still has them. Tracker: remove_pin drops Raw Prime Fish Meat from the
+  Scorched canvas (it was also stacked on Raw Prime Meat); Cooked Prime Fish had no Scorched pin.
+
+## Added 2026-10-30: Breed 5/10/20 Dinos needed no tame
+
+- Only "Breed your first dino" had a rule (milestone_reqs: CanTameAnyCreature = one Tame item
+  under lock_taming). Breed 5/10/20 had none; Lurch's tracker had the whole Breed Creatures object
+  blank.
+- Fix: milestone_reqs Breed 5/10/20 Dinos = CanTameAnyCreature (Justin), both mirrors. Tracker:
+  rule_from_data with an explicit `rule` ($can_tame_1, the pack's own version) since our generator
+  can't express the option-built tame-count macros.
+
+## Added 2026-10-30: Aberration creatures had no kill rule
+
+- Karkinos, Ravager, Deinonychus, Featherlight, Glowtail, Bulbdog, Glowbug, Roll Rat, Seeker,
+  Lamprey are not in Lurch's kill sheet, so only the tier region gated them (tracker: always green).
+- Fix (Justin approved, no trench-access gate): kill_reqs copied from the sheet's nearest analogs,
+  both mirrors. Karkinos = Megalania/Megalosaurus rule; Ravager, Roll Rat + Deinonychus = Direwolf
+  rule; Seeker = MediumFightTames | StrongFightTames | InsaneFightTames; the other five =
+  Leech/Basilisk rule. NOTE the weak rule includes UseMelee, and UsePrimMelee holds the starting
+  Torch/Stone Pick, so those five still compile to no requirement (same as Leech).
+
+## Added 2026-10-30: Wyvern talons used the Wyvern TAME rule
+
+- Fire/Lightning/Poison Talon x2/x10 resolved through tribute_dino -> Wyvern -> its tame rule
+  (BowKO | CrossbowKO), although talons drop from a Wyvern KILL (kill_reqs: UseShotgun |
+  StrongFightTames | InsaneFightTames). Lurch's tracker had them blank (always in logic).
+- Fix: collect_reqs for all six = the Wyvern kill rule (Justin), both mirrors; the inventory-check
+  loop now skips the tribute rule when a collect gate names the same location (data tables win, as
+  everywhere else). Other tributes (Argentavis Talon etc.) unchanged. Tracker: rule_from_data on
+  Lurch's three talon objects.
+
+## Added 2026-10-30: Alpha Deathworm Trophy was free from the start
+
+- Tier 3 inventory check with no rule: collect_reqs only had "Alpha Wyvern Trophy", and
+  tribute_dino has no trophy entries, so progression could land on it in sphere 1.
+- Fix: collect_reqs "Alpha Deathworm Trophy" = StrongFightTames | InsaneFightTames (Justin), both
+  mirrors. Verified unreachable with no items on a Scorched seed; unreach 0 on Scorched/Ragnarok.
+- PopTracker (same day): Lurch's Alpha Fire Wyvern / Alpha Deathworm kills only hosted the trophy
+  (no item_count = no square, blank rule), the trophy code clashed with the Wyvern unlock, and
+  8756007 was unmapped. Raw Fish Meat on Scorched sat on blank canvas and Raw Prime Fish Meat was
+  stacked on Raw Prime Meat. All fixed in poptracker_pack_fixes.json. The trophies themselves
+  (8757335/8757336) still have no Scorched Earth pin.
+
+## Added 2026-10-29: Wyvern Milk x5 / Deathworm Horn x5 were free from the start
+
+- Neither check had a rule anywhere: not in collect_reqs / tribute_dino, and Lurch's Ark_IDs.xlsx
+  has no row for either (his pack had a literal "Needs Logic" placeholder = never in logic there,
+  always in logic here). Justin: these take strong dinos.
+- Fix: collect_reqs "Wyvern Milk x5" = StrongFightTames | InsaneFightTames (same as Alpha Wyvern
+  Trophy); "Deathworm Horn x5" = KillDeathworm, the sheet's own Deathworm kill macro (Strong |
+  Insane | RideMegatherium - Justin added the Megatherium option). Both mirrors. The PopTracker
+  build replaces Lurch's placeholders with the same generated rules (poptracker_pack_fixes.json
+  rule_from_data).
+
+## Added 2026-10-29: DINO_TIER tame fallback compiled to no requirement
+
+- tame_logic.py _TIER_REQ used "Crossbow KO" / "Rifle KO" and the deep-water add-on "Deep Dive" -
+  none of them item_recipes keys (those are CrossbowKO / RifleKO / DeepDive). Unknown tokens compile
+  to true, so every creature that falls back to its tier had NO tame requirement: Dire Bear,
+  Deinonychus, Phoenix, Featherlight, Glowtail, Bulbdog (Titanoboa too, but it is NO_TAME_LOGIC).
+- Fix: _TIER_REQ = CrossbowKO / RifleKO, new _DEEP_DIVE = "DeepDive". tools/poptracker_rules.py now
+  reads _TIER_REQ / DEEP_WATER from the module instead of a copy. Found by its free-token report.
+- Verified: unreach 0 on island / scorched / ragnarok / center / valguero / fjordur; sweep 52/52
+  (that sweep also covers the restored HARD_PLACED Campfire and the rule-free Collect 25 notes).
+
 ## Added 2026-10-27: Kevin's UT vs PopTracker report (Kairuku, note milestones, cooked meat)
 
 - Killed: Kairuku had no kill rule (absent from kill_reqs, so it compiled to "no requirement").
@@ -5,11 +191,18 @@
   row already uses EnterSnow + KillKairuku). Now needs 3 fur pieces (or Otter) plus a ranged weapon.
 - "Collect N Explorer Notes" sat in a tier region with no rule, so UT showed it open before any
   single note was in logic. Fix: the milestone requires N REACHABLE note locations (counted, stops
-  at N). Island spoiler: Collect 25 now lands in sphere 3, the same sphere as the first notes.
-- Cooked Meat without a Campfire: Campfire was HARD_PLACED on an easy early kill, so UT counted it
-  as owned from the start. Justin: it must not be in logic straight away. Fix: HARD_PLACED is now
-  empty - Campfire is an ordinary pool engram and every Campfire rule waits for it. Spoilers over the
-  sweep: Campfire found in sphere 1 (15 seeds) up to sphere 6.
+  at N). EXCEPT Collect 25 (Justin, 2026-10-29): rule-free, in logic from the start - 25 open-ground
+  notes are easy to get with nothing. Collect 50+ keep the rule. Checked island + scorched, tiers on
+  and off: Collect 25 open with no items, Collect 50 / 75 closed while tiers hold the notes.
+- Cooked Meat without a Campfire: NOT caused by the HARD_PLACED Campfire. Briefly emptied
+  HARD_PLACED (2026-10-27), then restored it (2026-10-29, Justin: keep the Campfire on an early kill,
+  just not open in UT). UT's TrackerCore regenerates only up to generate_basic (no pre_fill, no fill)
+  and its state = received items + an event sweep (address None), so the locked Campfire does not
+  exist on UT's side until the server sends it. Simulated (ut_sim.py, island seed 12345): all 9
+  Cooked Meat / Cooked Fish Meat checks closed with no items, open once Engram: Campfire is received;
+  real gen still locks it on Killed: Lystrosaurus. Kevin's actual cause: he is on v0.3.1, where only
+  Cooked Meat x20 / Cooked Fish Meat x20 required the Campfire - x50 / x100 / x200 / x500 had no
+  collect_req at all (added in the 0.3.2 sheet pass), so UT showed them open. Already fixed.
 - Verified: sweep 52/52; island / scorched / fjordur / center / valguero, island dossier_checks 30
   and progression_tiers off all beatable with 0 unreachable.
 

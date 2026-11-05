@@ -241,7 +241,7 @@ namespace fs = std::filesystem;
 // Which dll is actually loaded. Declared up here rather than beside Load() because the JOIN greet
 // and /apstatus both quote it: "what version are they running?" was answered by asking someone to
 // find a log file on the server box, which is no answer at all when the report comes from a player.
-static const char* ARKAP_BUILD = "v202-counters-load";
+static const char* ARKAP_BUILD = "v203-deathlink-sendwhy";
 
 // the plugin's own folder: ArkApi/Plugins/ArkAP
 static fs::path PluginDir() {
@@ -1028,6 +1028,54 @@ static void ResolveDyingRoute(AShooterCharacter* who) {
         if (pc && pc->GetPlayerCharacter() == who) { g_dyingRoute = RouteFor(pc); g_dyingRouteValid = true; break; }
     }
 }
+
+// One lethal Die via the trampoline (so our Die hook does not re-fire), guarded on its own.
+// 1 = Die ran and returned true, 0 = Die refused (returned false), -1 = it faulted.
+// Kept free of C++ objects with destructors so __try is allowed here.
+static int GuardedDie(AShooterCharacter* ch, FDamageEvent* dmg) {
+    __try { return AShooterCharacter_Die_original(ch, 1000000.f, dmg, nullptr, nullptr) ? 1 : 0; }
+    __except (EXCEPTION_EXECUTE_HANDLER) { return -1; }
+}
+
+// Kill every in-world survivor that belongs to `route` ("" in shared mode = the whole server),
+// except `skip` (the one already dying). Used by BOTH DeathLink paths:
+//   - incoming (a death from another game): skip = nullptr, everyone goes
+//   - shared-slot fan-out (one of us died):   skip = the survivor already dying
+// The incoming path used to call Die inside the same loop that walked PlayerControllerList, with
+// one __try around the whole pass. A remote death then killed exactly ONE survivor in a shared
+// slot, while the fan-out (same server, same people) killed everyone - so the pass was stopping
+// after the first kill. Two things make that impossible now: the victims are SNAPSHOTTED before
+// any Die runs (nothing Die does to the controller list can cut the walk short), and each kill is
+// guarded on its own (a fault on one survivor is logged and the rest still die). Every victim is
+// logged by name with the result, so if one is ever missed again the log says who and why.
+static int KillSurvivors(const std::string& route, AShooterCharacter* skip, const char* why) {
+    UWorld* world = ArkApi::GetApiUtils().GetWorld();
+    if (!world) return 0;
+    struct Victim { AShooterCharacter* ch; std::string name; };
+    std::vector<Victim> victims;
+    for (TWeakObjectPtr<APlayerController> wpc : world->PlayerControllerListField()) {
+        auto* pc = static_cast<AShooterPlayerController*>(wpc.Get());
+        if (!pc) continue;
+        if (!route.empty() && RouteFor(pc) != route) continue;   // only this slot's player
+        AShooterCharacter* ch = pc->GetPlayerCharacter();
+        std::string name = ArkApi::GetApiUtils().GetCharacterName(pc).ToString();
+        if (!ch) { DebugLog(std::string("DEATHLINK ") + why + ": skip '" + name + "' (no body - respawn screen)"); continue; }
+        if (ch == skip) continue;                                // already dying
+        if (ch->IsDead()) { DebugLog(std::string("DEATHLINK ") + why + ": skip '" + name + "' (already dead)"); continue; }
+        bool dup = false;                                        // one body, one kill
+        for (auto& v : victims) if (v.ch == ch) dup = true;
+        if (!dup) victims.push_back({ ch, name });
+    }
+    int killed = 0;
+    for (auto& v : victims) {
+        FDamageEvent dmg;                                        // generic lethal damage
+        int r = GuardedDie(v.ch, &dmg);
+        if (r == 1) ++killed;
+        DebugLog(std::string("DEATHLINK ") + why + ": '" + v.name + "' -> " +
+                 (r == 1 ? "killed" : r == 0 ? "Die REFUSED (returned false)" : "!! FAULT in Die"));
+    }
+    return killed;
+}
 // Work out WHAT killed the player, as one of the "kind" tags in locations.json.
 //
 // Two independent sources, in order of confidence:
@@ -1162,23 +1210,11 @@ static void DoPlayerDeath(AShooterCharacter* who) {
     // The suppress window is set BEFORE the kills and AFTER our own death_out write, so the
     // knock-on deaths do not each rebroadcast (the same guard the incoming-link path uses).
     if (!g_multiplayer && FlagFor(g_routeDeathLink, route)) {
-        UWorld* world = ArkApi::GetApiUtils().GetWorld();
-        if (world) {
-            g_suppressDeathUntil[route] = std::time(nullptr) + 5;
-            int killed = 0;
-            for (TWeakObjectPtr<APlayerController> wpc : world->PlayerControllerListField()) {
-                auto* pc = static_cast<AShooterPlayerController*>(wpc.Get());
-                if (!pc) continue;
-                AShooterCharacter* ch = pc->GetPlayerCharacter();
-                if (!ch || ch == who || ch->IsDead()) continue;   // the dying one is already handled
-                FDamageEvent dmg;                                 // real Die via the trampoline, so
-                AShooterCharacter_Die_original(ch, 1000000.f, &dmg, nullptr, nullptr);  // our hook does not re-fire
-                ++killed;
-            }
-            if (killed)
-                DebugLog("DEATHLINK shared-slot: one death took the whole server -> killed " +
-                         std::to_string(killed) + " other player(s)");
-        }
+        g_suppressDeathUntil[route] = std::time(nullptr) + 5;
+        int killed = KillSurvivors(route, who, "shared-slot");   // the dying one is already handled
+        if (killed)
+            DebugLog("DEATHLINK shared-slot: one death took the whole server -> killed " +
+                     std::to_string(killed) + " other player(s)");
     }
 }
 // Classify + report BEFORE the original Die runs: the causer and the damage event are still valid
@@ -3785,20 +3821,10 @@ static void DoApplyDeaths() {
         }
         if (count <= processed[route]) { if (count < processed[route]) processed[route] = count; continue; }
         processed[route] = count;
-        UWorld* world = ArkApi::GetApiUtils().GetWorld();
-        if (!world) continue;
+        if (!ArkApi::GetApiUtils().GetWorld()) continue;
         g_suppressDeathUntil[route] = std::time(nullptr) + 5;   // the kill below must not rebroadcast
-        int killed = 0;
-        for (TWeakObjectPtr<APlayerController> wpc : world->PlayerControllerListField()) {
-            auto* pc = static_cast<AShooterPlayerController*>(wpc.Get());
-            if (!pc) continue;
-            if (!route.empty() && RouteFor(pc) != route) continue;   // only this slot's player
-            AShooterCharacter* ch = pc->GetPlayerCharacter();
-            if (!ch) continue;
-            FDamageEvent dmg;                        // generic lethal damage via the real Die (trampoline,
-            AShooterCharacter_Die_original(ch, 1000000.f, &dmg, nullptr, nullptr);  // so our hook doesn't re-fire)
-            ++killed;
-        }
+        // shared slot (route "") = every survivor on the server; multiplayer = that slot's survivor
+        int killed = KillSurvivors(route, nullptr, "received");
         DebugLog("DEATHLINK received -> killed " + std::to_string(killed) + " player(s)" +
                  (route.empty() ? "" : " [" + route + "]"));
     }

@@ -435,7 +435,12 @@ class Bridge:
                     game = self.slot_game.get(receiver, "")
                     iname = self.game_items.get(game, {}).get(item.get("item"), f"item {item.get('item')}")
                     rname = self.slot_pname.get(receiver, str(receiver))
-                    self._queue_msg(f"{self.slot} sent {iname} to {rname}")
+                    # say why, like our own unlock line: the check goes at the end. The location
+                    # is OURS (the sender's), named from our game's datapackage; unknown -> old
+                    # wording, no guess
+                    loc = self.game_locs.get(self.slot_game.get(sender, ""), {}).get(item.get("location"))
+                    line = f"{self.slot} sent {iname} to {rname}"
+                    self._queue_msg(f"{line} (from {loc})" if loc else line)
             elif msg.get("type") == "Hint":
                 item = msg.get("item") or {}
                 recv, finder = msg.get("receiving"), item.get("player")

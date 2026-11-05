@@ -9,8 +9,9 @@ For each map, in order, onto the previous map's result:
                               which are now GENERATED from data/tame_logic.json (poptracker_rules)
   2. compose_poptracker_map - the map image: sidebar artwork + the map + the boss row
 
-The canvas calibration is derived instead of re-run: the source image spans GPS 0-100 and compose
-places it in a fixed box, so (0,0) and (100,100) land on that box's corners.
+The canvas calibration is derived instead of re-run: the source image spans GPS 0-100 (or the
+map's `gps_span` in poptracker_maps.json) and compose places it in a fixed box, so those corners
+land on that box's corners.
 
 Per-map input is tools/reference/poptracker_maps.json (pack name, source image, optional artifact
 caves). Last, the finished pack is VALIDATED: every `$function`, item code and `@path` a rule names
@@ -147,6 +148,38 @@ def apply_pack_fixes(pack):
                     sys.exit("pack fix no longer matches: %s already has an item_count\n"
                              "  why it existed: %s" % (where, fx["why"]))
                 node["item_count"] = fx["item_count"]
+            done += 1
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump(tree, fh, indent=4)
+    # sections with no AP location behind them (nothing ever clears them): drop the section. The
+    # section must exist exactly once, so a pack that already fixed it stops the build instead.
+    by_file = {}
+    for fx in spec.get("remove_section", []):
+        by_file.setdefault(fx["file"], []).append(fx)
+    for fn, fixes in by_file.items():
+        path = os.path.join(pack, fn)
+        tree = json.load(open(path, encoding="utf-8"))
+        found = {}
+        def walk_rs(node, here):
+            if isinstance(node, list):
+                for c in node:
+                    walk_rs(c, here)
+                return
+            if not isinstance(node, dict):
+                return
+            p = here + [node["name"]] if node.get("name") else here
+            found["/".join(p)] = node
+            for c in node.get("children") or []:
+                walk_rs(c, p)
+        walk_rs(tree, [])
+        for fx in fixes:
+            node = found.get(fx["object"])
+            secs = (node or {}).get("sections") or []
+            hits = [s for s in secs if s.get("name") == fx["section"]]
+            if len(hits) != 1:
+                sys.exit("pack fix no longer matches: %s/%s found %d times (expected 1)\n"
+                         "  why it existed: %s" % (fx["object"], fx["section"], len(hits), fx["why"]))
+            node["sections"] = [s for s in secs if s is not hits[0]]
             done += 1
         with open(path, "w", encoding="utf-8") as fh:
             json.dump(tree, fh, indent=4)
@@ -600,10 +633,11 @@ def main():
         if not os.path.exists(src):
             sys.exit("%s: source image %s does not exist" % (mk, src))
         out = os.path.join(stage_root, "%d_%s" % (i, mk))
+        lo, hi = cfg.get("gps_span", [0, 100])     # GPS the source image covers edge to edge
         print("\n================ %s (%s) ================" % (mk, pop))
         P.main([mk, "--pack", prev, "--out", out, "--pop-name", pop,
                 "--image", "images/maps/%s.png" % pop, "--size", canvas,
-                "--calib", "0,0,%d,%d" % (l, t), "--calib", "100,100,%d,%d" % (r, b)])
+                "--calib", "%g,%g,%d,%d" % (lo, lo, l, t), "--calib", "%g,%g,%d,%d" % (hi, hi, r, b)])
         C.main([mk, "--source", src, "--pack", out, "--pop-name", pop,
                 "--out", os.path.join(out, "images", "maps", "%s.png" % pop)])
         # the canvas calibration was already applied above; compose's own reminder does not apply

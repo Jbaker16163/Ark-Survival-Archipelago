@@ -230,11 +230,25 @@ def add_dino_grid(path, pop, wanted, habitat=None):
     by = {}
     for c in sorted(pool):
         by.setdefault(re.sub(r"[^a-z0-9]", "", c.replace("_ride", "")), c)
+    # Fallback for a creature no grid lists yet: a "Tame - X" item the pack (or our new_items) already
+    # defines. Without it the first map to have a creature can never show it - Ragnarok's Griffin and
+    # Valguero's Aberration creatures were silently dropped as "no item code" (2026-11-04). Only used
+    # when the grids have no match, so an existing composite (bronto_ride) is never swapped out.
+    by_item = {}
+    ipath = os.path.join(os.path.dirname(os.path.dirname(path)), "items", "items.json")
+    if os.path.exists(ipath):
+        for it in json.load(open(ipath, encoding="utf-8-sig")):
+            if isinstance(it, dict) and str(it.get("name", "")).startswith("Tame - ") and it.get("codes"):
+                c = str(it["codes"]).split(",")[0].strip()
+                by_item.setdefault(re.sub(r"[^a-z0-9]", "", it["name"][len("Tame - "):].lower()), c)
 
     codes, missing, back = [], [], {}
     for name in wanted:
         k = re.sub(r"[^a-z0-9]", "", name.lower())
         c = by.get(k) or DINO_CODE_ALIAS.get(k)
+        if not (c and c in pool) and k in by_item:
+            c = by_item[k]
+            pool.add(c)
         if c and c in pool:
             codes.append(c)
             back[c] = name
@@ -448,6 +462,15 @@ def main(argv=None):
         sys.exit("pass --calib lat,lon,x,y at least twice")
     sx, ix = fit([(p[1], p[2]) for p in pts])
     sy, iy = fit([(p[0], p[3]) for p in pts])
+    # the calibration points are the map image's corners: a pin whose GPS falls past the image
+    # (Ragnarok's Pit of Dreen sits at lon 2.3, the image starts at 10) is held on its edge
+    # instead of landing on the sidebar artwork next to the map
+    bx = (min(p[2] for p in pts), max(p[2] for p in pts))
+    by = (min(p[3] for p in pts), max(p[3] for p in pts))
+
+    def to_px(lat, lon):
+        return (round(min(max(ix + sx * lon, bx[0]), bx[1])),
+                round(min(max(iy + sy * lat, by[0]), by[1])))
 
     if os.path.exists(args.out):
         shutil.rmtree(args.out)
@@ -633,9 +656,9 @@ def main(argv=None):
             cx = sum(q[0] for q in poly) / len(poly)
             cy = sum(q[1] for q in poly) / len(poly)
             lat, lon = world_to_gps(args.map, r.get("realm"), cx, cy)
-            x, y = round(ix + sx * lon), round(iy + sy * lat)
-            if not (0 <= x <= w and 0 <= y <= h):
+            if not (bx[0] <= ix + sx * lon <= bx[1] and by[0] <= iy + sy * lat <= by[1]):
                 off_image += 1
+            x, y = to_px(lat, lon)
             base = r["name"][:-len(suffix)] if r["name"].endswith(suffix) else r["name"]
             nm = "Visit %s" % base
             explore_children.append(obj(nm, x, y, None))
@@ -756,7 +779,7 @@ def main(argv=None):
     # artifacts go ON the map at their caves, one pin per cave (see group_artifacts_by_cave)
     new_children, new_mapping, on_map = L.group_artifacts_by_cave(
         new_children, new_mapping, logic, pop,
-        lambda lat, lon: (round(ix + sx * lon), round(iy + sy * lat)))
+        to_px)
 
     # one tab per artifact cave, like the Island's cave tabs: a Coming Soon card (or a real cave map
     # dropped into poptracker_art/maps/) with the cave's artifact pin on it
@@ -989,7 +1012,7 @@ def main(argv=None):
                                           for a in pr.get("artifacts", [])})}).items()):
         print("  %-26s %d of %d codes kept" % (key, kept, pool))
     if off_image:
-        print("  WARNING %d region pins land outside %dx%d - recheck --calib" % (off_image, w, h))
+        print("  WARNING %d region pins land outside the map image (held on its edge) - recheck --calib" % off_image)
     print("\nStill manual: drop the image at %s, bump package_version in manifest.json."
           % args.image)
 
