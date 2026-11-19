@@ -568,6 +568,33 @@ def boss_box(pin_x, units):
     return right - units * BOSS_UNIT, BOSS_ART_TOP, right, BOSS_ART_BOTTOM
 
 
+# The summoning-artifact icons painted under each boss portrait (compose_poptracker_map) and the
+# small hover pins laid on them (patch_poptracker_pack) share this geometry, so they cannot drift.
+BOSS_ART_ICON = 26               # icon edge, px
+BOSS_ART_PER_ROW = 5
+BOSS_ART_GAP = 6                 # first icon row starts this far below the portrait baseline
+BOSS_ART_PIN_SIZE = 10           # hover pin on an icon's lower-right corner
+
+
+def boss_artifacts(spec):
+    """{boss object name: [artifact item codes]} - the artifacts painted under each boss."""
+    out = {k: v["artifacts"] for k, v in (spec.get("boss_pairs") or {}).items()}
+    for boss, rule in (spec.get("boss_rules") or {}).items():
+        need = [term.strip() for term in (rule or [""])[0].split(",")
+                if term.strip().lower().startswith("artifact_")]
+        if need:
+            out.setdefault("Boss: " + boss, need)
+    return out
+
+
+def boss_artifact_cells(pin_x, units, count):
+    """Top-left (x, y) of each artifact icon under a boss, in rows of BOSS_ART_PER_ROW."""
+    left, _, right, bottom = boss_box(pin_x, units)
+    mid, per, w = (left + right) / 2, BOSS_ART_PER_ROW, BOSS_ART_ICON
+    return [(int(mid - per * w / 2 + (k % per) * w), int(bottom + BOSS_ART_GAP + (k // per) * w))
+            for k in range(count)]
+
+
 def group_artifacts_by_cave(children, mapping, logic, pop, to_px):
     """Pin artifacts on the MAP, one pin per cave, instead of in a grid off to the side.
 
@@ -630,7 +657,7 @@ def pair_bosses(children, mapping, logic, pop):
         parts = [c for c in children if c["name"] in members]
         if not parts:
             continue
-        rule = ", ".join(spec["artifacts"])
+        rule = ", ".join(spec["artifacts"] + spec.get("calls", []))
         obj = {
             "name": label,
             "chest_unopened_img": parts[0]["chest_unopened_img"],
@@ -639,14 +666,26 @@ def pair_bosses(children, mapping, logic, pop):
             "access_rules": ["%s, %s" % (rule, alt) for alt in combat] or [rule],
             "sections": [],
         }
-        seen = []
-        for part in parts:
-            for sec in part["sections"]:
-                tier = sec.get("name", "")
-                if tier not in seen:
-                    seen.append(tier)
-        for tier in seen:
-            obj["sections"].append({"name": tier, "item_count": len(parts)})
+        # "per_member": one row per boss ("Kill Dragon (Any Difficulty)") that any difficulty's
+        # kill ticks, instead of one Gamma/Beta/Alpha row counting every boss in the arena. Boss
+        # kills are goal progress, not item checks, so the per-difficulty count read like loot.
+        per_member = bool(spec.get("per_member"))
+
+        def sec_of(member, tier):
+            return "Kill %s (Any Difficulty)" % member[len("Boss: "):] if per_member else tier
+
+        if per_member:
+            for part in parts:
+                obj["sections"].append({"name": sec_of(part["name"], ""), "item_count": 1})
+        else:
+            seen = []
+            for part in parts:
+                for sec in part["sections"]:
+                    tier = sec.get("name", "")
+                    if tier not in seen:
+                        seen.append(tier)
+            for tier in seen:
+                obj["sections"].append({"name": tier, "item_count": len(parts)})
         children = [c for c in children if c["name"] not in members] + [obj]
 
         out = []
@@ -654,7 +693,8 @@ def pair_bosses(children, mapping, logic, pop):
             m = re.match(r'^\[(\d+)\] = \{\{"@%s/(Boss: [^/]+)/([^"]*)"\}\},$' % re.escape(pop),
                          line)
             if m and m.group(2) in members:
-                out.append('[%s] = {{"@%s/%s/%s"}},' % (m.group(1), pop, label, m.group(3)))
+                out.append('[%s] = {{"@%s/%s/%s"}},' % (m.group(1), pop, label,
+                                                        sec_of(m.group(2), m.group(3))))
             else:
                 out.append(line)
         mapping = out

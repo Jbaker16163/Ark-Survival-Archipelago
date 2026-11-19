@@ -17,6 +17,9 @@ REM      server - both use the same per-map save folder (SAVESROOT\<Map>), so it
 REM      exact save this bridge server just wrote. Nothing to copy - reconnect there and continue.
 REM
 REM Usage: start_transfer_server.bat <MapID>   (e.g. start_transfer_server.bat ScorchedEarth_P)
+REM
+REM Keep this file in the SAME folder as start_ase_server.bat: it reads the server root, mod list,
+REM cluster and save settings from there, so the bridge always runs the main server's mods.
 
 setlocal enabledelayedexpansion
 set "MAP=%~1"
@@ -49,8 +52,7 @@ if "%MAP%"=="" (
 )
 
 :gotmap
-REM ---- must match start_ase_server.bat's SERVER_ROOT + cluster settings exactly ----
-set "SERVER_ROOT=E:\ARK\Server"
+REM ---- bridge-only settings ----
 set "SESSION=ArchipelagoSolo-Bridge"
 set "MAXPLAYERS=2"
 REM distinct ports so this can run ALONGSIDE the main server briefly.
@@ -62,9 +64,27 @@ set "RCONPORT=27021"
 set "ADMINPASS=changeme_admin"
 REM If your ports are forwarded on the router (internet-visible), keep a password set here.
 set "SERVERPASS="
+
+REM ---- shared with the main server: READ from start_ase_server.bat next to this file ----
+REM SERVER_ROOT, MODS, CLUSTERID, CLUSTERDIR, SAVESROOT and TRIBUTEEXP must be identical to the
+REM main server's, or the transfer lands in a different cluster/save, and anything from a mod
+REM (Structures Plus pieces, mod dinos/items) is lost on the way. So they are not copied here:
+REM they are read from start_ase_server.bat every launch. The values below are only fallbacks
+REM for when that file is missing.
+set "SERVER_ROOT=E:\ARK\Server"
+set "MODS="
 set "CLUSTERID=MyCluster"
 set "CLUSTERDIR=E:\ARK\ServerCluster\ClusterData"
 set "SAVESROOT=E:\ARK\ServerCluster\Saves"
+set "TRIBUTEEXP=2592000"
+set "MAINBAT=%~dp0start_ase_server.bat"
+if exist "%MAINBAT%" (
+    for /f "usebackq tokens=1,* delims==" %%a in (`powershell -NoProfile -Command "Select-String -Path '%MAINBAT%' -Pattern '^set .(SERVER_ROOT|MODS|CLUSTERID|CLUSTERDIR|SAVESROOT|TRIBUTEEXP)=(.*).\s*$' | ForEach-Object { $_.Matches[0].Groups[1].Value + '=' + $_.Matches[0].Groups[2].Value }"`) do set "%%a=%%b"
+    echo Settings read from start_ase_server.bat
+) else (
+    echo WARNING: start_ase_server.bat not found next to this file - using the fallback values,
+    echo          and NO mods. Put both .bat files in the same folder.
+)
 REM ------------------------------------------------------------------------
 
 set "EXE=%SERVER_ROOT%\ShooterGame\Binaries\Win64\ShooterGameServer.exe"
@@ -84,12 +104,17 @@ if not exist "%JUNCTION%" mklink /J "%JUNCTION%" "%MAPSAVEDIR%" >nul
 
 set "OPTS=%MAP%?listen?SessionName=%SESSION%?Port=%GAMEPORT%?QueryPort=%QUERYPORT%?MaxPlayers=%MAXPLAYERS%?AltSaveDirectoryName=Cluster-%MAP%?RCONEnabled=True?RCONPort=%RCONPORT%?ServerAdminPassword=%ADMINPASS%"
 if not "%SERVERPASS%"=="" set "OPTS=%OPTS%?ServerPassword=%SERVERPASS%"
-REM Match start_ase_server.bat: obelisk uploads survive 30 days instead of the 24h default.
-set "OPTS=%OPTS%?TributeItemExpirationSeconds=2592000?TributeDinoExpirationSeconds=2592000?TributeCharacterExpirationSeconds=2592000"
+REM Same mods as the main server, in the same order. No -automanagedmods here: the main server has
+REM already downloaded them into the shared install, and two servers updating the same mod folder
+REM at once can clash.
+if not "%MODS%"=="" set "OPTS=%OPTS%?GameModIds=%MODS%"
+REM Match start_ase_server.bat: obelisk uploads survive TRIBUTEEXP seconds (30 days by default).
+set "OPTS=%OPTS%?TributeItemExpirationSeconds=%TRIBUTEEXP%?TributeDinoExpirationSeconds=%TRIBUTEEXP%?TributeCharacterExpirationSeconds=%TRIBUTEEXP%"
 
 echo Launching BRIDGE server: %SESSION% on %MAP%  (game %GAMEPORT% / query %QUERYPORT%)
 echo Save dir: %MAPSAVEDIR%
 echo Cluster: %CLUSTERID%  (%CLUSTERDIR%)
+if not "%MODS%"=="" (echo Mods: %MODS%) else (echo Mods: none)
 echo Run 'saveworld' in this console BEFORE closing it once your character has transferred in.
 echo.
 "%EXE%" "%OPTS%" -server -log -NoBattlEye -ClusterId=%CLUSTERID% -ClusterDirOverride=%CLUSTERDIR% -NoTransferFromFiltering

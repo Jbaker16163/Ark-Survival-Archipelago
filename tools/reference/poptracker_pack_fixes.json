@@ -32,6 +32,8 @@
      "why": "same missing space inside the section name 'Visit South Haven (Herbie Island)'"},
     {"file": "locations/notes.json", "pattern": "The Dead Island\\(Carno Island\\)", "repl": "The Dead Island (Carno Island)", "count": 5,
      "why": "same missing space inside 'Visit The Dead Island (Carno Island)'"},
+    {"file": "scripts/logic.lua", "pattern": "\"@Milestones/Exploration\\(The Island\\)/Visit The Dead Island\\(Carno Island\\)\"", "repl": "\"@Milestones/Exploration (The Island)/Visit The Dead Island (Carno Island)\"", "count": 1,
+     "why": "EnterCarnoCave looks the visit up without the two spaces the names have, so FindObjectForCode found nothing (PopTracker log: 'Did not find object for code', every logic pass) and Carno Cave was never in logic (user's log, 2026-11-17)"},
     {"file": "scripts/autotracking/item_mapping.lua", "pattern": "--[ \\t]*\\[8730582\\] = \"Mining Drill\",", "repl": "[8730582] = {{\"drill\", \"toggle\"}},", "count": 1,
      "why": "Mining Drill (8730582) commented out although items.json defines it as code `drill`; receiving it never ticked"},
     {"file": "scripts/autotracking/item_mapping.lua", "pattern": "--[ \\t]*\\[8730211\\] = \"Metal Sickle\",", "repl": "[8730211] = {{\"sickle\", \"toggle\"}},", "count": 1,
@@ -48,6 +50,10 @@
      "why": "Ankylosaurus tame; logic.lua defines UseNets"},
     {"file": "locations/dinos.json", "pattern": "\\bbeezlebufo\\b", "repl": "beelzebufo", "count": 5,
      "why": "all five Beelzebufo tame alternatives misspell its unlock code (items.json: beelzebufo)"},
+    {"file": "locations/dinos.json", "pattern": "\"Carcharodontosaurus Dossier\",\\s*\"visibility_rules\":\\s*\\[\\s*\"\"", "repl": "\"Carcharodontosaurus Dossier\", \"visibility_rules\": [\"$explorer_note_dossier_carcharodontosaurus_enabled\"", "count": 1,
+     "why": "the Dossier: Carcharodontosaurus note (8741230) sits on the creature's pin with no visibility rule, so it showed on every map's pin although the note is Island-only; on a Ragnarok/Valguero slot it could never clear and stayed green (user 2026-11-17). Now it follows the slot like every other explorer note"},
+    {"file": "locations/dinos.json", "pattern": "\"Rhyniognatha Dossier\",\\s*\"visibility_rules\":\\s*\\[\\s*\"\"", "repl": "\"Rhyniognatha Dossier\", \"visibility_rules\": [\"$explorer_note_dossier_rhyniognatha_enabled\"", "count": 1,
+     "why": "the Dossier: Rhyniognatha note (8741231) sits on the creature's pin with no visibility rule, so it showed on every map's pin although the note is Island-only; on a Ragnarok/Valguero slot it could never clear and stayed green (user 2026-11-17). Now it follows the slot like every other explorer note"},
     {"file": "locations/milestones.json", "pattern": "\\$Milestones/Silica Pearls/x250", "repl": "@Milestones/Silica Pearls/x250", "count": 1,
      "why": "Electronics: a location reference written with $ (function) instead of @"},
     {"file": "locations/milestones.json", "pattern": "\\$DeepFightTames\\b", "repl": "$deep_tames_combat", "count": 1,
@@ -69,11 +75,30 @@
     {"file": "scripts/autotracking/archipelago.lua", "pattern": "return INCLUDED_LOCATIONS\\[location_id\\] == true", "repl": "return next(INCLUDED_LOCATIONS) == nil or INCLUDED_LOCATIONS[location_id] == true", "count": 3,
      "why": "same empty-table guard for the per-id explorer note / food / death helpers defined in apply_slot_data"},
     {"file": "scripts/autotracking/archipelago.lua", "pattern": "\\n        local val = INCLUDED_LOCATIONS\\[", "repl": "\n        if next(INCLUDED_LOCATIONS) == nil then return true end\n        local val = INCLUDED_LOCATIONS[", "count": 2,
-     "why": "same empty-table guard for both tame sanity functions (hid every Tame section while offline)"}
+     "why": "same empty-table guard for both tame sanity functions (hid every Tame section while offline)"},
+    {"file": "scripts/autotracking/archipelago.lua", "pattern": "    local mapping_entry = ITEM_MAPPING\\[item_id\\]\\n    if not mapping_entry then\\n        if AUTOTRACKER_ENABLE_DEBUG_LOGGING_AP then\\n            print\\(string.format\\(\"onItem: could not find item mapping for id %s\", item_id\\)\\)\\n        end\\n        return\\n    end\\n", "repl": "    -- An item with no icon of its own can still unlock a whole group (TRACKER_GROUPS below), so a\n    -- missing mapping must NOT return early - that dropped the group with it.\n    local mapping_entry = ITEM_MAPPING[item_id]\n    if not mapping_entry then\n        if AUTOTRACKER_ENABLE_DEBUG_LOGGING_AP then\n            print(string.format(\"onItem: could not find item mapping for id %s\", item_id))\n        end\n        mapping_entry = {}\n    end\n", "count": 1,
+     "why": "group members never lit (2026-11-05): with engrams_per_item > 1, Engram: Simple Bed (8730020) represents a group that also unlocks Saddle Phiomia and Mortar And Pestle. Simple Bed's own mapping is commented out (the pack has no icon for it), so onItem returned before the TRACKER_GROUPS expansion and Mortar stayed dark although the server had unlocked it. Same for any group whose representative is one of the ~300 unmapped ids"},
+    {"file": "scripts/autotracking/archipelago.lua", "pattern": "    TRACKER_GROUPS_ACTIVE = engrams_per_item > 1 or tames_per_item > 1\\n", "repl": "    -- tracker_groups (apworld _tracker_groups_slotdata) holds EVERY fold: count-groups, S+ variant\n    -- pairs, structure/mod bundles and bundled saddles. It is empty when nothing folds, so its\n    -- presence is the switch - not engrams/tames_per_item, which left bundle members dark at 1.\n    TRACKER_GROUPS_ACTIVE = type(slot_data[\"tracker_groups\"]) == \"table\" and next(slot_data[\"tracker_groups\"]) ~= nil\n    do  -- one line per connect, so a bug report shows whether groups loaded at all\n        local n = 0\n        if type(slot_data[\"tracker_groups\"]) == \"table\" then\n            for _ in pairs(slot_data[\"tracker_groups\"]) do n = n + 1 end\n        end\n        print(string.format(\"ArkAP tracker: tracker_groups=%d active=%s\", n, tostring(TRACKER_GROUPS_ACTIVE)))\n    end\n", "count": 1,
+     "why_print": "the print line: Mortar still dark after the first fix with data and script both verified, so the connect now logs whether the groups loaded",
+     "why": "the group expansion only ran with engrams_per_item or tames_per_item above 1, but tracker_groups also carries the structure/mod bundles, variant pairs and bundled saddles, so those members never lit at the default 1"},
+    {"file": "scripts/autotracking/archipelago.lua", "pattern": "            for _, member_id in ipairs\\(grouped_members\\) do\\n                incrementMappedItem\\(member_id\\)\\n            end\\n", "repl": "            for _, member_id in ipairs(grouped_members) do\n                incrementMappedItem(member_id)\n            end\n            print(string.format(\"ArkAP tracker: item %s unlocked group of %d\", tostring(item_id), #grouped_members))\n", "count": 1,
+     "why": "with the connect line above: shows each group that expanded, so a member that stays dark can be traced to its representative (Mortar And Pestle under Simple Bed, 2026-11-05)"},
+    {"file": "layouts/tracker_standard.json", "pattern": "\"ichthyosaurus_ride\", \"liopleurodon\", \"manta_ride\"", "repl": "\"ichthyosaurus_ride\", \"manta_ride\"", "count": 1,
+     "why": "Liopleurodon has no checks any more (it only temp-tames in ASE; Justin 2026-11-05), so there is no Tame: Liopleurodon item and its icon would stay dark forever. The per-map grids are built from dinos.json + maps.json and drop it on their own; this is the Island grid from the base pack"},
+    {"file": "scripts/logic.lua", "pattern": "\\n    liopleurodon = \\{ location = \"@Dinos/Liopleurodon/Tame a Liopleurodon\",[^\\n]*", "repl": "", "count": 1,
+     "why": "DEEP_TAMES_LIST entry pointing at the removed Liopleurodon object (see remove_object). Gone with the item, which matches the apworld: it never had a Tame: Liopleurodon to count"},
+    {"file": "scripts/autotracking/location_mapping.lua", "pattern": "\\[8753042\\] = \\{\\{\"@Dinos/Liopleurodon/Tame a Liopleurodon\"\\}\\},\\r?\\n", "repl": "", "count": 1,
+     "why": "8753042 pointed at the removed Liopleurodon object (see remove_object); the location no longer exists in any seed"},
+    {"file": "scripts/autotracking/location_mapping.lua", "pattern": "\\[8755042\\] = \\{\\{\"@Dinos/Liopleurodon/Kill a Liopleurodon\"\\}\\},\\r?\\n", "repl": "", "count": 1,
+     "why": "8755042 pointed at the removed Liopleurodon object (see remove_object); the location no longer exists in any seed"}
   ],
   "remove_section": [
     {"file": "locations/milestones.json", "object": "Milestones/Tame Species", "section": "x1",
      "why": "phantom check (2026-11-04): no AP location maps to Tame Species/x1 (location_mapping has only x5/x10/x20/x50 = 8751020-8751023, the apworld has no 'Tame 1 Species'), so it never cleared - a Ragnarok bronto tame left it open. The first-tame check is 'Tame your first dino' (8751000) = Tame Creatures/x1"}
+  ],
+  "remove_object": [
+    {"file": "locations/dinos.json", "object": "Dinos/Liopleurodon",
+     "why": "Liopleurodon only temp-tames in ASE, so both its checks were removed on every map (Justin 2026-11-05): no Tame: Liopleurodon item, no Tamed or Killed check. Both sections would never clear. The Dossier - Liopleurodon explorer note is a separate check and stays"}
   ],
   "remove_pin": [
     {"file": "locations/milestones.json", "object": "Milestones/Raw Prime Fish Meat", "map": "Scorched_Earth", "at": [92, 422],
@@ -87,7 +112,18 @@
     "parachute": {"id": 8730082, "name": "Engram - Parachute",
                   "_why": "0.0.9 note rules need `parachute` but the pack never defined it (its 8730082 mapping is commented out); 8730082 is Engram: Parachute"},
     "phoenix": {"id": 8732114, "name": "Tame - Phoenix",
-                "_why": "the pack has a `phoenix` item on the Scorched grid but never mapped an id to it, and no rule names it, so the generator never wired Tame: Phoenix (8732114) either - receiving it never lit the icon (2026-11-04)"}
+                "_why": "the pack has a `phoenix` item on the Scorched grid but never mapped an id to it, and no rule names it, so the generator never wired Tame: Phoenix (8732114) either - receiving it never lit the icon (2026-11-04)"},
+    "_why_icons_2026_11_05": "the pack has these icons but no live id maps to them, so receiving the engram (directly or through a group) never lit it - Clay on a live Ragnarok slot. Found by matching every unmapped engrams.json id to an items.json icon of the same name; the desert set's pack names drop 'Cloth' and its hat is the set's only headpiece (Desert Cloth Googles Helmet). wind_turbine was mapped only from the mod variant 8810434, which is left as is",
+    "clay": {"id": 8730615, "name": "Engram - Clay"},
+    "tent": {"id": 8730616, "name": "Engram - Tent"},
+    "raft": {"id": 8730081, "name": "Engram - Raft"},
+    "propellant": {"id": 8730119, "name": "Engram - Propellant"},
+    "wind_turbine": {"id": 8730650, "name": "Engram - Wind Turbine"},
+    "desert_shirt": {"id": 8730637, "name": "Engram - Desert Shirt"},
+    "desert_pants": {"id": 8730638, "name": "Engram - Desert Pants"},
+    "desert_hat": {"id": 8730641, "name": "Engram - Desert Hat"},
+    "desert_gloves": {"id": 8730642, "name": "Engram - Desert Gloves"},
+    "desert_boots": {"id": 8730643, "name": "Engram - Desert Boots"}
   },
   "rule_from_data": [
     {"file": "locations/milestones.json", "object": "Milestones/Wyvern Milk", "location": "Wyvern Milk x5", "expect": "Needs Logic",

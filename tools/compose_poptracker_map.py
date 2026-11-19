@@ -174,6 +174,8 @@ def resolve(name, pool):
             n = n[len(pre):]
             break
     n = re.sub(r"\s*\((Gamma|Beta|Alpha)\)\s*$", "", n).strip()
+    # an inventory check's quantity ("Fire Talon x5") is not part of the item's icon name
+    n = re.sub(r"\s+x\d+$", "", n).strip()
     # a paired entry ("Dragon & Manticore") has no art of its own; use the first member's
     first = n.split(" & ")[0].strip() if " & " in n else ""
     tries = [n, ALIAS.get(n.lower(), ""), first, ALIAS.get(first.lower(), ""),
@@ -232,13 +234,9 @@ def main(argv=None):
     # the requirement from the same spec that gated the boss so the two cannot disagree
     import poptracker_logic_apply as L
     spec = L.load_logic(args.map, args.pack)
-    boss_arts = {k: v["artifacts"] for k, v in (spec.get("boss_pairs") or {}).items()}
-    # single bosses too: the artifact toggles their generated rule asks for
-    for boss, rule in (spec.get("boss_rules") or {}).items():
-        need = [term.strip() for term in (rule or [""])[0].split(",")
-                if term.strip().lower().startswith("artifact_")]
-        if need:
-            boss_arts.setdefault("Boss: " + boss, need)
+    # pairs and single bosses (the artifact toggles their generated rule asks for); the patcher
+    # puts a hover pin on each icon from the same table and geometry
+    boss_arts = L.boss_artifacts(spec)
 
     painted, cropped, chipped = 0, 0, []
     for s in slots:
@@ -276,17 +274,14 @@ def main(argv=None):
             need = boss_arts.get(s["name"])
             if need:
                 # the summoning artifacts under the portraits, in rows of five
-                per, w2 = 5, 26
-                mid = (left + right) / 2
-                for k, a in enumerate(need):
+                w2 = L.BOSS_ART_ICON
+                for a, cell in zip(need, L.boss_artifact_cells(s["x"], units, len(need))):
                     ic = pool.get(a.lower().replace("_", "")) or pool.get(
                         re.sub(r"[^a-z0-9]", "", "artifactofthe" + a.split("_")[-1].lower()))
                     if not ic:
                         continue
                     t2 = Image.open(ic).convert("RGBA").resize((w2, w2), Image.LANCZOS)
-                    row, col = divmod(k, per)
-                    canvas.paste(t2, (int(mid - per * w2 / 2 + col * w2),
-                                      int(bottom + 6 + row * w2)), t2)
+                    canvas.paste(t2, cell, t2)
             continue
         size = TILE
         # same geometry as the pack's own canvases: the pin sits at the tile's lower right

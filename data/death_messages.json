@@ -1,0 +1,100 @@
+{
+  "_comment": [
+    "DeathLink messages the ARK plugin sends when one of us dies. One line is picked at random from the",
+    "list for what killed us. Placeholders: {name} = the survivor who died, {dino} = the creature that did",
+    "it (its in-game name, e.g. Raptor or Alpha Rex; \"a {dino}\" becomes \"an\" before a vowel). A line with {dino}",
+    "is only used when the creature is known. Add as many lines as you like; an empty or missing list falls back to 'unknown'.",
+    "Kinds: carnivore, herbivore, alpha, trap (an Archipelago trap creature), player (another survivor),",
+    "drowning, starvation, dehydration, cold, heat, lava, falling,",
+    "unknown (anything the plugin could not identify)."
+  ],
+  "carnivore": [
+    "{name} tried feeding a {dino}, but the {dino} ate {name} instead",
+    "{name} found out the {dino} was not friendly",
+    "{name} became a {dino} snack",
+    "{name} tried to pet a {dino}. It did not go well",
+    "{name} was on the {dino}'s menu today",
+    "{name} offered the {dino} a berry. The {dino} wanted meat",
+    "{name} lost a staring contest with a {dino}",
+    "{name} forgot that a {dino} has teeth",
+    "{name} was chased down and eaten by a {dino}",
+    "A {dino} turned {name} into Raw Meat"
+  ],
+  "herbivore": [
+    "{name} picked a fight with a {dino} and lost",
+    "{name} was trampled by an angry {dino}",
+    "{name} thought a {dino} was harmless. It was not",
+    "{name} punched a {dino} one too many times",
+    "{name} got flattened by a vegetarian {dino}",
+    "{name} was stomped into the dirt by a {dino}",
+    "{name} tried to steal from a {dino} and paid for it"
+  ],
+  "alpha": [
+    "{name} was humbled by a {dino}",
+    "{name} learned why the {dino} glows red",
+    "{name} challenged a {dino} and got deleted",
+    "The {dino} made an example of {name}"
+  ],
+  "trap": [
+    "{name} opened an Archipelago gift. It was a {dino}",
+    "{name} was killed by a {dino} someone sent as a present",
+    "{name} did not survive the {dino} delivery"
+  ],
+  "player": [
+    "{name} was taken out by another survivor",
+    "{name} trusted the wrong survivor",
+    "{name} lost a fight to a fellow survivor"
+  ],
+  "drowning": [
+    "{name} forgot that survivors need air",
+    "{name} tried to breathe underwater",
+    "{name} went for a swim and never came back",
+    "{name} held their breath for too long",
+    "{name} is now sleeping with the fishes"
+  ],
+  "starvation": [
+    "{name} forgot to eat",
+    "{name} should have cooked that meat",
+    "{name} skipped too many meals",
+    "{name} wasted away from hunger"
+  ],
+  "dehydration": [
+    "{name} forgot to drink water",
+    "{name} dried up like a raisin",
+    "{name} should have brought a waterskin",
+    "{name} turned into jerky"
+  ],
+  "cold": [
+    "{name} froze solid",
+    "{name} forgot to pack a fur coat",
+    "{name} is now a survivor popsicle",
+    "{name} went to the snow biome in a loincloth",
+    "{name} turned into an ice sculpture"
+  ],
+  "heat": [
+    "{name} was cooked by the sun",
+    "{name} overheated",
+    "{name} forgot to bring a hat to the desert",
+    "{name} melted in the heat",
+    "{name} was roasted like a Dodo"
+  ],
+  "lava": [
+    "{name} went for a swim in lava",
+    "{name} found out lava is hot",
+    "{name} took a dip in the volcano"
+  ],
+  "falling": [
+    "{name} forgot to bring a parachute",
+    "{name} found out the ground is hard",
+    "{name} believed they could fly",
+    "{name} took the fast way down",
+    "{name} fell off a cliff"
+  ],
+  "unknown": [
+    "{name} died in ARK",
+    "{name} met an unfortunate end on the ARK",
+    "{name} could not survive the ARK",
+    "{name} was claimed by the ARK",
+    "{name} died from death's touch"
+  ]
+}

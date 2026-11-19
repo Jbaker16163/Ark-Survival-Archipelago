@@ -183,6 +183,33 @@ def apply_pack_fixes(pack):
             done += 1
         with open(path, "w", encoding="utf-8") as fh:
             json.dump(tree, fh, indent=4)
+    # whole objects with no AP location behind any of their sections (a creature whose checks were
+    # all removed): drop the object, pins and all. Must exist exactly once, like remove_section.
+    by_file = {}
+    for fx in spec.get("remove_object", []):
+        by_file.setdefault(fx["file"], []).append(fx)
+    for fn, fixes in by_file.items():
+        path = os.path.join(pack, fn)
+        tree = json.load(open(path, encoding="utf-8"))
+        for fx in fixes:
+            hits = []
+            def walk_ro(siblings, here):
+                for c in siblings:
+                    if not isinstance(c, dict):
+                        continue
+                    p = here + [c["name"]] if c.get("name") else here
+                    if "/".join(p) == fx["object"]:
+                        hits.append((siblings, c))
+                    walk_ro(c.get("children") or [], p)
+            walk_ro(tree if isinstance(tree, list) else [tree], [])
+            if len(hits) != 1:
+                sys.exit("pack fix no longer matches: %s found %d times (expected 1)\n"
+                         "  why it existed: %s" % (fx["object"], len(hits), fx["why"]))
+            siblings, obj = hits[0]
+            siblings.remove(obj)
+            done += 1
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump(tree, fh, indent=4)
     done += fix_pins(pack, spec)
     items = {k: v for k, v in spec.get("new_items", {}).items() if not k.startswith("_")}
     if items:
@@ -475,6 +502,516 @@ def add_new_slot_reset(pack):
     return len(reset_items), len(sections)
 
 
+def _tame_grid_codes(pack):
+    """Every item code on any Tames grid (dino_grid and the per-map <pop>_dino_grid layouts)."""
+    pool = set()
+    for lay in ("tracker_standard.json", "ap_tabs.json"):
+        p = os.path.join(pack, "layouts", lay)
+        if not os.path.exists(p):
+            continue
+        text = open(p, encoding="utf-8-sig").read()
+        for gk in set(re.findall(r'"((?:[a-z0-9_]+_)?dino_grid)"\s*:', text)):
+            pool |= set(P._grid_codes(text, gk))
+    return pool
+
+
+GLOW_DIR = "images/dinos_glow"
+GLOW_RGB = (255, 196, 40)          # gold
+
+
+def _glow_image(src, dst):
+    """src with a soft gold aura behind it. The creature is shrunk a little so the aura has room
+    inside the same canvas (icons are square and most art touches the edges)."""
+    from PIL import Image, ImageFilter
+    im = Image.open(src).convert("RGBA")
+    if max(im.size) < 256:          # some art is 32px: work at 256 so the aura is the same size
+        k = 256.0 / max(im.size)
+        im = im.resize((int(round(im.width * k)), int(round(im.height * k))), Image.LANCZOS)
+    w, h = im.size
+    s = 0.84
+    small = im.resize((max(1, int(w * s)), max(1, int(h * s))), Image.LANCZOS)
+    body = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    body.paste(small, ((w - small.width) // 2, (h - small.height) // 2), small)
+    r = max(2, w // 40)
+    a = body.getchannel("A").point(lambda v: 255 if v > 24 else 0)
+    a = a.filter(ImageFilter.MaxFilter(2 * r + 1)).filter(ImageFilter.GaussianBlur(r * 1.6))
+    a = a.point(lambda v: min(255, int(v * 1.6)))
+    glow = Image.new("RGBA", (w, h), GLOW_RGB + (0,))
+    glow.putalpha(a)
+    out = Image.alpha_composite(glow, body)
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    out.save(dst)
+
+
+def add_tame_glow(pack):
+    """A gold aura behind every Tames-grid creature we have unlocked (its Tame item received).
+
+    Some creature art is nearly grey, so the pack's @disabled greyscale barely shows the
+    difference. PopTracker has no "behind the icon" effect, so a glow copy of each image is baked
+    into images/dinos_glow/, and only the UNLOCKED states point at it: a toggle's img (its locked
+    look stays the plain image via disabled_img), and a composite's left=true states (the tame
+    half; the saddle half alone keeps the plain image)."""
+    pool = _tame_grid_codes(pack)
+    items_path = os.path.join(pack, "items", "items.json")
+    items = json.load(open(items_path, encoding="utf-8-sig"))
+    made, changed, skipped = {}, 0, []
+
+    def glow_of(img):
+        if not img or not img.startswith("images/dinos/"):
+            return None
+        if img not in made:
+            src = os.path.join(pack, *img.split("/"))
+            if not os.path.exists(src):
+                made[img] = None
+            else:
+                g = GLOW_DIR + "/" + img[len("images/dinos/"):]
+                _glow_image(src, os.path.join(pack, *g.split("/")))
+                made[img] = g
+        return made[img]
+
+    for it in items:
+        if not isinstance(it, dict) or not it.get("codes"):
+            continue
+        if not set(x.strip() for x in str(it["codes"]).split(",")) & pool:
+            continue
+        if it.get("type") == "toggle":
+            g = glow_of(it.get("img"))
+            if not g:
+                skipped.append(it.get("name"))
+                continue
+            it["disabled_img"] = it["img"]
+            it["disabled_img_mods"] = "@disabled"
+            it["img"] = g
+            changed += 1
+        elif it.get("type") == "composite_toggle":
+            hit = False
+            for st in it.get("images") or []:
+                if st.get("left"):
+                    g = glow_of(st.get("img"))
+                    if g:
+                        st["img"] = g
+                        hit = True
+            if hit:
+                changed += 1
+            else:
+                skipped.append(it.get("name"))
+    with open(items_path, "w", encoding="utf-8") as fh:
+        json.dump(items, fh, indent=4)
+    return changed, sum(1 for v in made.values() if v), skipped
+
+
+# Item tabs (besides Tames) whose unlocked icons get the same gold aura.
+GLOW_GRIDS = ("crafting", "weapon", "armor", "loot", "artifact")
+ITEM_GLOW_DIR = "images/glow"      # images/<sub>/<file> -> images/glow/<sub>/<file>
+
+
+def _grid_codes_of(pack, kinds):
+    """Every item code on any <kind>_grid / <map>_<kind>_grid layout, for each kind."""
+    pool = set()
+    for lay in ("tracker_standard.json", "ap_tabs.json"):
+        p = os.path.join(pack, "layouts", lay)
+        if not os.path.exists(p):
+            continue
+        text = open(p, encoding="utf-8-sig").read()
+        for kind in kinds:
+            for gk in set(re.findall(r'"((?:[a-z0-9_]+_)?%s_grid)"\s*:' % kind, text)):
+                pool |= set(P._grid_codes(text, gk))
+    return pool
+
+
+def add_item_glow(pack):
+    """The Tames-grid gold aura (add_tame_glow) on the Crafting, Weapons, Armor, Loot Crates and
+    Artifacts tabs too. Every item there is a plain toggle (img only), so a glow copy is baked into
+    images/glow/<sub>/ and the toggle's img points at it, with the plain image kept as the locked
+    look (disabled_img + @disabled). A static item (always owned, e.g. the default Stone Pick)
+    just shows the glow. Anything else is reported, never guessed."""
+    pool = _grid_codes_of(pack, GLOW_GRIDS)
+    items_path = os.path.join(pack, "items", "items.json")
+    items = json.load(open(items_path, encoding="utf-8-sig"))
+    made, changed, skipped = {}, 0, []
+
+    def glow_of(img):
+        if not img or not img.startswith("images/") or img.startswith(ITEM_GLOW_DIR + "/") \
+                or img.startswith(GLOW_DIR + "/"):
+            return None
+        if img not in made:
+            src = os.path.join(pack, *img.split("/"))
+            if not os.path.exists(src):
+                made[img] = None
+            else:
+                g = ITEM_GLOW_DIR + "/" + img[len("images/"):]
+                _glow_image(src, os.path.join(pack, *g.split("/")))
+                made[img] = g
+        return made[img]
+
+    for it in items:
+        if not isinstance(it, dict) or not it.get("codes"):
+            continue
+        if not set(x.strip() for x in str(it["codes"]).split(",")) & pool:
+            continue
+        typ = it.get("type")
+        g = glow_of(it.get("img")) if typ in ("toggle", "static") else None
+        if not g or (typ == "toggle" and (it.get("disabled_img") or it.get("img_mods"))):
+            skipped.append("%s (%s)" % (it.get("name"), typ))
+            continue
+        if typ == "toggle":
+            it["disabled_img"] = it["img"]
+            it["disabled_img_mods"] = "@disabled"
+        it["img"] = g
+        changed += 1
+    with open(items_path, "w", encoding="utf-8") as fh:
+        json.dump(items, fh, indent=4)
+    return changed, sum(1 for v in made.values() if v), skipped
+
+
+def add_slot_visibility(pack):
+    """Hide every check that is not in the connected slot.
+
+    Lurch's pack only hides explorer notes, food, tame and death checks that a slot leaves out, so
+    anything else that is not in the seed (a check added to a map after the seed was made, an
+    Island-only dossier on another map's creature pin) stayed green forever: it can never be
+    checked, not even by a release. slot_data["included_locations"] is the slot's full location
+    list (apworld _used_locations), so every section location_mapping.lua ticks gets
+    `$ap_in_slot|<id>[|<id>...]` ANDed onto its visibility rules. Boss ids (8750xxx) are not AP
+    locations (the tracker ticks them from the played record), so their sections are left alone.
+    Not connected yet (no slot data) = show everything, like the pack's own helpers."""
+    mp = os.path.join(pack, "scripts", "autotracking", "location_mapping.lua")
+    by_code = {}
+    for line in open(mp, encoding="utf-8").read().splitlines():
+        m = re.match(r'^\[(\d+)\] = \{(.*)\},\s*$', line.strip())
+        if not m:
+            continue
+        loc = int(m.group(1))
+        if 8750000 <= loc <= 8750099:
+            continue
+        for code in re.findall(r'\{"(@[^"]+)"\}', m.group(2)):
+            by_code.setdefault(code, set()).add(loc)
+    done, seen = 0, set()
+    for f in sorted(os.listdir(os.path.join(pack, "locations"))):
+        if not f.endswith(".json"):
+            continue
+        path = os.path.join(pack, "locations", f)
+        data = json.load(open(path, encoding="utf-8-sig"))
+        changed = False
+
+        def walk(node, prefix):
+            nonlocal changed, done
+            if isinstance(node, list):
+                for x in node:
+                    walk(x, prefix)
+                return
+            if not isinstance(node, dict):
+                return
+            name = node.get("name")
+            here = prefix + "/" + name if name is not None else prefix
+            for sec in node.get("sections") or []:
+                if "ref" in sec:
+                    continue
+                sname = sec.get("name", "")
+                code = "@" + here.lstrip("/") + "/" + sname
+                ids = by_code.get(code)
+                if not ids:
+                    continue
+                cond = "$ap_in_slot|" + "|".join(str(i) for i in sorted(ids))
+                old = sec.get("visibility_rules") or [""]
+                if any(cond in r for r in old):
+                    continue
+                sec["visibility_rules"] = [(r + ", " + cond) if r.strip() else cond for r in old]
+                seen.add(code)
+                changed = True
+                done += 1
+            for k in ("children",):
+                if node.get(k):
+                    walk(node[k], here)
+
+        walk(data, "")
+        if changed:
+            with open(path, "w", encoding="utf-8") as fh:
+                json.dump(data, fh, indent=4, ensure_ascii=False)
+    lua = [
+        "",
+        "-- generated by tools/poptracker_add_map.py (add_slot_visibility); do not edit",
+        "-- A check that is not in the connected slot can never be checked (not even by a release),",
+        "-- so its section is hidden. No slot data yet = show everything.",
+        "function ap_in_slot(...)",
+        "  if INCLUDED_LOCATIONS == nil or next(INCLUDED_LOCATIONS) == nil then return true end",
+        "  for _, s in ipairs({...}) do",
+        "    local n = tonumber(s)",
+        "    if n and INCLUDED_LOCATIONS[n] then return true end",
+        "  end",
+        "  return false",
+        "end",
+        "",
+        "-- one line per connect: how many of the slot's checks this pack can show, and whether a",
+        "-- few that bug reports asked about are in the seed at all",
+        "if Archipelago then",
+        "  Archipelago:AddClearHandler('ap slot visibility', function(slot_data)",
+        "    local n = 0",
+        "    if INCLUDED_LOCATIONS then for _ in pairs(INCLUDED_LOCATIONS) do n = n + 1 end end",
+        "    local probe = {}",
+        "    for _, id in ipairs({8756008, 8757336, 8741230, 8757323}) do",
+        "      table.insert(probe, string.format('%d=%s', id, tostring(n == 0 or (INCLUDED_LOCATIONS[id] == true))))",
+        "    end",
+        "    print(string.format('ArkAP tracker: slot has %d locations; in slot: %s', n, table.concat(probe, ' ')))",
+        "  end)",
+        "end",
+        "",
+    ]
+    with open(os.path.join(pack, "scripts", "ap_maps.lua"), "a", encoding="utf-8") as fh:
+        fh.write("\n".join(lua))
+    missing = sorted(c for c in by_code if c not in seen)
+    return done, missing
+
+
+def add_tame_badges(pack):
+    """Mark creatures already tamed once: a "T" in the bottom-left of its Tames-grid icon.
+
+    scripts/tame_badges.lua maps every "Tamed: X" location id (data/dinos.json tame_loc) to the
+    item code its grid icon uses, and registers its own Archipelago clear/location handlers, so
+    Lurch's onClear/onLocation stay untouched. The code is found the same way add_dino_grid picks
+    it (any *dino_grid layout, then DINO_CODE_ALIAS, then a "Tame - X" item); a creature with no
+    code is reported, never guessed. The saddle overlay sits bottom-right, so the T goes left."""
+    pool = _tame_grid_codes(pack)
+    norm =lambda s: re.sub(r"[^a-z0-9]", "", s.lower())
+    by = {}
+    for c in sorted(pool):
+        by.setdefault(norm(c.replace("_ride", "")), c)
+    by_item = {}
+    for it in json.load(open(os.path.join(pack, "items", "items.json"), encoding="utf-8-sig")):
+        if isinstance(it, dict) and str(it.get("name", "")).startswith("Tame - ") and it.get("codes"):
+            by_item.setdefault(norm(it["name"][len("Tame - "):]),
+                               str(it["codes"]).split(",")[0].strip())
+    dj = json.load(open(os.path.join(ROOT, "data", "dinos.json"), encoding="utf-8"))
+    pairs, missing = [], []
+    for e in (dj["dinos"] if isinstance(dj, dict) else dj):
+        loc = e.get("tame_loc")
+        if not loc:
+            continue                                # kill-only creature: nothing to tame
+        name = (e.get("ap_name") or "").replace("Tame: ", "") or e["dino_tag"]
+        k = norm(name)
+        c = by.get(k) or P.DINO_CODE_ALIAS.get(k)
+        if not (c and c in pool):
+            c = by_item.get(k)
+        if c:
+            pairs.append((int(loc), c))
+        else:
+            missing.append(name)
+    # The Level counter came from location_mapping.lua: every checked "Reach Level N" added 1.
+    # Those lines are blanked here (marked, so a re-run still finds them) and the counter is set
+    # by tame_badges.lua from the same source as the T badges.
+    lm_path = os.path.join(pack, "scripts", "autotracking", "location_mapping.lua")
+    lm = open(lm_path, encoding="utf-8").read()
+    level_ids = sorted(int(i) for i in re.findall(
+        r'^\[(\d+)\] = (?:\{\{"level", "consumable", 1\}\},\s*--.*'
+        r'|\{\},\s*--.*\(Level counter: tame_badges\.lua\))$', lm, re.M))
+    lm = re.sub(r'^(\[\d+\]) = \{\{"level", "consumable", 1\}\},\s*(--[^\n]*)$',
+                r'\1 = {}, \2 (Level counter: tame_badges.lua)', lm, flags=re.M)
+    with open(lm_path, "w", encoding="utf-8") as fh:
+        fh.write(lm)
+
+    # BOSSES are the goal, not AP locations, so their sections (mapped to the boss location ids
+    # above) and the Island's hosted trophies never clear from checked locations. Plugin v216
+    # adds the id of every boss difficulty killed to the played record; tame_badges.lua ticks
+    # the sections those ids map to and turns on the matching "<boss>_trophy" item.
+    lj = json.load(open(os.path.join(ROOT, "data", "locations.json"), encoding="utf-8"))
+    boss_ids = {e["id"]: e["name"] for e in lj["location_categories"]["bosses"]["entries"]}
+    boss_secs = {}
+    for m in re.finditer(r'^\[(\d+)\] = \{(.*)\},\s*(?:--.*)?$', lm, re.M):
+        i = int(m.group(1))
+        if i in boss_ids:
+            secs = re.findall(r'\{"(@[^"]*)"\}', m.group(2))
+            if secs:
+                boss_secs[i] = secs
+    codes = set()
+    for it in json.load(open(os.path.join(pack, "items", "items.json"), encoding="utf-8-sig")):
+        if isinstance(it, dict) and it.get("codes"):
+            codes.update(x.strip() for x in str(it["codes"]).split(","))
+    boss_trophy = {}
+    for i, nm in boss_ids.items():
+        short = nm.replace("Boss: ", "").split(" (")[0]
+        code = norm(short) + "_trophy"
+        if code in codes:
+            boss_trophy[i] = code
+
+    # A section with a hosted_item only counts as done once that item is collected too, so a
+    # cleared "Kill an Alpha Fire Wyvern" (its trophy hosted there) stayed green after the kill
+    # check was made - even after a release (user 2026-11-17). Checking the location now collects
+    # its hosted trophy. Only the alpha KILL sections: Lurch also hosts the boss trophies on the
+    # Island hologram NOTES, and collecting a note is not killing the boss.
+    hosted = {}
+    for f in ("dinos.json",):
+        data = json.load(open(os.path.join(pack, "locations", f), encoding="utf-8-sig"))
+
+        def walk(node, prefix):
+            if isinstance(node, list):
+                for x in node:
+                    walk(x, prefix)
+                return
+            if not isinstance(node, dict):
+                return
+            here = prefix + "/" + node["name"] if node.get("name") is not None else prefix
+            for sec in node.get("sections") or []:
+                if sec.get("hosted_item") and str(sec.get("name", "")).startswith("Kill an Alpha"):
+                    hosted["@" + here.lstrip("/") + "/" + sec["name"]] = sec["hosted_item"]
+            if node.get("children"):
+                walk(node["children"], here)
+        walk(data, "")
+    alpha_trophy = {}
+    for line in open(os.path.join(pack, "scripts", "autotracking", "location_mapping.lua"),
+                     encoding="utf-8").read().splitlines():
+        m = re.match(r'^\[(\d+)\] = \{(.*)\},\s*$', line.strip())
+        if not m:
+            continue
+        for c in re.findall(r'\{"(@[^"]+)"\}', m.group(2)):
+            if c in hosted and hosted[c] in codes:
+                alpha_trophy[int(m.group(1))] = hosted[c]
+
+    lua = ["-- generated by tools/poptracker_add_map.py (add_tame_badges); do not edit",
+           "-- \"Tamed: X\" location id -> the Tames-grid item that gets a T once it is tamed",
+           "TAME_BADGES = {"]
+    lua += ['  [%d] = "%s",' % (loc, c) for loc, c in sorted(pairs)]
+    lua += ["}",
+            "-- \"Reach Level N\" location ids: the Level counter is 1 + how many of these were reached",
+            "LEVEL_LOCS = {"]
+    lua += ["  [%d] = true," % i for i in level_ids]
+    lua += ["}",
+            "-- boss location id -> the sections it maps to (one per difficulty; a shared arena's",
+            "-- section counts one per boss in it). Ticked from the played record only (plugin v216+).",
+            "BOSS_SECTIONS = {"]
+    lua += ["  [%d] = {%s}," % (i, ", ".join(json.dumps(x) for x in secs))
+            for i, secs in sorted(boss_secs.items())]
+    lua += ["}",
+            "-- boss location id (any difficulty) -> the Island's hosted trophy item",
+            "BOSS_TROPHIES = {"]
+    lua += ['  [%d] = "%s",' % (i, c) for i, c in sorted(boss_trophy.items())]
+    lua += ["}",
+            "-- alpha kill location id -> the trophy hosted on its section; a section with a hosted",
+            "-- item only counts as done once the item is collected, so checking the kill collects it",
+            "ALPHA_TROPHIES = {"]
+    lua += ['  [%d] = "%s",' % (i, c) for i, c in sorted(alpha_trophy.items())]
+    lua += ["}",
+            "",
+            "-- Checked is not the same as done in game. When another player finishes, Archipelago's",
+            "-- collect marks every location in this world holding one of their items as checked, so",
+            "-- badges driven by checked locations showed creatures as tamed and a level the player never",
+            "-- reached. The plugin (v214+) stores every check the game itself made in data storage key",
+            "-- ark_ase_played_<team>_<slot> as {\"<location id>\": 1} (same pattern as the Pokemon",
+            "-- Emerald/Crystal and Witness packs). With that key the T badges and the Level counter",
+            "-- follow it; without it (an older plugin) they fall back to checked locations. Map pins",
+            "-- still clear on any checked location, collected or not.",
+            "local CHECKED = {}      -- location id (string) -> true, from the location handler",
+            "local PLAYED = nil      -- the data-storage record, nil until the server returns one",
+            "local CHECKED_LEVELS = 0",
+            "",
+            "local function tame_badge(code, on)",
+            "  local obj = Tracker:FindObjectForCode(code)",
+            "  if not obj or not obj.SetOverlay then return end",
+            "  if on then",
+            "    obj:SetOverlay('T')",
+            "    if obj.SetOverlayAlign then obj:SetOverlayAlign('left') end",
+            "    if obj.SetOverlayFontSize then obj:SetOverlayFontSize(14) end",
+            "  else",
+            "    obj:SetOverlay('')",
+            "  end",
+            "end",
+            "",
+            "local function set_level(reached)",
+            "  local obj = Tracker:FindObjectForCode('level')",
+            "  if obj then obj.AcquiredCount = 1 + reached end",
+            "end",
+            "",
+            "local function played_key()",
+            "  return string.format('ark_ase_played_%s_%s', tostring(Archipelago.TeamNumber or 0),",
+            "                       tostring(Archipelago.PlayerNumber or 0))",
+            "end",
+            "",
+            "local function has(src, id)        -- JSON object keys may arrive as strings or numbers",
+            "  return src[tostring(id)] ~= nil or src[id] ~= nil",
+            "end",
+            "",
+            "-- only ever clears: a section the player cleared by hand stays cleared",
+            "local function refresh_bosses()",
+            "  if not PLAYED then return end",
+            "  local n = {}",
+            "  for id, secs in pairs(BOSS_SECTIONS) do",
+            "    if has(PLAYED, id) then",
+            "      for _, sec in ipairs(secs) do n[sec] = (n[sec] or 0) + 1 end",
+            "    end",
+            "  end",
+            "  for sec, k in pairs(n) do",
+            "    local obj = Tracker:FindObjectForCode(sec)",
+            "    if obj and obj.ChestCount then",
+            "      local want = math.max(0, obj.ChestCount - k)",
+            "      if obj.AvailableChestCount > want then obj.AvailableChestCount = want end",
+            "    end",
+            "  end",
+            "  for id, code in pairs(BOSS_TROPHIES) do",
+            "    if has(PLAYED, id) then",
+            "      local obj = Tracker:FindObjectForCode(code)",
+            "      if obj then obj.Active = true end",
+            "    end",
+            "  end",
+            "end",
+            "",
+            "local function refresh_all()",
+            "  local src = PLAYED or CHECKED",
+            "  for id, code in pairs(TAME_BADGES) do tame_badge(code, has(src, id)) end",
+            "  local n = 0",
+            "  for id in pairs(LEVEL_LOCS) do if has(src, id) then n = n + 1 end end",
+            "  set_level(n)",
+            "  refresh_bosses()",
+            "end",
+            "",
+            "local function tame_badges_clear()",
+            "  CHECKED, PLAYED, CHECKED_LEVELS = {}, nil, 0",
+            "  for _, code in pairs(TAME_BADGES) do tame_badge(code, false) end",
+            "  set_level(0)",
+            "  Archipelago:SetNotify({played_key()})",
+            "  Archipelago:Get({played_key()})",
+            "end",
+            "",
+            "local function tame_badges_location(location_id, location_name)",
+            "  CHECKED[tostring(location_id)] = true",
+            "  local trophy = ALPHA_TROPHIES[location_id]",
+            "  if trophy then",
+            "    local t = Tracker:FindObjectForCode(trophy)",
+            "    if t then t.Active = true end",
+            "  end",
+            "  if PLAYED then return end                       -- the played record decides",
+            "  local code = TAME_BADGES[location_id]",
+            "  if code then tame_badge(code, true) end",
+            "  if LEVEL_LOCS[location_id] then",
+            "    CHECKED_LEVELS = CHECKED_LEVELS + 1",
+            "    set_level(CHECKED_LEVELS)",
+            "  end",
+            "end",
+            "",
+            "local function tame_badges_storage(key, value, old)",
+            "  if key ~= played_key() then return end",
+            "  if type(value) ~= 'table' then return end       -- no record yet: keep the fallback",
+            "  PLAYED = value",
+            "  refresh_all()",
+            "end",
+            "",
+            "if Archipelago then",
+            "  Archipelago:AddClearHandler('tame badge clear', tame_badges_clear)",
+            "  Archipelago:AddLocationHandler('tame badge location', tame_badges_location)",
+            "  Archipelago:AddRetrievedHandler('tame badge played', tame_badges_storage)",
+            "  Archipelago:AddSetReplyHandler('tame badge played', tame_badges_storage)",
+            "end",
+            ""]
+    with open(os.path.join(pack, "scripts", "tame_badges.lua"), "w", encoding="utf-8") as fh:
+        fh.write("\n".join(lua))
+    init = os.path.join(pack, "scripts", "init.lua")
+    text = open(init, encoding="utf-8").read()
+    line = 'ScriptHost:LoadScript("scripts/tame_badges.lua")'
+    if line not in text:
+        text = text.rstrip() + "\n" + line + "\n"
+    with open(init, "w", encoding="utf-8") as fh:
+        fh.write(text)
+    return len(pairs), missing, len(level_ids), len(boss_secs), len(boss_trophy)
+
+
 def validate(pack):
     """Every dead reference in the pack's rules, as a set of (kind, ref, where) tuples."""
     codes = set()
@@ -655,6 +1192,29 @@ def main():
     n_items, n_secs = add_new_slot_reset(args.out)
     print("new-slot reset: a different seed/slot clears %d items and %d location sections"
           % (n_items, n_secs))
+    n_badges, no_badge, n_levels, n_boss, n_trophy = add_tame_badges(args.out)
+    print("tame badges: %d Tamed checks put a T on their Tames-grid icon; Level counter from %d"
+          " Reach Level checks (played record, see tame_badges.lua)" % (n_badges, n_levels))
+    print("boss kills: %d boss ids tick their sections, %d turn on an Island trophy (plugin v216+)"
+          % (n_boss, n_trophy))
+    if not n_levels:
+        print("  WARNING: no Reach Level lines found in location_mapping.lua - Level stays 1")
+    if no_badge:
+        print("  no grid icon for: %s" % ", ".join(no_badge))
+    n_glow, n_img, no_glow = add_tame_glow(args.out)
+    print("tame glow: %d Tames-grid items glow gold once unlocked (%d images baked)" % (n_glow, n_img))
+    if no_glow:
+        print("  no image to glow: %s" % ", ".join(str(n) for n in no_glow))
+    n_glow, n_img, no_glow = add_item_glow(args.out)
+    print("item glow: %d Crafting/Weapons/Armor/Loot/Artifact items glow gold once unlocked"
+          " (%d images baked)" % (n_glow, n_img))
+    if no_glow:
+        print("  not glowed: %s" % ", ".join(str(n) for n in no_glow))
+    n_vis, vis_missing = add_slot_visibility(args.out)
+    print("slot visibility: %d mapped sections hide when their check is not in the slot" % n_vis)
+    if vis_missing:
+        print("  mapped codes with no section found (%d): %s" % (len(vis_missing),
+              ", ".join(vis_missing[:8]) + (" ..." if len(vis_missing) > 8 else "")))
 
     print("\n================ validation ================")
     before, after = validate(args.pack), validate(args.out)

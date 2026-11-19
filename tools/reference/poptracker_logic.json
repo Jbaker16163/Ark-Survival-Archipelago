@@ -61,6 +61,8 @@
         "Strong": "The Monkey's Puzzle",
         "Devourer": "Pit of Dreen"
       },
+      "_no_cave_tab_comment": "Artifact spots in _caves that get NO tab (pin on the map only). Empty for now: Pit of Dreen (Devourer, open ocean, no cave) has a tab showing the user's in-game GPS screenshot 47.3/2.2 (user, 2026-11-17: keep a tab, use that screenshot).",
+      "_no_cave_tab": [],
       "_positions": {
         "_source": "ark.wiki.gg/wiki/Artifact_of_the_<Name>, ASE Ragnarok row, the ARTIFACT lat/lon (not the entrance). Fetched 2026-09-16.",
         "Hunter": [21.5, 27.2],
@@ -74,6 +76,21 @@
         "Strong": [24.8, 24.7],
         "Cunning": [20.3, 45.9],
         "Brute": [35.2, 78.2]
+      },
+      "_cave_pins": {
+        "_source": "Pixel positions on the cave's own map image (poptracker_art/maps/<Map>_<Cave>.png). Life's Labyrinth: read off the artifact icons on the map Justin supplied 2026-11-10 (2000x1985 high-res version, ARK Patch 276; original in _source/maps/Ragnarok_Life_s_Labyrinth.jpg). The others: written by tools/cave_maps_to_poptracker.py from the /aptrail cave renders (build/caves/<cave>.json pins). Devourer: Pit of Dreen is no cave, its tab is the user's in-game GPS screenshot (_source/maps/Ragnarok_Pit_of_Dreen_gps.webp) with a title box; the pin sits in that box. A cave listed here gets one pin per artifact on its tab instead of one shared pin.",
+        "_size": 24,
+        "Clever": [1005, 264],
+        "Skylord": [1133, 155],
+        "Devious": [1371, 660],
+        "Massive": [1375, 694],
+        "Pack": [2341, 621],
+        "Hunter": [965, 1697],
+        "Strong": [876, 1031],
+        "Cunning": [2156, 784],
+        "Immune": [2007, 1143],
+        "Brute": [1836, 1045],
+        "Devourer": [823, 143]
       },
       "Hunter": ["$UseGrapple"],
       "Brute": [""],
@@ -95,7 +112,8 @@
     "boss_pairs": {
       "Dragon & Manticore": {
         "members": ["Dragon", "Manticore"],
-        "_note": "Both spawn together in one arena, so they are one tracker entry.",
+        "_note": "Both spawn together in one arena, so they are one tracker entry. per_member: one row per boss, any difficulty (user 2026-11-17: 'Kill Dragon(Any Difficulty) and Kill Manticore(Any Difficulty)'); boss kills are goal progress, not item checks.",
+        "per_member": true,
         "artifacts": ["artifact_clever", "artifact_cunning", "artifact_devious",
                       "artifact_devourer", "artifact_hunter", "artifact_immune",
                       "artifact_massive", "artifact_pack", "artifact_skylord",
@@ -116,6 +134,22 @@
       "rocket_ammo": {"id": 8730367, "name": "Engram - Rocket Ammo"},
       "climbing_pick": {"id": 8730495, "name": "Engram - Climbing Pick"},
       "artifact_devious": {"id": null, "name": "Artifact - Devious", "_note": "no AP item: ticked by the Artifact: Devious check (8757409), like the other artifacts"}
+    }
+  },
+  "valguero": {
+    "artifacts": {
+      "_cave_pins": {
+        "_source": "Pixel positions on the cave's own map image (poptracker_art/maps/Valguero_<Cave>.png). The Lost Temple: read off the artifact icons on the map the user supplied 2026-11-17 (1024x981, ARK Patch 297; original in _source/maps/Valguero_The_Lost_Temple.webp). The Lair: read off the artifact icons on the map the user supplied 2026-11-17 (1024x896, ARK Patch 297.2; original in _source/maps/Valguero_The_Lair.webp, an earlier 400x350 copy beside it as Valguero_The_Lair_small.png). Snow Mountains (Cunning) and The Great Trench (Skylord): written by tools/cave_maps_to_poptracker.py from the /aptrail cave renders (build/caves/<cave>.json pins). Jungle (Destroyer): no cave, its tab is the user's in-game GPS screenshot 61.0 / 89.1 (_source/maps/Valguero_Jungle_gps.webp) with a title box; the pin sits in that box. A cave listed here gets one pin per artifact on its tab instead of one shared pin.",
+        "_size": 20,
+        "Brute": [490, 705],
+        "Devourer": [765, 826],
+        "Destroyer": [900, 185],
+        "Pack": [805, 110],
+        "Strong": [445, 397],
+        "Immune": [345, 682],
+        "Cunning": [1373, 347],
+        "Skylord": [1298, 756]
+      }
     }
   }
 }

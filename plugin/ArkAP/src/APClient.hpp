@@ -503,6 +503,8 @@ private:
         // since the reset clears it.
         ResetOnNewSeed(roomSeed_);
         mySlot_ = msg.value("slot", -1);
+        myTeam_ = msg.value("team", 0);
+        playedGen_++;                        // pump re-pushes the whole played record (see PumpOnce)
         for (auto& p : msg.value("players", json::array()))
             players_[p.value("slot", -1)] = p.value("alias", "").empty()
                 ? p.value("name", "") : p.value("alias", "");
@@ -617,6 +619,10 @@ private:
     void PumpOnce() {
         if (!connectedOk_) return;
         FlushPendingItems();                 // retry any item whose line never reached disk
+        // a (re)connect or a new seed: rebuild the played record from the file below and push it all
+        if (playedSeenGen_ != playedGen_) {
+            playedSeenGen_ = playedGen_; played_.clear(); playedPushed_.clear();
+        }
         // checks_out.jsonl -> LocationChecks (whole-file read; dedup via sentChecks_)
         std::vector<int> fresh;
         { std::ifstream f(cfg_.mailbox / "checks_out.jsonl");
@@ -626,6 +632,7 @@ private:
               if (p == std::string::npos) continue;
               int loc = 0;
               try { loc = std::stoi(line.substr(line.find(':', p) + 1)); } catch (...) { continue; }
+              if (slotLocs_.empty() || slotLocs_.count(loc)) played_.insert(loc);
               if (!sentChecks_.insert(loc).second) continue;
               // A location this slot does not have is silently dropped by the server. Log it once
               // per id, and do NOT count it against `remaining_` - a counter that ticks down for
@@ -646,17 +653,64 @@ private:
             remaining_ -= (int)fresh.size();
             PublishRemaining();
         }
+        // boss_locs_out.jsonl: the boss location id of each difficulty killed (plugin v216+).
+        // Bosses are the goal, not AP locations, so these never go out as LocationChecks - they
+        // only join the played record below, which is how the tracker ticks its boss sections.
+        { std::ifstream f(cfg_.mailbox / "boss_locs_out.jsonl");
+          std::string line;
+          while (std::getline(f, line)) {
+              int loc = 0;
+              try { loc = std::stoi(line); } catch (...) { continue; }
+              if (loc > 0) played_.insert(loc);
+          } }
+
+        // "Checked" is not "done in game". When another player finishes, Archipelago's collect
+        // marks every location in THIS world that holds one of their items as checked, so the
+        // PopTracker pack showed creatures as tamed and a level the player never reached (a
+        // friend's goal ticked 102 "Reach Level N" checks = "Level 103"). The pack's T badges and
+        // Level counter read this record instead: every check the game itself wrote to
+        // checks_out.jsonl (including ones the server already had), as a {"<loc id>": 1} dict in
+        // data storage key ark_ase_played_<team>_<slot>. Same pattern as the Pokemon Emerald /
+        // Crystal and Witness packs (game state from data storage, map pins from checked
+        // locations). "update" merges, so re-pushing is harmless; the whole record goes again
+        // after every (re)connect, which also backfills a run that started before this existed
+        // (checks_out.jsonl keeps the whole seed).
+        if (played_.size() != playedPushed_.size()) {
+            json add = json::object();
+            for (int loc : played_)
+                if (!playedPushed_.count(loc)) add[std::to_string(loc)] = 1;
+            if (SendJson({ {"cmd", "Set"},
+                           {"key", "ark_ase_played_" + std::to_string(myTeam_) + "_" + std::to_string(mySlot_)},
+                           {"default", json::object()}, {"want_reply", false},
+                           {"operations", json::array({ { {"operation", "update"}, {"value", add} } })} }))
+                playedPushed_ = played_;
+        }
 
         // death_out.jsonl -> Bounce DeathLink
         if (deathLink_) {
             size_t total = CountLines(cfg_.mailbox / "death_out.jsonl");
             if (total < deathsSent_) deathsSent_ = total;              // file reset -> resync
-            while (deathsSent_ < total) {
-                ++deathsSent_;
-                SendJson({ {"cmd", "Bounce"}, {"tags", json::array({"DeathLink"})},
-                           {"data", { {"time", (double)std::time(nullptr)},
-                                      {"source", cfg_.slot},
-                                      {"cause", cfg_.slot + " died in ARK"} }} });
+            if (deathsSent_ < total) {
+                // each line may carry the plugin's flavour "cause" (what killed us); same
+                // non-empty-line indexing as CountLines, so line N is death N
+                std::vector<std::string> lines;
+                { std::ifstream f(cfg_.mailbox / "death_out.jsonl"); std::string l;
+                  while (std::getline(f, l)) if (!l.empty()) lines.push_back(l); }
+                while (deathsSent_ < total) {
+                    std::string cause;
+                    if (deathsSent_ < lines.size()) {
+                        json j = json::parse(lines[deathsSent_], nullptr, false);
+                        if (j.is_object() && j.contains("cause") && j["cause"].is_string())
+                            cause = j["cause"].get<std::string>();
+                    }
+                    if (cause.empty()) cause = cfg_.slot + " died in ARK";
+                    ++deathsSent_;
+                    SendJson({ {"cmd", "Bounce"}, {"tags", json::array({"DeathLink"})},
+                               {"data", { {"time", (double)std::time(nullptr)},
+                                          {"source", cfg_.slot},
+                                          {"cause", cause} }} });
+                    QueueMsg("DeathLink: " + cause);     // our own server sees what got us too
+                }
             }
         }
         // hint_out.jsonl -> Say !hint <item>
@@ -684,6 +738,13 @@ private:
                 goaled_ = true;
                 QueueMsg("AP: goal reached for '" + cfg_.slot + "'!");
                 SendJson({ {"cmd", "StatusUpdate"}, {"status", AP_CLIENT_GOAL} });
+                // Hand the win to the game thread: it unlocks EVERY engram for this route (Tek
+                // included - those are never AP items, and on maps without the Island's four bosses
+                // some Tek sets have no boss to drop them). Re-written on every reconnect, since
+                // goaled_ starts false each connect and boss_out.jsonl still holds the kills, so a
+                // run that finished on an older plugin gets its unlocks too. ResetOnNewSeed deletes it.
+                try { std::ofstream(cfg_.mailbox / "goal_reached.json")
+                        << json({ {"slot", cfg_.slot} }).dump(); } catch (...) {}
             }
         }
     }
@@ -725,6 +786,8 @@ private:
         fs::remove(cfg_.mailbox / "items_in.jsonl", ec);
         fs::remove(cfg_.mailbox / "applied_index.json", ec);
         fs::remove(cfg_.mailbox / "boss_out.jsonl", ec);      // boss defeats reset with the seed
+        fs::remove(cfg_.mailbox / "goal_reached.json", ec);   // so does the post-goal unlock-all
+        fs::remove(cfg_.mailbox / "boss_locs_out.jsonl", ec); // and the tracker's boss kills
         fs::remove(cfg_.mailbox / "checks_out.jsonl", ec);    // never replay a dead seed's checks
         if (cfg_.route.empty()) fs::remove(cfg_.pluginDir / "applied_index.json", ec);
         receivedIdx_.clear();
@@ -800,6 +863,12 @@ private:
     std::string roomSeed_;                      // RoomInfo seed_name, acted on only at Connected
     std::set<int> sentChecks_;                  // persists across reconnects (AP reseeds it too)
     std::set<int> slotLocs_;                    // every location id this slot HAS (from Connected)
+    int  myTeam_ = 0;
+    // checks the GAME made (checks_out.jsonl), for the tracker's data-storage record. Pump thread
+    // only; OnConnected just bumps playedGen_ so the pump re-pushes everything itself.
+    std::set<int> played_, playedPushed_;
+    std::atomic<int> playedGen_{ 0 };
+    int  playedSeenGen_ = -1;
     std::set<std::string> goalBossTags_;        // required boss base-tags (goal via boss_out.jsonl)
     std::map<int, std::string> players_;
     // cross-game naming (from GetDataPackage) so "X sent <item> to Y" / hints read properly

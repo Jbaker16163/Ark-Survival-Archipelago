@@ -56,6 +56,13 @@ bool Tables::Load(const fs::path& engrams_json, const fs::path& locations_json,
                 for (auto& entry : mi.value("mods", json::array())) {
                     std::string file = entry.value("file", "");
                     if (file.empty()) continue;
+                    {
+                        std::string canon = entry.value("mod_id", "");
+                        mod_canonical[canon] = canon;
+                        mod_name[canon] = entry.value("name", canon);
+                        for (auto& a : entry.value("aliases", json::array()))
+                            if (a.is_string()) mod_canonical[a.get<std::string>()] = canon;
+                    }
                     fs::path mp = mods_dir / file;
                     if (!fs::exists(mp, ec)) continue;
                     try {
@@ -73,6 +80,9 @@ bool Tables::Load(const fs::path& engrams_json, const fs::path& locations_json,
                             if (!classes.empty()) item_to_engram_class[id] = classes.front();
                             item_to_engram_classes[id] = classes;
                             item_to_mod[id] = entry.value("mod_id", "");
+                            if (g.contains("variants") && g["variants"].is_array())
+                                for (auto& v : g["variants"])
+                                    if (v.is_string()) item_variants[id].push_back(v.get<std::string>());
                         }
                         // curated group item -> member item ids (granting it grants them all)
                         for (auto& b : m.value("bundles", json::array())) {
@@ -88,8 +98,34 @@ bool Tables::Load(const fs::path& engrams_json, const fs::path& locations_json,
                             mod_bundles[bid] = members;
                             item_to_mod[bid] = entry.value("mod_id", "");
                         }
+                        // free-at-start engrams; only names that are THIS mod's engrams count
+                        std::vector<std::string> grant;
+                        if (m.contains("auto_grant") && m["auto_grant"].is_array())
+                            for (auto& a : m["auto_grant"])
+                                if (a.is_string()) grant.push_back(a.get<std::string>());
+                        if (!grant.empty()) {
+                            std::vector<int>& out = mod_auto_grant[entry.value("mod_id", "")];
+                            for (auto& g : m["engrams"]) {
+                                std::string gn = g.value("ap_name", "");
+                                if (std::find(grant.begin(), grant.end(), gn) != grant.end())
+                                    out.push_back(g.value("id", 0));
+                            }
+                        }
                     } catch (const std::exception&) { /* skip a broken mod file, keep the rest */ }
                 }
+            }
+            fs::path lp = mods_dir / "late_pairs.json";             // /aplatemod pairing table
+            if (fs::exists(lp, ec)) {
+                try {
+                    json j; std::ifstream(lp) >> j;
+                    for (auto& [mod, tbl] : j.items()) {                // the real object, not a .value() temporary
+                        if (mod.empty() || mod[0] == '_' || !tbl.is_object()) continue;
+                        for (auto& [k, v] : tbl.items()) {
+                            if (!v.is_number_integer()) continue;
+                            try { late_pairs[mod][std::stoi(k)] = v.get<int>(); } catch (...) {}
+                        }
+                    }
+                } catch (const std::exception&) { /* no table = suffix pairs only */ }
             }
         }
         return true;

@@ -55,10 +55,10 @@
       "Gatekeeper": "The Unknown"
     },
     "artifact_positions": {
-      "_source": "ark.wiki.gg/wiki/Artifact_of_the_<Name>, Map Location table, Valguero column: the red ARTIFACT marker (not the entrance). Fetched 2026-10-29.",
+      "_source": "ark.wiki.gg/wiki/Artifact_of_the_<Name>, Map Location table, Valguero column: the red ARTIFACT marker (not the entrance). Fetched 2026-10-29. Destroyer is the user's in-game GPS 61.0 / 89.1 (screenshot 2026-11-17, _source/maps/Valguero_Jungle_gps.webp); the wiki said 67.0 / 89.1.",
       "Brute": [47.7, 88.0], "Devourer": [48.7, 90.3], "Immune": [74.3, 35.8],
       "Pack": [70.1, 39.2], "Strong": [72.2, 36.5], "Cunning": [14.5, 26.3],
-      "Skylord": [13.4, 72.7], "Crag": [35.0, 52.2], "Destroyer": [67.0, 89.1],
+      "Skylord": [13.4, 72.7], "Crag": [35.0, 52.2], "Destroyer": [61.0, 89.1],
       "Gatekeeper": [48.0, 58.9]
     }
   }

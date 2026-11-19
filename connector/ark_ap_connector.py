@@ -560,17 +560,28 @@ class Bridge:
         if not self.death_link or not os.path.exists(self.death_out):
             return
         with open(self.death_out, encoding="utf-8") as fh:
-            total = sum(1 for line in fh if line.strip())
+            lines = [line for line in fh if line.strip()]
+        total = len(lines)
         if total < self.deaths_sent:           # file was reset -> resync
             self.deaths_sent = total
-        for _ in range(total - self.deaths_sent):
+        while self.deaths_sent < total:
+            # the plugin writes the flavour line (what killed us) as "cause"; older lines have none
+            cause = ""
+            try:
+                entry = json.loads(lines[self.deaths_sent])
+                if isinstance(entry, dict) and isinstance(entry.get("cause"), str):
+                    cause = entry["cause"]
+            except ValueError:
+                pass
+            cause = cause or f"{self.slot} died in ARK"
             self.deaths_sent += 1
-            print(f"[connector] Ghios died -> broadcasting DeathLink")
+            print(f"[connector] {cause} -> broadcasting DeathLink")
             await ws.send(json.dumps([{
                 "cmd": "Bounce",
                 "tags": ["DeathLink"],
-                "data": {"time": time.time(), "source": self.slot, "cause": f"{self.slot} died in ARK"},
+                "data": {"time": time.time(), "source": self.slot, "cause": cause},
             }]))
+            self._queue_msg(f"DeathLink: {cause}")     # our own server sees what got us too
 
     # win when every required boss base-tag has appeared in boss_out.jsonl (plugin-signalled) ->
     # tell AP we reached the goal. Boss kills are the goal, not AP check locations.

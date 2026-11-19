@@ -241,7 +241,7 @@ namespace fs = std::filesystem;
 // Which dll is actually loaded. Declared up here rather than beside Load() because the JOIN greet
 // and /apstatus both quote it: "what version are they running?" was answered by asking someone to
 // find a log file on the server box, which is no answer at all when the report comes from a player.
-static const char* ARKAP_BUILD = "v203-deathlink-sendwhy";
+static const char* ARKAP_BUILD = "v223-trail-route-resume";
 
 // the plugin's own folder: ArkApi/Plugins/ArkAP
 static fs::path PluginDir() {
@@ -900,7 +900,36 @@ static AShooterPlayerController* ResolveKillerPc(AController* killer, AActor* ca
 // BASE TAG into every known route's boss_out.jsonl - boss fights are team efforts, and the client
 // reads that file into a set (duplicate lines are harmless) and compares it against the goal tags.
 // `why` only distinguishes the two sources in the log: the kill hook, or a relic in someone's bag.
-static void SignalBossDefeat(const std::string& baseTag, const char* why) {
+// The boss's own location id for the difficulty that died, for the TRACKER only (never sent as a
+// check): the class name carries it for summoned arena bosses (Fenrir_Character_BP_Boss_Easy_C is
+// confirmed; Easy/Medium/Hard = Gamma/Beta/Alpha). No token = a single-difficulty world boss
+// (Valguero's SpiderL_VAL_Character_BP_C, the Ragnarok world bosses) -> its Gamma id.
+static int BossLocFor(const std::string& baseTag, const std::string& cls) {
+    for (auto& b : g_bosses) {
+        if (b.baseTag != baseTag) continue;
+        if (cls.find("_Hard") != std::string::npos)   return b.locAlpha;
+        if (cls.find("_Medium") != std::string::npos) return b.locBeta;
+        if (!cls.empty() && cls.find("_Easy") == std::string::npos)
+            DebugLog("BOSS-KILL no difficulty in class " + cls + " - counted as Gamma for the tracker");
+        return b.locGamma;
+    }
+    return 0;
+}
+
+// boss_locs_out.jsonl: one boss location id per line, per difficulty killed. The AP client adds
+// them to the played record (ark_ase_played_<team>_<slot>), which is how PopTracker ticks off its
+// boss sections and Island trophies - those ids are not AP locations, so nothing else ever would.
+static void RecordBossLoc(int loc) {
+    static std::set<int> recorded;                       // once per difficulty per server run
+    if (loc <= 0 || !recorded.insert(loc).second) return;
+    for (auto& r : KnownRoutes()) {
+        std::ofstream f(g_ipc->DirFor(r) / "boss_locs_out.jsonl", std::ios::app);
+        if (f) f << loc << "\n";
+    }
+}
+
+static void SignalBossDefeat(const std::string& baseTag, const char* why, const std::string& cls = "") {
+    RecordBossLoc(BossLocFor(baseTag, cls));
     static std::set<std::string> signalled;              // once per boss per server run
     if (!signalled.insert(baseTag).second) return;
     DebugLog(std::string("BOSS-DEFEAT ") + why + " boss=" + baseTag + " -> boss_out.jsonl");
@@ -923,7 +952,7 @@ static void DoBossDeath(APrimalDinoCharacter* dino, AController* killer, AActor*
             // boss kill). Signal the defeat by base-tag to boss_out.jsonl in EVERY known route's
             // mailbox (boss fights are team efforts); the client counts required tags -> AP goal.
             DebugLog("BOSS-KILL name=" + name + " boss=" + b.baseTag);
-            SignalBossDefeat(b.baseTag, "kill");
+            SignalBossDefeat(b.baseTag, "kill", name);
             return;
         }
     }
@@ -1019,13 +1048,28 @@ bool Hook_APrimalDinoCharacter_Die(APrimalDinoCharacter* _this, float KillingDam
 // the sole writer/reader, and it consumes the value on the very next line.
 static std::string g_dyingRoute;
 static bool g_dyingRouteValid = false;
+// The dying survivor's in-game name and the DeathLink line built for this death (DoDeathCheck).
+// Both are cleared on every Die, so a death that cannot be resolved never reuses the last one's.
+static std::string g_dyingName;
+static std::string g_dyingCause;
+// The dying survivor's own controller. ARK names the victim as killer/causer of self-inflicted
+// damage (fall damage), so DeathKind must not read that as "another survivor did it".
+static AController* g_dyingPC = nullptr;
 static void ResolveDyingRoute(AShooterCharacter* who) {
     g_dyingRoute.clear();
     g_dyingRouteValid = false;
+    g_dyingName.clear();
+    g_dyingCause.clear();
+    g_dyingPC = nullptr;
     UWorld* world = ArkApi::GetApiUtils().GetWorld();
     if (world) for (TWeakObjectPtr<APlayerController> wpc : world->PlayerControllerListField()) {
         auto* pc = static_cast<AShooterPlayerController*>(wpc.Get());
-        if (pc && pc->GetPlayerCharacter() == who) { g_dyingRoute = RouteFor(pc); g_dyingRouteValid = true; break; }
+        if (pc && pc->GetPlayerCharacter() == who) {
+            g_dyingRoute = RouteFor(pc); g_dyingRouteValid = true;
+            g_dyingName = ArkApi::GetApiUtils().GetCharacterName(pc).ToString();
+            g_dyingPC = pc;
+            break;
+        }
     }
 }
 
@@ -1125,9 +1169,15 @@ static std::string DeathKind(AShooterCharacter* who, FDamageEvent* ev, float kil
         UClass* dt = ev->DamageTypeClassField().uClass;
         if (dt) dmg = ClassShortName(dt);
     }
+    // Self-inflicted damage (a fall) names the victim's own body / controller as the attacker.
+    // That is not an attacker, so drop it and let the stat / damage-type / big-hit rules decide.
+    const bool selfCauser = causer && (causer == who);
+    const bool selfKiller = killer && (killer == g_dyingPC);
     std::string causerName;
-    if (causer) { FString fn; causer->GetFullName(&fn, nullptr); causerName = FirstToken(fn.ToString()); }
-    if (causerName.empty() && killer) { FString fn; killer->GetFullName(&fn, nullptr); causerName = FirstToken(fn.ToString()); }
+    if (causer && !selfCauser) { FString fn; causer->GetFullName(&fn, nullptr); causerName = FirstToken(fn.ToString()); }
+    if (causerName.empty() && killer && !selfKiller && !selfCauser) {
+        FString fn; killer->GetFullName(&fn, nullptr); causerName = FirstToken(fn.ToString());
+    }
 
     const float o2   = StatSEH(who, EPrimalCharacterStatusValue::Oxygen);
     const float food = StatSEH(who, EPrimalCharacterStatusValue::Food);
@@ -1138,7 +1188,7 @@ static std::string DeathKind(AShooterCharacter* who, FDamageEvent* ev, float kil
     snprintf(nums, sizeof(nums), " dmg=%.1f O2=%.1f food=%.1f water=%.1f temp=%.1f",
              killingDamage, o2, food, watr, temp);
     detail = "type=" + (dmg.empty() ? std::string("?") : dmg) +
-             " causer=" + (causerName.empty() ? std::string("?") : causerName) + nums;
+             " causer=" + (causerName.empty() ? std::string(selfCauser || selfKiller ? "self" : "?") : causerName) + nums;
 
     // 1. a creature did it - the most specific answer available
     if (!causerName.empty()) {
@@ -1173,6 +1223,66 @@ static std::string DeathKind(AShooterCharacter* who, FDamageEvent* ev, float kil
     return "";                                          // unknown: logged, never guessed
 }
 
+// ----------------------------------------------------------------- DeathLink flavour text
+// kind -> lines, from death_messages.json (loaded with the other tables). One line is picked at
+// random per death and goes out as the DeathLink "cause", so the other games see what got us.
+static std::unordered_map<std::string, std::vector<std::string>> g_deathMsgs;
+static unsigned g_deathRng = 0;
+static unsigned NextDeathRand() {                       // xorshift32: no <random>, no locks
+    if (!g_deathRng) g_deathRng = (unsigned)std::time(nullptr) ^ 0x9E3779B9u;
+    g_deathRng ^= g_deathRng << 13; g_deathRng ^= g_deathRng >> 17; g_deathRng ^= g_deathRng << 5;
+    return g_deathRng;
+}
+static void ReplaceAll(std::string& s, const std::string& from, const std::string& to) {
+    for (size_t p = s.find(from); p != std::string::npos; p = s.find(from, p + to.size()))
+        s.replace(p, from.size(), to);
+}
+// The line for this death. `kind` is DeathKind's answer; the creature (if any) refines it into
+// trap / alpha, and a survivor killing us is "player".
+static std::string BuildDeathCause(const std::string& kind, AActor* causer, AShooterCharacter* who) {
+    std::string name = g_dyingName.empty() ? std::string("A survivor") : g_dyingName;
+    if (causer == who) causer = nullptr;                  // self-inflicted (fall): nobody else did it
+    std::string causerName;
+    if (causer) { FString fn; causer->GetFullName(&fn, nullptr); causerName = FirstToken(fn.ToString()); }
+    std::string msgKind = kind.empty() ? "unknown" : kind;
+    std::string dino;
+    if (causer && NameHas(causerName, "character_bp")) {   // same test DeathKind uses before a cast
+        auto* d = static_cast<APrimalDinoCharacter*>(causer);
+        dino = d->DescriptiveNameField().ToString();
+        if (dino.empty()) dino = DinoTag(d);
+        if (g_trapDinos.count(d)) msgKind = "trap";
+        if (kind == "alpha" && msgKind == "alpha" && !NameHas(dino, "alpha")) dino = "Alpha " + dino;
+    } else if (NameHas(causerName, "playerpawn")) {
+        msgKind = "player";                               // another survivor's body did it
+    }
+    // candidate lines: a line naming {dino} is only usable when we know the creature
+    auto pick = [&](const std::string& k) -> std::string {
+        auto it = g_deathMsgs.find(k);
+        if (it == g_deathMsgs.end()) return std::string();
+        std::vector<const std::string*> ok;
+        for (auto& l : it->second)
+            if (!l.empty() && (!dino.empty() || l.find("{dino}") == std::string::npos)) ok.push_back(&l);
+        return ok.empty() ? std::string() : *ok[NextDeathRand() % ok.size()];
+    };
+    std::string line = pick(msgKind);
+    if (line.empty()) line = pick("unknown");
+    if (line.empty()) line = "{name} died in ARK";
+    if (!dino.empty()) {                                  // "a {dino}" -> "an Allosaurus"
+        if (std::string("AEIOUaeiou").find(dino[0]) != std::string::npos) {
+            for (size_t p = line.find(" {dino}"); p != std::string::npos; p = line.find(" {dino}", p + 2)) {
+                // only when the word right before is exactly "a" / "A" (line start or after a space)
+                if (p >= 1 && (line[p - 1] == 'a' || line[p - 1] == 'A') && (p == 1 || line[p - 2] == ' ')) {
+                    line.insert(p, "n");
+                    ++p;
+                }
+            }
+        }
+        ReplaceAll(line, "{dino}", dino);
+    }
+    ReplaceAll(line, "{name}", name);
+    return line;
+}
+
 static void DoPlayerDeath(AShooterCharacter* who) {
     // which player's death is this? (their route decides which slot broadcasts the DeathLink)
     // pre-Die resolution wins; fall back to a post-Die sweep if it somehow didn't run.
@@ -1197,8 +1307,12 @@ static void DoPlayerDeath(AShooterCharacter* who) {
     if (sit != g_suppressDeathUntil.end() && std::time(nullptr) < sit->second) return;   // incoming-link kill -> don't echo
     QueueCountEvent("death", route);
     DebugLog("PLAYER death -> death_out.jsonl" + (route.empty() ? std::string() : " route=" + route));
-    {   std::ofstream f(g_ipc->DirFor(route) / "death_out.jsonl", std::ios::app);
-        if (f) f << "{\"death\":1}\n";
+    {   // "cause" = the flavour line BuildDeathCause picked; the AP client sends it as the
+        // DeathLink cause. Older clients only count lines, so the extra key is harmless to them.
+        nlohmann::json line = { {"death", 1} };
+        if (!g_dyingCause.empty()) line["cause"] = g_dyingCause;
+        std::ofstream f(g_ipc->DirFor(route) / "death_out.jsonl", std::ios::app);
+        if (f) f << line.dump() << "\n";
     }
 
     // SHARED SLOT + DEATHLINK: everyone on this server IS the one Archipelago slot, so one
@@ -1221,14 +1335,17 @@ static void DoPlayerDeath(AShooterCharacter* who) {
 // then, the same reason the dying route is resolved early.
 static void DoDeathCheck(AShooterCharacter* who, FDamageEvent* ev, float killingDamage,
                          AController* killer, AActor* causer) {
-    if (g_deathKindToLoc.empty()) return;
     std::string detail;
     std::string kind = DeathKind(who, ev, killingDamage, killer, causer, detail);
-    std::string route = g_dyingRouteValid ? g_dyingRoute : std::string();
+    g_dyingCause = BuildDeathCause(kind, causer, who);  // the DeathLink line (DoPlayerDeath sends it)
     auto it = g_deathKindToLoc.find(kind);
+    // always logged (not only when death checks exist), so wrong DeathLink lines can be traced
     DebugLog("DEATH " + detail + " -> kind=" + (kind.empty() ? "(unmatched)" : kind) +
              (it != g_deathKindToLoc.end() ? " loc=" + std::to_string(it->second) : ""));
-    if (it != g_deathKindToLoc.end()) ReportLocation(route, it->second);
+    DebugLog("DEATHLINK cause: " + g_dyingCause);
+    if (it == g_deathKindToLoc.end()) return;
+    std::string route = g_dyingRouteValid ? g_dyingRoute : std::string();
+    ReportLocation(route, it->second);
 }
 
 bool Hook_AShooterCharacter_Die(AShooterCharacter* _this, float KillingDamage,
@@ -2468,6 +2585,8 @@ static void AutoRecoverLostState() {
 // NEW SEED handoff: the AP client thread cannot touch State, so it drops seed_reset.json in the
 // route's mailbox and we do the reset here on the game thread. Without this the previous seed's
 // checked/received sets survive into the new one and permanently suppress its checks and grants.
+static void ClearLateMods(const std::string& route);   // /aplatemod block below
+static std::set<std::string> g_goalUnlockedRoutes;      // ProcessGoalUnlock below: done this boot
 static void DoProcessSeedReset() {
     for (auto& route : MailboxRoutes()) {
         fs::path marker = g_ipc->DirFor(route) / "seed_reset.json";
@@ -2478,6 +2597,8 @@ static void DoProcessSeedReset() {
         catch (...) {}
         g_state->ResetRoute(route);
         fs::remove(marker, ec);
+        ClearLateMods(route);                       // a late mod belonged to the OLD seed
+        g_goalUnlockedRoutes.erase(route);          // the new seed's goal unlocks afresh
         DebugLog("SEED RESET seed=" + seed + (route.empty() ? "" : " [" + route + "]") +
                  " - cleared checked/received for this route");
         ArkApi::GetApiUtils().SendChatMessageToAll(
@@ -2488,6 +2609,40 @@ static void DoProcessSeedReset() {
 }
 static void ProcessSeedReset() {
     __try { DoProcessSeedReset(); } __except (EXCEPTION_EXECUTE_HANDLER) {}
+}
+
+// GOAL -> UNLOCK EVERY ENGRAM. The AP client drops goal_reached.json in the route's mailbox when
+// the slot's goal is met (and again on every reconnect while boss_out.jsonl holds the kills; a new
+// seed deletes it). After the win nothing is left to gate, but some engrams can never arrive on
+// their own: Tek engrams are not AP items and only unlock per boss through tek_grants.json, and a
+// map without the Island's bosses (Valguero, Ragnarok) has nobody to drop the Overseer's set. So
+// own every engram the registry knows for that route, in one state save; ReassertEngrams keeps
+// them granted for players who join later. Once per route per boot (the marker stays).
+static void DoProcessGoalUnlock() {
+    if (!g_registry_built || g_itemToEngram.empty()) return;   // nothing to map ids to classes yet
+    for (auto& route : MailboxRoutes()) {
+        if (g_goalUnlockedRoutes.count(route)) continue;
+        std::error_code ec;
+        if (!fs::exists(g_ipc->DirFor(route) / "goal_reached.json", ec)) continue;
+        g_goalUnlockedRoutes.insert(route);
+        std::vector<int> want;
+        for (auto& [item_id, classes] : g_itemToEngram)
+            if (!g_state->HasItem(route, item_id)) want.push_back(item_id);
+        std::vector<int> added = g_state->AddItems(route, want);
+        for (int item_id : added)
+            for (UClass* c : g_itemToEngram[item_id])
+                if (c) GrantEngramGuarded(route, c);
+        DebugLog("GOAL-UNLOCK " + std::to_string(added.size()) + " engrams" +
+                 (route.empty() ? "" : " [" + route + "]") + " - goal reached, everything unlocked");
+        if (!added.empty()) {
+            std::wstring m = L"Goal complete - " + std::to_wstring(added.size()) +
+                             L" remaining engrams unlocked (Tek included)!";
+            ChatNotify(m.c_str());
+        }
+    }
+}
+static void ProcessGoalUnlock() {
+    __try { DoProcessGoalUnlock(); } __except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
 static void DoPollIncoming() {                    // runs on the game thread (Timer)
@@ -2766,6 +2921,501 @@ static void DoDumpPos(AShooterPlayerController* pc, FString* message) {
 }
 static void DumpPosChat(AShooterPlayerController* pc, FString* m, EChatSendMode::Type) {
     __try { DoDumpPos(pc, m); } __except (EXCEPTION_EXECUTE_HANDLER) {}
+}
+
+// ---- /aptrail : record a player's exact path, for drawing cave maps --------------------------------
+//   /aptrail start <cave name>   begin recording (restarts if already recording)
+//   /aptrail mark <label>        drop a labelled point here ("artifact Clever", "entrance", ...)
+//   /aptrail entrance <name>     mark a cave entrance here (caves can have several)
+//   /aptrail route <artifact> [from <entrance>]   start THE line to that artifact, from here
+//   /aptrail arrived             at the artifact: end the route and mark the artifact here
+//   /aptrail route cancel        drop the route in progress
+//   /aptrail swim | fly | walk   from here on this stretch is underwater / flown / on foot (v217).
+//   /aptrail wire                a thin wire / beam: drawn as a 1 m striped line on top (v220)
+//   /aptrail lava                walking the SAFE ground of a lava room: the map draws lava all
+//                                round what you walk (v222). /aptrail walk ends it
+//                                The recorder says it: a flying mount reads as SWIMMING to the game,
+//                                so the movement mode alone cannot tell them apart
+//   /aptrail room                (optional) the lap round a room starts here
+//   /aptrail fillroom            the lap is done: fill the room inside it. Without /aptrail room the
+//                                renderer closes the lap at the last time the trail passed within 6 m
+//   /aptrail fillroom lava|water the room is lava / water: its lap is only the outline, and the
+//                                safe ground walked after it is drawn as floor on top (v219)
+//   /aptrail room cancel         forget the /aptrail room start
+//   /aptrail pause | resume      stop / restart sampling, keeping cave, mode and route (v221). The
+//                                renderer never draws a line across the pause, wherever you resume
+//   /aptrail stop                finish the file
+// A route is the exact path to walk from one entrance to one artifact. The renderer draws routes
+// bold on top of the plain exploration lines, one colour per entrance.
+// Samples the caller's position every 0.25 s from a per-frame tick callback (the 1 s plugin timer is
+// too coarse for a cave's twists). Same position source as the exploration checks
+// (ApiUtils::GetPosition), so trails and explore polygons share one world frame. A sample is only
+// written when the player moved at least 1 unit, so standing still costs nothing. Output: one
+// JSON object per line in <plugin>/trails/<map>/<cave>_<date>_<steamid>.jsonl, rendered by
+// tools/cave_trail_map.py (docs/CAVE_TRAILS.md). Trails are NOT run state: the reset script and
+// a new seed leave them alone. Game thread only (chat + tick), so no lock.
+static std::string HintQuery(FString* message);    // defined with /hint below
+static std::string CurrentMapName();              // defined with the map helpers below
+struct TrailRec {
+    std::string cave, file;
+    std::ofstream out;
+    double t = 0, acc = 0, dist = 0;
+    float lx = 0, ly = 0, lz = 0;
+    bool have = false;
+    int points = 0, marks = 0;
+    std::string routeArt, routeFrom;          // non-empty art = a route is being walked
+    std::string mode = "walk";                // last /aptrail swim | fly | walk
+    bool roomOpen = false;                    // /aptrail room said, fillroom not yet
+    bool paused = false;                      // /aptrail pause: no points until /aptrail resume
+    std::vector<std::pair<float, float>> lapPts;   // x/y of every point written, for the
+    size_t roomStart = 0;                          // fillroom check (index of /aptrail room)
+    int rooms = 0;
+    double routeDist = 0, routeT0 = 0;
+    int routes = 0;
+};
+static std::map<uint64, std::unique_ptr<TrailRec>> g_trails;     // steam id -> active recording
+static constexpr double kTrailInterval = 0.25;
+
+static std::string TrailSlug(const std::string& s) {
+    std::string o;
+    for (unsigned char c : s) {
+        if (std::isalnum(c)) o += (char)std::tolower(c);
+        else if (!o.empty() && o.back() != '_') o += '_';
+    }
+    while (!o.empty() && o.back() == '_') o.pop_back();
+    return o.empty() ? std::string("cave") : o;
+}
+
+// How the player is moving, for the guide map's colours: UE's EMovementMode of whatever carries
+// them (their own character, or the dino they ride) in the low byte (1 walk, 3 falling, 4 swimming,
+// 5 flying, 6 custom), +256 while on a climbing pick. -1 = could not read. The BitFieldValue
+// temporaries have destructors, so the reads live outside the __try.
+static int TrailMoveStateRead(AShooterPlayerController* pc) {
+    AShooterCharacter* ch = pc->GetPlayerCharacter();
+    if (!ch) return -1;
+    APrimalCharacter* mover = ch;
+    if (ch->bIsRiding().Get()) { APrimalDinoCharacter* d = ch->GetRidingDino(); if (d) mover = d; }
+    UCharacterMovementComponent* cm = mover->CharacterMovementField().Object;
+    int mode = cm ? (int)*reinterpret_cast<unsigned char*>(&cm->MovementModeField()) : -1;
+    if (mode < 0) return -1;
+    return mode | (ch->bIsClimbing().Get() ? 256 : 0);
+}
+static int TrailMoveState(AShooterPlayerController* pc) {
+    __try { return TrailMoveStateRead(pc); } __except (EXCEPTION_EXECUTE_HANDLER) { return -1; }
+}
+
+static void TrailWritePoint(TrailRec& r, const FVector& p, int move) {
+    char buf[200];
+    if (move >= 0)      // "m" = movement mode, "c" = on a climbing pick (only when true)
+        snprintf(buf, sizeof(buf), "{\"t\":%.2f,\"x\":%.1f,\"y\":%.1f,\"z\":%.1f,\"m\":%d%s}\n",
+                 r.t, (double)p.X, (double)p.Y, (double)p.Z, move & 255, (move & 256) ? ",\"c\":1" : "");
+    else
+        snprintf(buf, sizeof(buf), "{\"t\":%.2f,\"x\":%.1f,\"y\":%.1f,\"z\":%.1f}\n",
+                 r.t, (double)p.X, (double)p.Y, (double)p.Z);
+    r.out << buf;
+}
+
+// Every written point's x/y, so /aptrail fillroom can say at once whether it found a lap and how
+// big it is - the same lap the renderer will take. Capped at ~83 min of walking (oldest half drops).
+static void TrailRemember(TrailRec& r, const FVector& p) {
+    r.lapPts.emplace_back(p.X, p.Y);
+    if (r.lapPts.size() > 20000) {
+        r.lapPts.erase(r.lapPts.begin(), r.lapPts.begin() + 10000);
+        r.roomStart = r.roomStart > 10000 ? r.roomStart - 10000 : 0;
+    }
+}
+
+// The lap /aptrail fillroom closes, exactly as tools/cave_trail_map.py room_lap() does: from the
+// /aptrail room point, or back to the last point within 6 m once 15 m have been walked. Returns
+// false when there is none; otherwise its length (m) and enclosed area (m2).
+static bool TrailLap(const TrailRec& r, float ex, float ey, double& metres, double& m2) {
+    const auto& L = r.lapPts;
+    size_t from = L.size();
+    if (r.roomOpen) {
+        if (r.roomStart > L.size() || L.size() - r.roomStart < 3) return false;
+        from = r.roomStart;
+    } else {
+        double walked = 0;
+        for (size_t i = L.size(); i-- > 1;) {
+            walked += std::hypot(L[i].first - L[i - 1].first, L[i].second - L[i - 1].second);
+            if (walked >= 1500 && std::hypot(L[i - 1].first - ex, L[i - 1].second - ey) <= 600) { from = i - 1; break; }
+        }
+        if (from == L.size()) return false;
+    }
+    std::vector<std::pair<double, double>> ring(L.begin() + from, L.end());
+    ring.emplace_back(ex, ey);
+    double len = 0, a = 0;
+    for (size_t i = 0; i < ring.size(); ++i) {
+        const auto& p = ring[i];
+        const auto& q = ring[(i + 1) % ring.size()];
+        if (i + 1 < ring.size()) len += std::hypot(q.first - p.first, q.second - p.second);
+        a += p.first * q.second - q.first * p.second;
+    }
+    metres = len / 100.0;
+    m2 = std::fabs(a) / 2.0 / 10000.0;
+    return true;
+}
+
+static void TrailStop(uint64 id, const char* why) {
+    auto it = g_trails.find(id);
+    if (it == g_trails.end()) return;
+    TrailRec& r = *it->second;
+    if (!r.routeArt.empty())
+        r.out << nlohmann::json{{"type", "route_cancel"}, {"artifact", r.routeArt}, {"why", "stopped"}}.dump() << "\n";
+    nlohmann::json s = {{"type", "stop"}, {"why", why}, {"t", r.t}, {"points", r.points},
+                        {"marks", r.marks}, {"distance", (long long)r.dist}};
+    r.out << s.dump() << "\n";
+    r.out.close();
+    DebugLog("TRAIL stop cave=" + r.cave + " points=" + std::to_string(r.points) + " marks=" +
+             std::to_string(r.marks) + " dist=" + std::to_string((long long)r.dist) + " file=" + r.file);
+    g_trails.erase(it);
+}
+
+// every frame; does nothing unless someone is recording
+static void TrailTick(float dt) {
+    if (g_trails.empty()) return;
+    UWorld* world = ArkApi::GetApiUtils().GetWorld();
+    if (!world) return;
+    std::map<uint64, AShooterPlayerController*> online;
+    for (TWeakObjectPtr<APlayerController> wpc : world->PlayerControllerListField()) {
+        auto* pc = static_cast<AShooterPlayerController*>(wpc.Get());
+        if (pc) online[ArkApi::GetApiUtils().GetSteamIdFromController(pc)] = pc;
+    }
+    for (auto& [id, rp] : g_trails) {
+        TrailRec& r = *rp;
+        r.t += dt;
+        r.acc += dt;
+        if (r.acc < kTrailInterval) continue;
+        r.acc = r.acc > 4 * kTrailInterval ? 0.0 : r.acc - kTrailInterval;   // a hitch drops samples, never bursts
+        if (r.paused) continue;                                              // /aptrail pause
+        auto pit = online.find(id);
+        if (pit == online.end()) continue;                                   // logged out: idle until back
+        FVector p = ArkApi::GetApiUtils().GetPosition(pit->second);
+        if (r.have) {
+            double dx = p.X - r.lx, dy = p.Y - r.ly, dz = p.Z - r.lz;
+            double d = std::sqrt(dx * dx + dy * dy + dz * dz);
+            if (d < 1.0) continue;
+            r.dist += d;
+            if (!r.routeArt.empty()) r.routeDist += d;
+        }
+        TrailWritePoint(r, p, TrailMoveState(pit->second));
+        TrailRemember(r, p);
+        r.lx = p.X; r.ly = p.Y; r.lz = p.Z; r.have = true;
+        if (++r.points % 40 == 0) r.out.flush();                             // ~every 10 s of walking
+    }
+}
+static void TrailTickSEH(float dt) {
+    __try { TrailTick(dt); } __except (EXCEPTION_EXECUTE_HANDLER) {}
+}
+
+static void DoApTrail(AShooterPlayerController* pc, FString* message) {
+    if (!pc) return;
+    const uint64 id = ArkApi::GetApiUtils().GetSteamIdFromController(pc);
+    std::string arg = HintQuery(message);
+    std::string verb = arg.substr(0, arg.find(' '));
+    for (auto& c : verb) c = (char)std::tolower((unsigned char)c);
+    std::string rest = verb.size() < arg.size() ? arg.substr(verb.size() + 1) : "";
+    while (!rest.empty() && (unsigned char)rest.front() <= ' ') rest.erase(rest.begin());
+    auto it = g_trails.find(id);
+
+    // A route or room lap is made of trail points, and none are written while paused: starting
+    // one resumes the recording (a Frozen Dungeon route was walked paused and came out empty).
+    std::string restLow = rest;
+    for (auto& c : restLow) c = (char)std::tolower((unsigned char)c);
+    if (it != g_trails.end() && it->second->paused && (verb == "route" || verb == "room") &&
+        restLow.rfind("cancel", 0) != 0) {
+        TrailRec& r = *it->second;
+        FVector p = ArkApi::GetApiUtils().GetPosition(pc);
+        nlohmann::json m = {{"type", "resume"}, {"t", r.t},
+                            {"x", (double)p.X}, {"y", (double)p.Y}, {"z", (double)p.Z}};
+        r.out << m.dump() << "\n";
+        r.paused = false;
+        r.have = false;
+        r.acc = kTrailInterval;
+        DebugLog("TRAIL auto-resume on /aptrail " + verb);
+        ChatNotify(L"ArkAP: trail was paused - RESUMED for this. /aptrail pause again only when you leave the way.");
+    }
+
+    if (verb == "start") {
+        if (rest.empty()) { ChatNotify(L"ArkAP: /aptrail start <cave name>, e.g. /aptrail start Life's Labyrinth"); return; }
+        if (it != g_trails.end()) TrailStop(id, "restarted");
+        std::string mapk = g_mapKey.empty() ? TrailSlug(CurrentMapName()) : g_mapKey;
+        std::error_code ec;
+        fs::path dir = PluginDir() / "trails" / mapk;
+        fs::create_directories(dir, ec);
+        char stamp[32] = {0};
+        std::time_t now = std::time(nullptr);
+        std::tm lt{};
+        localtime_s(&lt, &now);
+        std::strftime(stamp, sizeof(stamp), "%Y%m%d-%H%M%S", &lt);
+        auto rec = std::make_unique<TrailRec>();
+        rec->cave = rest;
+        rec->file = (dir / (TrailSlug(rest) + "_" + stamp + "_" + std::to_string(id) + ".jsonl")).string();
+        rec->out.open(rec->file, std::ios::out | std::ios::trunc);
+        if (!rec->out) { ChatNotify(L"ArkAP: could not create the trail file - see ArkAP_debug.log"); DebugLog("TRAIL cannot write " + rec->file); return; }
+        MapGeo g = ReadMapGeoSEH(pc);
+        nlohmann::json h = {{"type", "start"}, {"map", mapk}, {"map_name", CurrentMapName()},
+                            {"cave", rest}, {"interval", kTrailInterval}, {"build", ARKAP_BUILD},
+                            {"steam_id", std::to_string(id)}, {"started", stamp},
+                            {"geo", {{"lat_origin", g.latOrigin}, {"lat_scale", g.latScale},
+                                     {"lon_origin", g.lonOrigin}, {"lon_scale", g.lonScale}}}};
+        rec->out << h.dump() << "\n";
+        FVector p = ArkApi::GetApiUtils().GetPosition(pc);                  // first point right away
+        TrailWritePoint(*rec, p, TrailMoveState(pc));
+        TrailRemember(*rec, p);
+        rec->lx = p.X; rec->ly = p.Y; rec->lz = p.Z; rec->have = true; rec->points = 1;
+        DebugLog("TRAIL start cave=" + rest + " file=" + rec->file);
+        g_trails[id] = std::move(rec);
+        ChatNotify(ArkApi::Tools::Utf8Decode("ArkAP: recording trail '" + rest + "' (every 0.25 s). "
+                   "Walk every passage. /aptrail entrance <name> at each entrance; for the way to an artifact, "
+                   "/aptrail route <artifact> from <entrance>, walk it, /aptrail arrived. "
+                   "Say /aptrail swim or /aptrail fly when you go underwater or take off, /aptrail walk when back on foot. "
+                   "/aptrail stop when done.").c_str());
+        return;
+    }
+    if (verb == "entrance" || verb == "route" || verb == "arrived") {
+        if (it == g_trails.end()) { ChatNotify(L"ArkAP: not recording - /aptrail start <cave name> first"); return; }
+        TrailRec& r = *it->second;
+        FVector p = ArkApi::GetApiUtils().GetPosition(pc);
+        auto here = [&](nlohmann::json j) {
+            j["t"] = r.t; j["x"] = (double)p.X; j["y"] = (double)p.Y; j["z"] = (double)p.Z;
+            r.out << j.dump() << "\n";
+        };
+        auto lower = [](std::string v) { for (auto& c : v) c = (char)std::tolower((unsigned char)c); return v; };
+        // "Clever", "artifact Clever" and "Artifact of the Clever" all mean the same artifact
+        auto artName = [&](std::string v) {
+            for (const char* pre : {"artifact of the ", "artifact "})
+                if (lower(v).rfind(pre, 0) == 0) { v = v.substr(strlen(pre)); break; }
+            while (!v.empty() && (unsigned char)v.front() <= ' ') v.erase(v.begin());
+            if (!v.empty()) v[0] = (char)std::toupper((unsigned char)v[0]);
+            return v;
+        };
+        auto markEntrance = [&](const std::string& name) {
+            here({{"type", "mark"}, {"kind", "entrance"}, {"name", name}, {"label", "entrance " + name}});
+            ++r.marks;
+        };
+        if (verb == "entrance") {
+            if (rest.empty()) { ChatNotify(L"ArkAP: /aptrail entrance <name>, e.g. /aptrail entrance North"); return; }
+            markEntrance(rest);
+            r.out.flush();
+            DebugLog("TRAIL entrance '" + rest + "' x=" + std::to_string((long long)p.X) + " y=" + std::to_string((long long)p.Y));
+            ChatNotify(ArkApi::Tools::Utf8Decode("ArkAP: entrance '" + rest + "' marked here.").c_str());
+            return;
+        }
+        if (verb == "route") {
+            if (lower(rest) == "cancel") {
+                if (r.routeArt.empty()) { ChatNotify(L"ArkAP: no route in progress"); return; }
+                here({{"type", "route_cancel"}, {"artifact", r.routeArt}, {"why", "command"}});
+                r.out.flush();
+                ChatNotify(ArkApi::Tools::Utf8Decode("ArkAP: route to " + r.routeArt + " cancelled.").c_str());
+                r.routeArt.clear();
+                return;
+            }
+            // "<artifact> from <entrance>"
+            std::string art = rest, from;
+            size_t f = lower(rest).find(" from ");
+            if (f != std::string::npos) { art = rest.substr(0, f); from = rest.substr(f + 6); }
+            while (!from.empty() && (unsigned char)from.front() <= ' ') from.erase(from.begin());
+            art = artName(art);
+            if (art.empty()) {
+                ChatNotify(L"ArkAP: /aptrail route <artifact> [from <entrance>], e.g. /aptrail route Clever from North");
+                return;
+            }
+            if (!r.routeArt.empty())
+                here({{"type", "route_cancel"}, {"artifact", r.routeArt}, {"why", "new route started"}});
+            if (!from.empty()) markEntrance(from);      // standing in it: the route starts at it
+            here({{"type", "route_start"}, {"artifact", art}, {"from", from}});
+            r.out.flush();
+            r.routeArt = art; r.routeFrom = from; r.routeDist = 0; r.routeT0 = r.t;
+            DebugLog("TRAIL route start -> " + art + (from.empty() ? "" : " from " + from));
+            ChatNotify(ArkApi::Tools::Utf8Decode("ArkAP: route to the " + art + " artifact started" +
+                       (from.empty() ? std::string("") : " from entrance '" + from + "'") +
+                       ". Walk the way to it, then /aptrail arrived.").c_str());
+            return;
+        }
+        // arrived
+        if (r.routeArt.empty()) { ChatNotify(L"ArkAP: no route in progress - /aptrail route <artifact> [from <entrance>]"); return; }
+        here({{"type", "mark"}, {"kind", "artifact"}, {"name", r.routeArt}, {"label", "artifact " + r.routeArt}});
+        ++r.marks;
+        here({{"type", "route_end"}, {"artifact", r.routeArt}, {"from", r.routeFrom},
+              {"distance", (long long)r.routeDist}, {"seconds", (long long)(r.t - r.routeT0)}});
+        r.out.flush();
+        ++r.routes;
+        DebugLog("TRAIL route end -> " + r.routeArt + " dist=" + std::to_string((long long)r.routeDist));
+        ChatNotify(ArkApi::Tools::Utf8Decode("ArkAP: route to the " + r.routeArt + " artifact saved" +
+                   (r.routeFrom.empty() ? std::string("") : " (from '" + r.routeFrom + "')") + ": " +
+                   std::to_string((long long)(r.routeDist / 100)) + " m, " +
+                   std::to_string((long long)(r.t - r.routeT0)) + " s.").c_str());
+        r.routeArt.clear();
+        return;
+    }
+    // /aptrail room [cancel] | fillroom: walk round a big room's edge, the renderer fills it
+    if (verb == "room" || verb == "fillroom" || verb == "fill") {
+        if (it == g_trails.end()) { ChatNotify(L"ArkAP: not recording - /aptrail start <cave name> first"); return; }
+        TrailRec& r = *it->second;
+        auto low = rest;
+        for (auto& c : low) c = (char)std::tolower((unsigned char)c);
+        std::string type = verb == "room" ? (low == "cancel" ? "room_cancel"
+                                            : (low.rfind("fill", 0) == 0 || low.rfind("end", 0) == 0)
+                                                ? "fillroom" : "room_start")
+                                          : "fillroom";
+        if (type == "room_cancel" && !r.roomOpen) { ChatNotify(L"ArkAP: no /aptrail room in progress"); return; }
+        FVector p = ArkApi::GetApiUtils().GetPosition(pc);
+        nlohmann::json m = {{"type", type}, {"t", r.t},
+                            {"x", (double)p.X}, {"y", (double)p.Y}, {"z", (double)p.Z}};
+        // /aptrail fillroom lava | water: the room is that hazard (its lap is only the outline);
+        // the safe ground walked AFTER the fill is drawn as floor on top of it
+        std::string fillWord = low.find("lava") != std::string::npos ? "lava"
+                             : low.find("water") != std::string::npos ? "water" : "";
+        if (type == "fillroom" && !fillWord.empty()) m["fill"] = fillWord;
+        r.out << m.dump() << "\n";
+        r.out.flush();
+        DebugLog("TRAIL " + type + (fillWord.empty() ? "" : " " + fillWord) + " x=" + std::to_string((long long)p.X) + " y=" +
+                 std::to_string((long long)p.Y) + " z=" + std::to_string((long long)p.Z));
+        std::string txt;
+        if (type == "room_start") {
+            r.roomOpen = true;
+            r.roomStart = r.lapPts.size();
+            txt = "ArkAP: room started here. Walk all the way round its edge, then /aptrail fillroom back at this spot.";
+        } else if (type == "room_cancel") {
+            r.roomOpen = false;
+            txt = "ArkAP: room cancelled.";
+        } else {
+            // Check the lap NOW (same rule as the renderer), so a fill that finds nothing or only a
+            // tiny loop is redone on the spot instead of discovered when the map is drawn.
+            double metres = 0, m2 = 0;
+            const bool explicitRoom = r.roomOpen;
+            const bool got = TrailLap(r, p.X, p.Y, metres, m2);
+            char size[96];
+            snprintf(size, sizeof(size), " (lap %.0f m round, about %.0f m2)", metres, m2);
+            DebugLog("TRAIL fillroom lap=" + std::string(got ? "yes" : "none") + " m=" + std::to_string((long long)metres) +
+                     " m2=" + std::to_string((long long)m2) + (explicitRoom ? " from /aptrail room" : " auto"));
+            r.roomOpen = false;
+            if (!got) {
+                txt = explicitRoom
+                    ? "ArkAP: NOT FILLED - you have hardly moved since /aptrail room. Walk the whole edge first."
+                    : "ArkAP: NOT FILLED - no lap back to here. Say /aptrail room on the wall, walk the whole edge, "
+                      "then /aptrail fillroom back at that spot.";
+                if (fillWord == "lava")
+                    txt += " Walking the SAFE ground of a lava room? Use /aptrail lava instead.";
+            } else if (!explicitRoom && m2 < 25.0) {
+                txt = "ArkAP: NOT FILLED - the lap back to here is tiny" + std::string(size) +
+                      ". Say /aptrail room on the wall, walk the whole edge, then /aptrail fillroom back at that spot.";
+                if (fillWord == "lava")
+                    txt += " Walking the SAFE ground of a lava room? Use /aptrail lava instead.";
+            } else {
+                ++r.rooms;
+                txt = fillWord == "lava"
+                    ? "ArkAP: room filled as LAVA" + std::string(size) + ". Now walk the safe ground through it - that is drawn as floor on top."
+                    : fillWord == "water"
+                    ? "ArkAP: room filled as WATER" + std::string(size) + ". Anything you walk through it now is drawn as floor on top."
+                    : "ArkAP: room filled" + std::string(size) + ".";
+            }
+        }
+        ChatNotify(ArkApi::Tools::Utf8Decode(txt).c_str());
+        return;
+    }
+    // /aptrail swim | fly | walk: what the stretch from HERE is, until the next one of these
+    std::string modeWord;
+    if (verb == "swim" || verb == "underwater" || verb == "water" || verb == "dive") modeWord = "swim";
+    else if (verb == "fly" || verb == "flying" || verb == "flyer") modeWord = "fly";
+    else if (verb == "walk" || verb == "walking" || verb == "foot" || verb == "land") modeWord = "walk";
+    else if (verb == "wire" || verb == "beam" || verb == "tightrope" || verb == "rope") modeWord = "wire";
+    else if (verb == "lava" || verb == "safe") modeWord = "lava";
+    if (!modeWord.empty()) {
+        if (it == g_trails.end()) { ChatNotify(L"ArkAP: not recording - /aptrail start <cave name> first"); return; }
+        TrailRec& r = *it->second;
+        FVector p = ArkApi::GetApiUtils().GetPosition(pc);
+        nlohmann::json m = {{"type", "mode"}, {"mode", modeWord}, {"t", r.t},
+                            {"x", (double)p.X}, {"y", (double)p.Y}, {"z", (double)p.Z}};
+        r.out << m.dump() << "\n";
+        r.out.flush();
+        r.mode = modeWord;
+        DebugLog("TRAIL mode " + modeWord + " x=" + std::to_string((long long)p.X) + " y=" +
+                 std::to_string((long long)p.Y) + " z=" + std::to_string((long long)p.Z));
+        const char* txt = modeWord == "swim" ? "ArkAP: SWIMMING from here (drawn as water). /aptrail walk when you are back on foot."
+                        : modeWord == "fly"  ? "ArkAP: FLYING from here (drawn as flyer-only). /aptrail walk when you land."
+                        : modeWord == "lava" ? "ArkAP: SAFE GROUND IN LAVA from here - the map draws lava all round what you walk. Walk every bit of safe ground, then /aptrail walk when you leave the lava."
+                        : modeWord == "wire" ? "ArkAP: ON THE WIRE from here (drawn as a thin striped line on top). /aptrail walk when you are off it. Fell? /aptrail route cancel and start the route again."
+                        :                      "ArkAP: WALKING from here.";
+        ChatNotify(ArkApi::Tools::Utf8Decode(txt).c_str());
+        return;
+    }
+    if (verb == "mark") {
+        if (it == g_trails.end()) { ChatNotify(L"ArkAP: not recording - /aptrail start <cave name> first"); return; }
+        if (rest.empty()) { ChatNotify(L"ArkAP: /aptrail mark <label>, e.g. /aptrail mark artifact Clever"); return; }
+        TrailRec& r = *it->second;
+        FVector p = ArkApi::GetApiUtils().GetPosition(pc);
+        nlohmann::json m = {{"type", "mark"}, {"label", rest}, {"t", r.t},
+                            {"x", (double)p.X}, {"y", (double)p.Y}, {"z", (double)p.Z}};
+        r.out << m.dump() << "\n";
+        r.out.flush();
+        ++r.marks;
+        DebugLog("TRAIL mark '" + rest + "' x=" + std::to_string((long long)p.X) + " y=" +
+                 std::to_string((long long)p.Y) + " z=" + std::to_string((long long)p.Z));
+        ChatNotify(ArkApi::Tools::Utf8Decode("ArkAP: marked '" + rest + "' (" + std::to_string((long long)p.X) +
+                   ", " + std::to_string((long long)p.Y) + ", " + std::to_string((long long)p.Z) + ")").c_str());
+        return;
+    }
+    // /aptrail pause | resume: sampling stops, everything else (cave, mode, route, room) is kept.
+    // The renderer breaks the line at the resume, so moving while paused never draws a passage.
+    if (verb == "pause" || verb == "resume" || verb == "unpause" || verb == "continue") {
+        if (it == g_trails.end()) { ChatNotify(L"ArkAP: not recording - /aptrail start <cave name> first"); return; }
+        TrailRec& r = *it->second;
+        const bool pause = verb == "pause";
+        if (pause == r.paused) {
+            ChatNotify(pause ? L"ArkAP: already paused - /aptrail resume to carry on"
+                             : L"ArkAP: not paused - recording is running");
+            return;
+        }
+        FVector p = ArkApi::GetApiUtils().GetPosition(pc);
+        nlohmann::json m = {{"type", pause ? "pause" : "resume"}, {"t", r.t},
+                            {"x", (double)p.X}, {"y", (double)p.Y}, {"z", (double)p.Z}};
+        r.out << m.dump() << "\n";
+        r.out.flush();
+        r.paused = pause;
+        if (!pause) {                     // first sample after the resume is written as-is, and
+            r.have = false;               // the distance moved while paused is not counted
+            r.acc = kTrailInterval;
+        }
+        DebugLog(std::string("TRAIL ") + (pause ? "pause" : "resume") + " x=" + std::to_string((long long)p.X) +
+                 " y=" + std::to_string((long long)p.Y) + " z=" + std::to_string((long long)p.Z));
+        std::string txt = pause
+            ? "ArkAP: trail PAUSED - nothing is recorded until /aptrail resume."
+            : "ArkAP: trail RESUMED (" + std::string(r.mode == "swim" ? "swimming" : r.mode == "fly" ? "flying"
+                                               : r.mode == "wire" ? "on the wire" : r.mode == "lava" ? "safe ground in lava" : "walking") + ").";
+        if (pause && !r.routeArt.empty())
+            txt += " Route to " + r.routeArt + " still open: resume where you are now, or the route has a gap.";
+        if (pause && r.roomOpen)
+            txt += " Room lap still open: resume where you are now.";
+        ChatNotify(ArkApi::Tools::Utf8Decode(txt).c_str());
+        return;
+    }
+    if (verb == "stop") {
+        if (it == g_trails.end()) { ChatNotify(L"ArkAP: not recording a trail"); return; }
+        TrailRec& r = *it->second;
+        std::string msg = "ArkAP: trail '" + r.cave + "' saved: " + std::to_string(r.points) + " points, " +
+                          std::to_string(r.marks) + " marks, " + std::to_string(r.routes) + " routes, " +
+                          std::to_string((long long)(r.dist / 100)) +
+                          " m walked. File: trails/" + fs::path(r.file).parent_path().filename().string() +
+                          "/" + fs::path(r.file).filename().string();
+        TrailStop(id, "command");
+        ChatNotify(ArkApi::Tools::Utf8Decode(msg).c_str());
+        return;
+    }
+    std::string st = it == g_trails.end() ? std::string("not recording")
+        : "recording '" + it->second->cave + "', " + std::to_string(it->second->points) + " points, " +
+          std::to_string(it->second->marks) + " marks, " +
+          (it->second->paused ? "PAUSED, " : "") +
+          (it->second->mode == "swim" ? "swimming" : it->second->mode == "fly" ? "flying"
+           : it->second->mode == "wire" ? "on the wire" : it->second->mode == "lava" ? "safe ground in lava" : "walking") +
+          (it->second->routeArt.empty() ? std::string("") : ", walking the route to " + it->second->routeArt);
+    ChatNotify(ArkApi::Tools::Utf8Decode("ArkAP trail: " + st +
+               ". Usage: /aptrail start <cave> | entrance <name> | route <artifact> [from <entrance>] | "
+               "arrived | route cancel | swim | fly | wire | lava | walk | room | fillroom [lava|water] | mark <label> | pause | resume | stop").c_str());
+}
+static void ApTrailChat(AShooterPlayerController* pc, FString* m, EChatSendMode::Type) {
+    __try { DoApTrail(pc, m); } __except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
 
@@ -3345,6 +3995,236 @@ static std::string HintQuery(FString* message) {     // text after the command w
     while (!q.empty() && (unsigned char)q.back() <= ' ') q.pop_back();
     while (!q.empty() && (unsigned char)q.front() <= ' ') q.erase(q.begin());
     return q;
+}
+
+// --- /aplatemod <mod id> : a building mod installed AFTER the seed was generated ---
+// A seed made without Structures Plus has no S+ items, so nothing ever unlocks them and the gate
+// keeps every S+ engram locked. Enabling the mod here unlocks ONLY the mod's versions of
+// structures this slot already owns, using the apworld's own pairing (_variant_pairs: the
+// VARIANT_ALIAS table, then the " Plus"/" Tek"/" SS"/" SP"/" LR" suffixes, then the " Plus " infix,
+// matched against a base-game engram), the mod's material pieces listed in mods/late_pairs.json
+// (tools/gen_late_pairs.py: "Ceiling Stone" -> base "Stone Ceiling"), plus the mod's structures of a material bundle already
+// received (what ApplyStructureBundle hands a slot that has the mod), plus the mod's own
+// "auto_grant" engrams (a seed with the mod gives those free at start, e.g. the Note Tracker).
+// Mod-only engrams with no
+// base-game twin (wiring, turrets, automation, ...) stay locked: no item in this seed unlocks
+// them. Persisted per mailbox in late_mods.json; re-checked every few seconds, so a structure
+// received later brings its mod version with it.
+struct LateMod { std::string declared, canon; };
+static std::map<std::string, std::vector<LateMod>> g_routeLateMods;
+static std::set<std::string> g_lateModsLoaded;
+
+static fs::path LateModsPath(const std::string& route) { return g_ipc->DirFor(route) / "late_mods.json"; }
+
+static void LoadLateMods(const std::string& route) {
+    if (!g_lateModsLoaded.insert(route).second) return;           // once per route per boot
+    try {
+        fs::path p = LateModsPath(route);
+        if (!fs::exists(p)) return;
+        nlohmann::json j; std::ifstream(p) >> j;
+        if (!j.contains("mod_ids") || !j["mod_ids"].is_array()) return;
+        for (auto& m : j["mod_ids"]) {                             // iterate the real member, not .value()
+            if (!m.is_string()) continue;
+            std::string id = m.get<std::string>();
+            auto cit = g_tables.mod_canonical.find(id);
+            if (cit == g_tables.mod_canonical.end()) { DebugLog("LATEMOD unknown mod id in file: " + id); continue; }
+            g_routeLateMods[route].push_back({id, cit->second});
+        }
+        if (!g_routeLateMods[route].empty())
+            DebugLog("LATEMOD loaded " + std::to_string(g_routeLateMods[route].size()) + " late mod(s)" +
+                     (route.empty() ? "" : " [" + route + "]"));
+    } catch (...) { DebugLog("LATEMOD could not read " + LateModsPath(route).string()); }
+}
+
+static bool SaveLateMods(const std::string& route) {
+    try {
+        nlohmann::json ids = nlohmann::json::array();
+        for (auto& lm : g_routeLateMods[route]) ids.push_back(lm.declared);
+        std::ofstream f(LateModsPath(route));
+        if (!f) return false;
+        f << nlohmann::json{{"mod_ids", ids}}.dump(2) << "\n";
+        return true;
+    } catch (...) { return false; }
+}
+
+// New seed: forget this route's late mods (the file is emptied, not deleted).
+static void ClearLateMods(const std::string& route) {
+    g_lateModsLoaded.insert(route);                 // nothing left to load from disk
+    auto it = g_routeLateMods.find(route);
+    bool had = it != g_routeLateMods.end() && !it->second.empty();
+    g_routeLateMods[route].clear();
+    std::error_code ec;
+    if (had || fs::exists(LateModsPath(route), ec)) {
+        SaveLateMods(route);
+        DebugLog("LATEMOD cleared on seed reset" + std::string(route.empty() ? "" : " [" + route + "]"));
+    }
+}
+
+// the base-game engram this mod engram is a variant OF ("" = none). Mirrors the apworld's
+// vanilla_name_for in _variant_pairs exactly - keep the two in sync.
+static std::string LateVanillaNameFor(const std::string& nm) {
+    static const std::map<std::string, std::string> kAlias = {
+        {"Engram: Smithy Plus", "Engram: Anvil Bench"},
+        {"Engram: Mortar Pestle Plus", "Engram: Mortar And Pestle"},
+        {"Engram: Fridge Plus", "Engram: Ice Box"},
+        {"Engram: Bed Plus", "Engram: Simple Bed"},
+        {"Engram: Bunk Bed Plus", "Engram: Modern Bed"},
+        {"Engram: Cloning Chamber Plus", "Engram: Tek Cloning Chamber"},
+        {"Engram: Replicator Plus", "Engram: Tek Replicator"},
+        {"Engram: Transmitter Plus", "Engram: Tek Transmitter"},
+        {"Engram: Teleporter Plus", "Engram: Tek Teleporter"},
+        {"Engram: Incubator Plus", "Engram: Egg Incubator"},
+        {"Engram: Industrial Grill Plus", "Engram: Grill"},
+        {"Engram: Loadout Dummy Plus", "Engram: Loadout Mannequin"},
+        {"Engram: Loadout Dummy SS", "Engram: Loadout Mannequin"},
+        {"Engram: Scuba Tank LR", "Engram: Scuba Shirt Suit With Tank"},
+        {"Engram: Whip LR", "Engram: Weapon Whip"},
+        {"Engram: Taxidermy Plus Large", "Engram: Taxidermy Base Large"},
+        {"Engram: Taxidermy Plus Medium", "Engram: Taxidermy Base Medium"},
+    };
+    auto a = kAlias.find(nm);
+    if (a != kAlias.end()) return a->second;
+    for (const char* s : {" Plus", " Tek", " SS", " SP", " LR"}) {
+        const std::string suf(s);
+        if (nm.size() >= suf.size() && nm.compare(nm.size() - suf.size(), suf.size(), suf) == 0)
+            return nm.substr(0, nm.size() - suf.size());
+    }
+    size_t p = nm.find(" Plus ");
+    if (p != std::string::npos) { std::string r = nm; r.replace(p, 6, " "); return r; }
+    return "";
+}
+
+// Grant what the late mods owe this route right now. Returns how many items were added; their
+// names go to *names. Idempotent: anything already owned is skipped.
+static int SyncLateMods(const std::string& route, std::vector<std::string>* names) {
+    auto rit = g_routeLateMods.find(route);
+    if (rit == g_routeLateMods.end() || rit->second.empty()) return 0;
+    // base-game engram name -> item id (built once; the tables never change after load)
+    static std::map<std::string, int> s_vanilla;
+    if (s_vanilla.empty())
+        for (auto& [id, cls] : g_tables.item_to_engram_class) {
+            auto mit = g_tables.item_to_mod.find(id);
+            if (mit != g_tables.item_to_mod.end() && !mit->second.empty()) continue;   // mod item
+            auto nit = g_tables.item_name.find(id);
+            if (nit != g_tables.item_name.end()) s_vanilla.emplace(nit->second, id);
+        }
+    int added = 0;
+    for (auto& lm : rit->second) {
+        for (auto& [id, owner] : g_tables.item_to_mod) {
+            if (owner != lm.canon) continue;
+            if (g_tables.mod_bundles.count(id)) continue;                      // a group item, not an engram
+            auto vit = g_tables.item_variants.find(id);                         // right fork only
+            if (vit != g_tables.item_variants.end() && !vit->second.empty() &&
+                std::find(vit->second.begin(), vit->second.end(), lm.declared) == vit->second.end())
+                continue;
+            if (g_state->HasItem(route, id)) continue;
+            std::string nm = ItemNameOf(id);
+            bool owed = false;
+            auto ait = g_tables.mod_auto_grant.find(lm.canon);                   // 0. free at start
+            if (ait != g_tables.mod_auto_grant.end())                            //    in a seed with
+                owed = std::find(ait->second.begin(), ait->second.end(), id) != ait->second.end();
+            std::string base = owed ? "" : LateVanillaNameFor(nm);               // 1. variant pair
+            if (!base.empty() && base != nm) {
+                auto bit = s_vanilla.find(base);
+                owed = bit != s_vanilla.end() && g_state->HasItem(route, bit->second);
+            }
+            if (!owed) {                                                         // 2. late_pairs table
+                auto tit = g_tables.late_pairs.find(lm.canon);
+                if (tit != g_tables.late_pairs.end()) {
+                    auto pit = tit->second.find(id);
+                    owed = pit != tit->second.end() && g_state->HasItem(route, pit->second);
+                }
+            }
+            if (!owed) {                                                         // 3. material bundle owned
+                auto cit = g_tables.item_to_engram_class.find(id);
+                if (cit != g_tables.item_to_engram_class.end() &&
+                    cit->second.find("PrimalItemStructure_") != std::string::npos)
+                    for (auto& [bid, material] : kStructureBundles)
+                        if (g_state->HasItem(route, bid) && NameHasWord(nm, material)) { owed = true; break; }
+            }
+            if (!owed) continue;
+            g_state->AddItem(route, id);                                         // gate + reassert keep it
+            auto eit = g_itemToEngram.find(id);
+            if (eit != g_itemToEngram.end())
+                for (UClass* c : eit->second) GrantEngramToPlayers(route, c);
+            if (names) names->push_back(nm);
+            ++added;
+        }
+    }
+    if (added)
+        DebugLog("LATEMOD granted " + std::to_string(added) + " mod engram(s)" +
+                 (route.empty() ? "" : " [" + route + "]"));
+    return added;
+}
+
+// periodic: every mailbox, so a structure received later brings its mod version along
+static void TickLateMods() {
+    for (auto& route : MailboxRoutes()) {
+        LoadLateMods(route);
+        std::vector<std::string> names;
+        if (!SyncLateMods(route, &names)) continue;
+        std::string list;
+        for (size_t i = 0; i < names.size() && i < 12; ++i) list += (i ? ", " : "") + names[i];
+        if (names.size() > 12) list += " (+" + std::to_string(names.size() - 12) + " more)";
+        ChatNotify((L"ArkAP: mod versions unlocked to match your structures: " +
+                    ArkApi::Tools::Utf8Decode(list)).c_str());
+    }
+}
+
+static void DoApLateMod(AShooterPlayerController* pc, FString* message) {
+    if (!pc) return;
+    std::string route = RouteFor(pc);
+    LoadLateMods(route);
+    std::string arg = HintQuery(message);
+    auto& list = g_routeLateMods[route];
+    if (arg.empty()) {
+        std::string on;
+        for (auto& lm : list) on += (on.empty() ? "" : ", ") + lm.declared + " (" + g_tables.mod_name[lm.canon] + ")";
+        ChatNotify(ArkApi::Tools::Utf8Decode(
+            "ArkAP: late mods for this slot: " + (on.empty() ? std::string("none") : on) +
+            ". Usage: /aplatemod <mod id>, e.g. /aplatemod 731604991 for Structures Plus or "
+            "/aplatemod 1631378184 for the Note Tracker. It unlocks only the mod's versions of "
+            "structures you already have, plus what the mod gives free at start.").c_str());
+        return;
+    }
+    auto cit = g_tables.mod_canonical.find(arg);
+    if (cit == g_tables.mod_canonical.end()) {
+        ChatNotify(ArkApi::Tools::Utf8Decode("ArkAP: unknown mod id '" + arg +
+                   "'. Use the workshop id, e.g. 731604991 (Structures Plus).").c_str());
+        return;
+    }
+    const std::string canon = cit->second, modName = g_tables.mod_name[canon];
+    auto mit = g_routeMods.find(route);                       // the seed already has it: nothing to do
+    if (mit != g_routeMods.end() && (mit->second.count(arg) || mit->second.count(canon))) {
+        ChatNotify(ArkApi::Tools::Utf8Decode("ArkAP: " + modName +
+                   " is already part of this seed - its items arrive from Archipelago.").c_str());
+        return;
+    }
+    bool fresh = std::none_of(list.begin(), list.end(),
+                              [&](const LateMod& lm) { return lm.canon == canon; });
+    if (fresh) {
+        list.push_back({arg, canon});
+        if (!SaveLateMods(route)) DebugLog("LATEMOD could not write " + LateModsPath(route).string());
+    }
+    int installed = 0;                                        // is the mod actually loaded here?
+    for (auto& [id, owner] : g_tables.item_to_mod)
+        if (owner == canon && g_itemToEngram.count(id)) ++installed;
+    std::vector<std::string> names;
+    int n = SyncLateMods(route, &names);
+    DebugLog("LATEMOD " + std::string(fresh ? "enabled " : "re-checked ") + arg + " (" + modName +
+             ") granted=" + std::to_string(n) + " installed_engrams=" + std::to_string(installed) +
+             (route.empty() ? "" : " [" + route + "]"));
+    for (auto& nm : names) DebugLog("LATEMOD   + " + nm);
+    std::string msg = "ArkAP: " + modName + (fresh ? " enabled late" : " already enabled") +
+                      ". Unlocked " + std::to_string(n) + " " + modName +
+                      " engram(s) matching what you already have (plus any it gives free at start). Mod-only engrams stay locked.";
+    if (!installed)
+        msg += " WARNING: none of its engrams are loaded on this server - is the mod installed? "
+               "Restart the server after installing it.";
+    ChatNotify(ArkApi::Tools::Utf8Decode(msg).c_str());
+}
+static void ApLateModChat(AShooterPlayerController* pc, FString* message, EChatSendMode::Type) {
+    __try { DoApLateMod(pc, message); } __except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 // --- /apcheck [text] : show what the plugin actually counts for the inventory checks ---
 // "I have 20 seeds but the check isn't checking" is unanswerable from chat: the player sees their
@@ -4054,7 +4934,9 @@ static void DoTick() {
                                                     // items would otherwise be dropped as "already
                                                     // received" from the previous seed
     PollIncoming();
+    ProcessGoalUnlock();                            // goal met -> every engram (Tek too) unlocked
     RetryPendingFx();                               // deliver filler effects deferred while no player
+    if (tn % 5 == 0) TickLateMods();                // /aplatemod: mod versions of owned structures
     ReassertEngrams();                              // re-apply received engrams (join-timing safe)
     ProcessPendingChecks();                         // handle network-thread-queued note/tame checks
     ApplyDeaths();                                  // DeathLink: kill our player on a remote death
@@ -4178,7 +5060,8 @@ static void PurgeStaleMailboxes() {
         "items_in.jsonl", "applied_index.json", "checks_out.jsonl", "boss_out.jsonl",
         "death_out.jsonl", "death_in.jsonl", "msg_in.jsonl", "hint_out.jsonl",
         "hint_status.json", "remaining.json", "seed_reset.json", "conn_status.txt",
-        "session.json", "flags.json", "game_ini_fragment.txt",
+        "session.json", "flags.json", "game_ini_fragment.txt", "goal_reached.json",
+        "boss_locs_out.jsonl",
     };
     std::error_code ec;
     std::vector<fs::path> boxes{ g_ipc->Root() };
@@ -4249,6 +5132,26 @@ static void Load() {
             if (it != nameToId.end()) g_starterItemIds.insert(it->second);
         }
     } catch (...) {}
+
+    // DeathLink flavour text: kind -> lines (death_messages.json). Missing file = plain "died in ARK".
+    try {
+        g_deathMsgs.clear();
+        if (fs::exists(base / "death_messages.json")) {
+            nlohmann::json mj; std::ifstream(base / "death_messages.json") >> mj;
+            size_t n = 0;
+            for (auto it = mj.begin(); it != mj.end(); ++it) {
+                if (it.key().empty() || it.key()[0] == '_' || !it.value().is_array()) continue;
+                auto& v = g_deathMsgs[it.key()];
+                for (auto& l : it.value()) if (l.is_string()) { v.push_back(l.get<std::string>()); ++n; }
+            }
+            DebugLog("death_messages.json: " + std::to_string(n) + " lines in " +
+                     std::to_string(g_deathMsgs.size()) + " kinds");
+        } else {
+            DebugLog("death_messages.json missing - DeathLink sends the plain '<name> died in ARK'");
+        }
+    } catch (const std::exception& e) {
+        DebugLog(std::string("death_messages.json unreadable (") + e.what() + ") - plain DeathLink text");
+    }
 
     // taming registry: DinoNameTag -> AP item id, straight from dinos.json (no game data needed).
     try {
@@ -4550,6 +5453,8 @@ static void Load() {
     ArkApi::GetCommands().AddChatCommand("/apdumpinv", &ApDumpInvChat);
     ArkApi::GetCommands().AddChatCommand("/apresync", &ApResyncChat);
     ArkApi::GetCommands().AddChatCommand("/aprecover", &ApRecoverChat);
+    ArkApi::GetCommands().AddChatCommand("/aplatemod", &ApLateModChat);   // mod installed after the seed
+    ArkApi::GetCommands().AddChatCommand("/aptrail", &ApTrailChat);       // cave trail recorder
     ArkApi::GetCommands().AddChatCommand("/confirm", &ApConfirmChat);
 
     // /hint aliases ("Smithy" -> Engram: Anvil Bench). Loaded here, after every table has filled
@@ -4558,6 +5463,8 @@ static void Load() {
 
     // 1s game-thread tick (reliable ArkApi timer; API::Timer registered at DLL-load didn't fire).
     ArkApi::GetCommands().AddOnTimerCallback("ArkAP_tick", []() { Tick(); });
+    // per-frame, for /aptrail's 0.25 s sampling only (returns at once when nobody records)
+    ArkApi::GetCommands().AddOnTickCallback("ArkAP_trail", [](float dt) { TrailTickSEH(dt); });
 
     DebugLog(std::string("LOAD ") + ARKAP_BUILD + " mode=" + (g_mode == Mode::Offline ? "offline" : "ap") +
              std::string(" multiplayer=") + (g_multiplayer ? "1" : "0") +
@@ -4607,6 +5514,8 @@ static void Unload() {
         &Hook_APrimalDinoCharacter_DoMate);
     ArkApi::GetHooks().DisableHook("AShooterGameMode.Logout", &Hook_AShooterGameMode_Logout);
     ArkApi::GetCommands().RemoveOnTimerCallback("ArkAP_tick");
+    ArkApi::GetCommands().RemoveOnTickCallback("ArkAP_trail");
+    while (!g_trails.empty()) TrailStop(g_trails.begin()->first, "unload");
     ArkApi::GetCommands().RemoveConsoleCommand("ArkAP.DumpEngrams");
     ArkApi::GetCommands().RemoveConsoleCommand("ArkAP.DumpNotes");
     ArkApi::GetCommands().RemoveConsoleCommand("ArkAP.BuildRegistry");
@@ -4626,6 +5535,8 @@ static void Unload() {
     ArkApi::GetCommands().RemoveChatCommand("/apdumpinv");
     ArkApi::GetCommands().RemoveChatCommand("/apresync");
     ArkApi::GetCommands().RemoveChatCommand("/aprecover");
+    ArkApi::GetCommands().RemoveChatCommand("/aplatemod");
+    ArkApi::GetCommands().RemoveChatCommand("/aptrail");
     ArkApi::GetCommands().RemoveChatCommand("/confirm");
     if (g_state) g_state->Save();
 }

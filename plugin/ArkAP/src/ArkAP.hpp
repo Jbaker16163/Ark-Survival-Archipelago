@@ -39,6 +39,19 @@ struct Tables {
     // item id -> owning mod id ("" = base game). Lets a bundle skip engrams from a mod the
     // player's slot never enabled (the plugin loads the whole catalogue; slots pick a subset).
     std::map<int, std::string> item_to_mod;
+    // mod item -> the workshop ids (forks) that actually ship it ("variants" in the mod json).
+    // Empty = every fork has it. Structures Plus and Super Structures share one catalogue.
+    std::map<int, std::vector<std::string>> item_variants;
+    // workshop id -> canonical catalogue id (a fork listed under "aliases"; canonical maps to itself)
+    std::map<std::string, std::string> mod_canonical;
+    std::map<std::string, std::string> mod_name;          // canonical id -> display name
+    // /aplatemod only (mods/late_pairs.json, tools/gen_late_pairs.py): canonical mod id ->
+    // {mod piece item -> the base-game piece it copies}, for pieces the suffix rule cannot pair.
+    std::map<std::string, std::map<int, int>> late_pairs;
+    // canonical mod id -> the mod's OWN engrams its "auto_grant" list names (a seed with the mod
+    // gives these free at start). Base-game names in that list (GPS) are left out on purpose:
+    // in a seed made without the mod they are still real AP items.
+    std::map<std::string, std::vector<int>> mod_auto_grant;
     int taming_item = 0;
     int supply_item = 0;
     std::map<int, std::string>  boss_access;         // item id -> boss tag
@@ -342,6 +355,15 @@ public:
     }
     bool AddItem(const std::string& p, int item_id) {
         bool n = received_[p].insert(item_id).second; if (n) Save(); return n;
+    }
+    // Many at once, ONE Save: the post-goal unlock-all adds ~600 engrams, and AddItem's
+    // save-per-insert would rewrite state.json 600 times in a single tick. Returns the new ones.
+    std::vector<int> AddItems(const std::string& p, const std::vector<int>& ids) {
+        std::vector<int> added;
+        auto& s = received_[p];
+        for (int id : ids) if (s.insert(id).second) added.push_back(id);
+        if (!added.empty()) Save();
+        return added;
     }
     bool AlreadyChecked(const std::string& p, int loc_id) const {
         auto it = checked_.find(p);

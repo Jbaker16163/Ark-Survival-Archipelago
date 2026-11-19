@@ -1212,6 +1212,29 @@
         "Rex",
         "Yutyrannus"
       ]
+    },
+    "valguero": {
+      "Megapithecus": [
+        "Allosaurus",
+        "Argentavis",
+        "Sarcosuchus",
+        "Bronto",
+        "Titanoboa"
+      ],
+      "Dragon": [
+        "Allosaurus",
+        "Argentavis",
+        "Sarcosuchus",
+        "Bronto",
+        "Titanoboa"
+      ],
+      "Manticore": [
+        "Allosaurus",
+        "Argentavis",
+        "Sarcosuchus",
+        "Bronto",
+        "Titanoboa"
+      ]
     }
   },
   "final_boss_prereqs": {
@@ -1414,8 +1437,26 @@
       "Devourer": "UsefulDevourerTame | UseShotgun | UseAdvMelee"
     }
   },
-  "_comment_map_boss_artifacts": "Per-map boss summoning artifacts, overriding boss_artifacts on that map. Ragnarok's Dragon and Manticore spawn together in one arena from the same ten artifacts.",
+  "_comment_map_boss_artifacts": "Per-map boss summoning artifacts, overriding boss_artifacts on that map. Ragnarok's Dragon and Manticore spawn together in one arena from the same ten artifacts. Valguero's Broodmother is a world boss you walk up to and kill, no summon (user, 2026-11-12), so it needs no artifacts there. Valguero's Dragon, Manticore and Megapithecus are fought TOGETHER in the Guardian's Sanctuary (user, 2026-11-15, in-game recipe screenshots): Gamma portal = Devourer + Pack + Skylord, Beta = Cunning + Immune + Strong, Alpha = Brute + Crag + Destroyer + Gatekeeper. The goal accepts any difficulty, so logic uses the Gamma set.",
   "map_boss_artifacts": {
+    "valguero": {
+      "Broodmother": [],
+      "Megapithecus": [
+        "Devourer",
+        "Pack",
+        "Skylord"
+      ],
+      "Dragon": [
+        "Devourer",
+        "Pack",
+        "Skylord"
+      ],
+      "Manticore": [
+        "Devourer",
+        "Pack",
+        "Skylord"
+      ]
+    },
     "ragnarok": {
       "Dragon": [
         "Clever",
@@ -1443,8 +1484,11 @@
       ]
     }
   },
-  "_comment_map_boss_reqs": "Extra requirement for a boss on that map, ANDed into that map's variant. '*' = every boss on the map. Island added 2026-10-19 (user): Broodmother/Megapithecus/Dragon/Overseer need a Strong or Insane fight tame, same as Ragnarok - artifacts alone let the bosses (and the Overseer hologram behind them) sit in logic with no army.",
+  "_comment_map_boss_reqs": "Extra requirement for a boss on that map, ANDed into that map's variant. '*' = every boss on the map. Valguero added 2026-11-12/14 (user): every boss (Broodmother is a world boss with no summon, plus Megapithecus, Dragon, Manticore) needs a Strong or Insane fight tame. Island added 2026-10-19 (user): Broodmother/Megapithecus/Dragon/Overseer need a Strong or Insane fight tame, same as Ragnarok - artifacts alone let the bosses (and the Overseer hologram behind them) sit in logic with no army.",
   "map_boss_reqs": {
+    "valguero": {
+      "*": "StrongFightTames | InsaneFightTames"
+    },
     "ragnarok": {
       "*": "StrongFightTames | InsaneFightTames"
     },
@@ -1479,5 +1523,6 @@
   "_comment_melee_macros": [
     "UsePrimMelee / UseAdvMelee deliberately go beyond the sheet (user 2026-10-19):",
     "Torch and Club count as primitive melee; Sickle and Chainsaw count as advanced melee."
-  ]
+  ],
+  "_comment_map_boss_tribute": "Per-map tribute creatures for a boss (kill them for the organs). On a map listed here it REPLACES boss_tribute_dino for that boss. Fjordur: its arena organs. Valguero (user, 2026-11-15, in-game recipe): Portal recipes (user screenshots 2026-11-15): GAMMA (level 30) = Devourer + Pack + Skylord + 5 Allosaurus Brain, 5 Argentavis Talon, 5 Sarcosuchus Skin, 5 Sauropod Vertebra, 5 Titanoboa Venom. BETA (level 30) = Cunning + Immune + Strong + 10 Allosaurus Brain, 8 Argentavis Talon, 8 Sarcosuchus Skin, 8 Sauropod Vertebra, 5 Titanoboa Venom, 10 Tyrannosaurus Arm. ALPHA (level 70) = Brute + Crag + Destroyer + Gatekeeper + 15 Allosaurus Brain, 15 Argentavis Talon, 10 Sarcosuchus Skin, 10 Titanoboa Venom, 15 Tyrannosaurus Arm, 2 Giganotosaurus Heart (no Sauropod Vertebra). Logic uses the Gamma set only (goal = any difficulty). No Wyvern talons, unlike the Scorched Manticore. All five creatures are on Valguero per ARK_Creatures_Checklist.xlsx."
 }

@@ -1486,7 +1486,9 @@ class ArkASAWorld(World):
         boss_ids = [b["id"] for b in self._locations["location_categories"]["bosses"]["entries"]
                     if b["name"].replace("Boss: ", "").split(" (")[0] == boss_short]
         maps = self._maps_holding(boss_ids)
-        if any(boss_short in mba.get(mk, {}) or mk in mbr or mk in mcr for mk in maps):
+        mbt = tl.get("map_boss_tribute", {})
+        per_map = any(boss_short in mba.get(mk, {}) or mk in mbr or mk in mcr for mk in maps)
+        if per_map:
             variants = []
             for mk in maps:
                 parts = [self._compile_expr(self._map_cave_expr(a, mk))
@@ -1494,13 +1496,24 @@ class ArkASAWorld(World):
                 extra = mbr.get(mk, {}).get(boss_short, mbr.get(mk, {}).get("*"))
                 if extra:
                     parts.append(self._compile_expr(extra))
+                # TRIBUTE belongs to the map's own summon recipe: map_boss_tribute REPLACES the
+                # global boss_tribute_dino on that map. Valguero's Guardian's Sanctuary summons
+                # Dragon + Manticore + Megapithecus together from Allosaurus/Argentavis/Sarco/
+                # Sauropod/Titanoboa parts - no Wyvern talons, unlike the Scorched Manticore.
+                trib = mbt.get(mk, {}).get(boss_short)
+                if trib is None:
+                    trib = tl.get("boss_tribute_dino", {}).get(boss_short, []) if arts else []
+                for dino in trib:
+                    t = self._tame_ast(dino)
+                    if t and t != ("true",):
+                        parts.append(t)
                 variants.append(self._and_asts(parts))
             k = self._or_asts(variants)
             if k != ("true",):
                 kids.append(k)
         elif arts:
             kids += [k for k in (self._cave_ast(a) for a in arts) if k != ("true",)]
-        if arts:
+        if arts and not per_map:
             # Some bosses also demand TRIBUTE items on top of the artifacts, and those come off a
             # creature. The Manticore's portal wants 2/10/20 Fire + Lightning + Poison Talon
             # (gamma/beta/alpha) as well as its three artifacts, and every talon drops from a
@@ -1518,7 +1531,9 @@ class ArkASAWorld(World):
         for mk in self._active_map_keys():
             for req in tl.get("map_boss_extra", {}).get(mk, {}).get(boss_short, []):
                 kids.append(("has", req + " Defeated"))
-            for dino in tl.get("map_boss_tribute", {}).get(mk, {}).get(boss_short, []):
+            if per_map:
+                continue                       # tribute already inside that map's variant above
+            for dino in mbt.get(mk, {}).get(boss_short, []):
                 k = self._tame_ast(dino)
                 if k and k != ("true",):
                     kids.append(k)

@@ -50,6 +50,11 @@ KILL_ONLY_LOC_BASE = 8755100   # untameable kill checks (after the tameable 8755
 # Kept inside the main enumeration so every OTHER harvested dino's ids stay exactly stable.
 KILL_ONLY_OVERRIDE = {"Leedsichthys", "Titan"}   # Titanosaur only TEMP-tames in ASE -> kill check only
 
+# harvested tags with NO checks at all (no Tame item, no Tamed check, no Killed check). Skipped
+# inside the enumeration, so every other dino keeps its id. Liopleurodon only temp-tames in ASE
+# (Justin 2026-11-05: remove both its checks on every map).
+NO_CHECKS = {"Liopleurodon"}
+
 # tameable species to ALWAYS include even if not present in the tame harvest (name, DinoNameTag,
 # saddle_class-or-None). Ids assigned in a high block so they never collide with the harvest set.
 # 3rd field = saddle ENGRAM ap_name (resolved to its engram_class below) or None for no saddle.
@@ -234,6 +239,8 @@ def main() -> None:
     dinos = []
     for i, t in enumerate(tags):
         fr = pretty(t)
+        if t in NO_CHECKS:            # no item, no checks; its slot stays empty so ids are stable
+            continue
         if t in KILL_ONLY_OVERRIDE:   # untameable after all: kill check only, same slot -> ids stable
             dinos.append({"name": fr, "dino_tag": t, "kill_loc": KILL_LOC_BASE + i, "tameable": False})
             continue

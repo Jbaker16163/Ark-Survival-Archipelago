@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cave Maps</title>
+<style>
+  :root {
+    --bg: #0e0e12; --panel: #17171d; --card: #1b1b22; --line: #2a2a33; --text: #e6e6ea; --dim: #9a9aa6;
+    --accent: #5aa9ff; --warn: #ffcf5a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.45 system-ui, "Segoe UI", Arial, sans-serif; }
+  header { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+    padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  header h1 { margin: 0; font-size: 18px; color: var(--accent); }
+  #count { color: var(--dim); }
+  #q { margin-left: auto; width: min(320px, 100%); background: #22222b; color: var(--text); border: 1px solid var(--line);
+    border-radius: 6px; padding: 7px 10px; font: inherit; }
+  main { padding: 8px 20px 40px; max-width: 1500px; margin: 0 auto; }
+  h2 { font-size: 15px; margin: 22px 0 10px; color: var(--dim); text-transform: uppercase; letter-spacing: .05em; }
+  h2 span { color: var(--text); text-transform: none; letter-spacing: 0; font-weight: 500; margin-left: 6px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+    display: flex; flex-direction: column; }
+  .thumb { position: relative; aspect-ratio: 4 / 3; background: #08080b; cursor: zoom-in; display: grid; place-items: center; }
+  .thumb img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .thumb .wait { position: absolute; color: var(--dim); font-size: 13px; }
+  .body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .name { font-size: 16px; font-weight: 600; }
+  .meta { color: var(--dim); font-size: 12.5px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .tag { background: #24242e; border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; font-size: 12px; }
+  .tag.art { border-color: #3c5f3c; color: #a8e6a0; }
+  .tag.route { border-color: #2f4a6a; color: #9cc8ff; }
+  .tag.none { color: var(--warn); border-color: #5a4a20; }
+  .actions { display: flex; gap: 6px; margin-top: auto; padding-top: 6px; }
+  .actions a { flex: 1; text-align: center; background: #22222b; color: var(--text); border: 1px solid var(--line);
+    border-radius: 6px; padding: 6px 8px; text-decoration: none; font-size: 13px; }
+  .actions a:hover { border-color: #444452; }
+  .actions a.primary { background: #1f6fd1; border-color: #1f6fd1; color: #fff; font-weight: 600; }
+  .empty { color: var(--dim); padding: 40px 0; text-align: center; }
+  #view { position: fixed; inset: 0; z-index: 5; background: rgba(5,5,8,.94); display: none; cursor: zoom-out; }
+  #view.on { display: block; }
+  #view img { width: 100%; height: 100%; object-fit: contain; }
+  #view .cap { position: absolute; top: 10px; left: 16px; color: var(--dim); font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Cave Maps</h1>
+  <span id="count">loading</span>
+  <input id="q" type="search" placeholder="Filter by cave, map, artifact..." autocomplete="off">
+</header>
+<main id="main"></main>
+<div id="view"><span class="cap">Click or Esc to close</span><img alt=""></div>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  let caves = [];
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  function card(c) {
+    const href = "/edit/" + c.key + "/", png = "/thumb/" + c.key + ".png?t=" + Date.now();
+    const arts = c.artifacts.length ? c.artifacts.map(a => '<span class="tag art">' + esc(a) + "</span>").join("")
+                                    : '<span class="tag none">no artifact marked</span>';
+    const routes = c.routes.length ? c.routes.map(r => '<span class="tag route">' + esc(r) + "</span>").join("")
+                                   : '<span class="tag none">no route yet</span>';
+    const ed = c.edits > 0 ? " &middot; " + c.edits + " hand edit" + (c.edits > 1 ? "s" : "") : "";
+    const el = document.createElement("div");
+    el.className = "card";
+    el.innerHTML =
+      '<div class="thumb"><span class="wait">' + (c.rendered ? "loading" : "rendering...") + '</span>' +
+      '<img loading="lazy" alt="' + esc(c.cave) + ' map"></div>' +
+      '<div class="body"><div class="name">' + esc(c.cave) + "</div>" +
+      '<div class="meta">' + c.recordings.length + " recording" + (c.recordings.length > 1 ? "s" : "") +
+      ed + " &middot; last " + esc(c.recorded) + "</div>" +
+      (c.entrances.length ? '<div class="meta">Entrances: ' + c.entrances.map(esc).join(", ") + "</div>" : "") +
+      '<div class="tags">' + arts + "</div><div class=\"tags\">" + routes + "</div>" +
+      '<div class="actions"><a class="primary" href="' + href + '">Edit</a>' +
+      '<a href="' + png + '" target="_blank" rel="noopener">Open PNG</a>' +
+      '<a href="' + png + '" download="' + esc(c.image) + '">Download</a></div></div>';
+    const img = el.querySelector("img"), wait = el.querySelector(".wait");
+    img.onload = () => wait.remove();
+    img.onerror = () => { wait.textContent = "could not render - open Edit to see why"; img.remove(); };
+    img.src = png;
+    el.querySelector(".thumb").onclick = () => {
+      $("view").querySelector("img").src = img.src; $("view").classList.add("on");
+    };
+    c._text = [c.cave, c.map, c.map_name, ...c.artifacts, ...c.routes, ...c.entrances].join(" ").toLowerCase();
+    c._el = el;
+    return el;
+  }
+
+  function show() {
+    const q = $("q").value.trim().toLowerCase(), m = $("main");
+    m.innerHTML = "";
+    const vis = caves.filter(c => !q || c._text.includes(q));
+    $("count").textContent = vis.length + " of " + caves.length + " cave" + (caves.length === 1 ? "" : "s");
+    if (!caves.length) { m.innerHTML = '<div class="empty">No recordings under trails/ yet. Record one with /aptrail and copy it into trails/&lt;map&gt;/.</div>'; return; }
+    if (!vis.length) { m.innerHTML = '<div class="empty">Nothing matches that filter.</div>'; return; }
+    const byMap = {};
+    vis.forEach(c => (byMap[c.map_name] = byMap[c.map_name] || []).push(c));
+    Object.keys(byMap).sort().forEach(name => {
+      const h = document.createElement("h2");
+      h.innerHTML = "Map <span>" + esc(name) + " (" + byMap[name].length + ")</span>";
+      const g = document.createElement("div"); g.className = "grid";
+      byMap[name].forEach(c => g.appendChild(c._el));
+      m.appendChild(h); m.appendChild(g);
+    });
+  }
+
+  $("q").addEventListener("input", show);
+  $("view").onclick = () => $("view").classList.remove("on");
+  window.addEventListener("keydown", e => { if (e.key === "Escape") $("view").classList.remove("on"); });
+
+  fetch("/api/caves").then(r => r.json()).then(list => {
+    caves = list; caves.forEach(card); show();
+  }).catch(err => { $("count").textContent = "could not load the cave list: " + err; });
+})();
+</script>
+</body>
+</html>

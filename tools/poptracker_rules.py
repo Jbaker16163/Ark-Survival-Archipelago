@@ -338,7 +338,7 @@ class RuleGen:
 
         # bosses: the summoning artifacts (as the pack's artifact_* toggles, the way it gates its
         # own bosses) AND everything else the world's _boss_ast asks for on this map
-        boss_rules, art_sets = {}, {}
+        boss_rules, art_sets, boss_calls = {}, {}, {}
         mba = tl.get("map_boss_artifacts", {}).get(map_key, {})
         mbr = tl.get("map_boss_reqs", {}).get(map_key, {})
         for b in self.boss_names:
@@ -350,20 +350,23 @@ class RuleGen:
             extra = mbr.get(b, mbr.get("*"))
             if extra:
                 parts.append("(%s)" % extra)
-            if tl.get("boss_artifacts", {}).get(b):
-                parts += ["(%s)" % self.tame_method(x)
-                          for x in tl.get("boss_tribute_dino", {}).get(b, []) if self.tame_method(x)]
+            # tribute: this map's own summon recipe REPLACES the global boss_tribute_dino (same
+            # rule as the apworld's _boss_ast - Valguero's Manticore wants no Wyvern talons)
+            trib = tl.get("map_boss_tribute", {}).get(map_key, {}).get(b)
+            if trib is None:
+                trib = (tl.get("boss_tribute_dino", {}).get(b, [])
+                        if tl.get("boss_artifacts", {}).get(b) else [])
             parts += ["%s" % x for x in tl.get("map_boss_extra", {}).get(map_key, {}).get(b, [])]
-            parts += ["(%s)" % self.tame_method(x)
-                      for x in tl.get("map_boss_tribute", {}).get(map_key, {}).get(b, [])
-                      if self.tame_method(x)]
+            parts += ["(%s)" % self.tame_method(x) for x in trib if self.tame_method(x)]
             if tl.get("world_boss_reqs", {}).get(b):
                 parts.append("(%s)" % tl["world_boss_reqs"][b])
             prereq = tl.get("final_boss_prereqs", {}).get(b)
             if prereq is None and b == "Overseer":
                 prereq = tl.get("overseer_bosses", [])
             parts += list(prereq or [])
-            call = self.fn("ap_boss_%s_%s" % (map_key, slug(b)), " + ".join(parts))
+            body = " + ".join(parts)
+            call = self.fn("ap_boss_%s_%s" % (map_key, slug(b)), body)
+            boss_calls[b] = (body, call)
             terms = [self.art_code(a) for a in need] + ([call] if call else [])
             boss_rules[b] = [", ".join(terms)] if terms else [""]
 
@@ -379,7 +382,14 @@ class RuleGen:
                 seen.update(members)
                 pairs[" & ".join(members)] = {
                     "members": members, "artifacts": [self.art_code(a) for a in s],
-                    "_note": "generated: these bosses are summoned by the same artifacts"}
+                    "_note": "generated: these bosses are summoned by the same artifacts",
+                    # one "Kill X (Any Difficulty)" row per boss (user 2026-11-17), see pair_bosses
+                    "per_member": True}
+                # one arena, one summon: when every member asks for the very same thing on top of
+                # the artifacts (Valguero's tributes + fight tames), the merged entry needs it too
+                bodies = {boss_calls.get(m, ("", ""))[0] for m in members}
+                if len(bodies) == 1 and boss_calls.get(b, ("", ""))[1]:
+                    pairs[" & ".join(members)]["calls"] = [boss_calls[b][1]]
         combat = []
         if mbr.get("*"):
             combat = [self.fn("ap_bosscombat_%s" % map_key, mbr["*"])]

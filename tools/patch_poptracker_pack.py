@@ -206,7 +206,9 @@ def _grid_codes(text, key):
     j = text.index('"rows"', i)
     end = text.index("  },", j)
     # the scan starts at the "rows" key itself, so drop it - left in, it becomes an item code
-    return [c for c in re.findall(r'"([a-z0-9_]+)"', text[j:end]) if c != "rows"]
+    # mixed case on purpose: the pack's Cementing Paste code is "CP", and a lowercase-only scan
+    # dropped it from every generated map's Crafting grid
+    return [c for c in re.findall(r'"([A-Za-z0-9_]+)"', text[j:end]) if c != "rows"]
 
 
 def add_dino_grid(path, pop, wanted, habitat=None):
@@ -359,8 +361,11 @@ def build_item_grids(path, pop, map_key, model, extra, add=None):
             return has(crates.get("deepseacrate", -1))
         if code.startswith("crate_"):
             colour, _, biome = code[len("crate_"):].partition("_")
-            want = {"easy": "cavecave", "ice": "caveicecave", "swamp": "caveswampcave",
-                    "ocean": "caveunderwatercave"}.get(biome)
+            # crates.json names normalise to "cavecrate<biome>cavet<tier>" ("Cave Crate: Ice Cave
+            # T1"); the old "cavecave" prefixes matched nothing, so every generated map lost all
+            # of its cave crates
+            want = {"easy": "cavecratecavet", "ice": "cavecrateicecavet",
+                    "swamp": "cavecrateswampcavet", "ocean": "cavecrateunderwatercavet"}.get(biome)
             if want:
                 return any(k.startswith(want) and has(v) for k, v in crates.items())
             return True
@@ -784,16 +789,41 @@ def main(argv=None):
     # one tab per artifact cave, like the Island's cave tabs: a Coming Soon card (or a real cave map
     # dropped into poptracker_art/maps/) with the cave's artifact pin on it
     art_cave = {a: c for a, c in (logic.get("artifacts", {}).get("_caves") or {}).items()}
-    cave_tabs = []
+    # A cave with a real map and every artifact's pixel listed in _cave_pins gets one pin PER
+    # artifact on its tab. Each is its own object whose only section is a "ref" to the cave
+    # object's section, so the overworld pin and the cave pins share one state.
+    cave_pins = {k: v for k, v in (logic.get("artifacts", {}).get("_cave_pins") or {}).items()
+                 if not k.startswith("_")}
+    pin_size = (logic.get("artifacts", {}).get("_cave_pins") or {}).get("_size", L.CAVE_MARKER_SIZE)
+    # an artifact spot that is not a cave (Ragnarok's Pit of Dreen: open ocean) keeps its pin on
+    # the map but gets no cave tab
+    no_tab = set(logic.get("artifacts", {}).get("_no_cave_tab") or [])
+    cave_tabs, pin_objs, pinned_caves = [], [], set()
     for c in new_children:
-        if c["name"] not in on_map:
+        if c["name"] not in on_map or c["name"] in no_tab:
             continue
         cmap = L.cave_map_name(pop, c["name"])
         arts = sorted(a for a, cv in art_cave.items() if cv == c["name"])
-        c["map_locations"].append({"map": cmap, "x": L.CAVE_PIN[0], "y": L.CAVE_PIN[1],
-                                   "shape": "diamond", "size": L.CAVE_MARKER_SIZE})
+        if arts and all(a in cave_pins for a in arts):
+            for a in arts:
+                sec = "Artifact of the %s" % a
+                x, y = cave_pins[a]
+                pin_objs.append({
+                    "name": "%s: %s" % (c["name"], sec),
+                    "chest_unopened_img": c["chest_unopened_img"],
+                    "chest_opened_img": c["chest_opened_img"],
+                    "map_locations": [{"map": cmap, "x": x, "y": y,
+                                       "shape": "diamond", "size": pin_size}],
+                    "sections": [{"ref": "%s/%s/%s" % (pop, c["name"], sec)}],
+                })
+            pinned_caves.add(c["name"])
+        else:
+            c["map_locations"].append({"map": cmap, "x": L.CAVE_PIN[0], "y": L.CAVE_PIN[1],
+                                       "shape": "diamond", "size": L.CAVE_MARKER_SIZE})
         cave_tabs.append((c["name"], cmap, arts))
     cave_tabs.sort()
+    new_children += pin_objs
+    on_map = list(on_map) + [p["name"] for p in pin_objs]   # cave-tab pins, not artwork tiles
 
     # Pairing frees the slot the second boss held, so reflow the strip - otherwise there is a
     # visible hole where Manticore used to be. Widest entry first, since a paired boss also has
@@ -809,6 +839,38 @@ def main(argv=None):
             ml = c["map_locations"][0]
             ml["x"], ml["y"] = pins[c["name"]]
             ml["size"] = L.BOSS_MARKER_SIZE
+
+    # The artifacts each boss needs are PAINTED under its portrait (compose_poptracker_map), so
+    # hovering one showed nothing. Lay a small pin on each icon's lower-right corner, named after
+    # the artifact, whose only section is a "ref" to that artifact's cave section: hovering names
+    # it, and the pin shares the cave check's state. Same table and geometry as the painter.
+    art_secs = {}
+    for c in new_children:
+        for s in c.get("sections") or []:
+            m = re.match(r"^Artifact of the (\w+)$", s.get("name") or "")
+            if m:
+                art_secs[m.group(1).lower()] = "%s/%s/%s" % (pop, c["name"], s["name"])
+    boss_art_pins, no_art_pin = [], []
+    for boss, need in sorted(L.boss_artifacts(logic).items()):
+        if boss not in pins:
+            continue
+        cells = L.boss_artifact_cells(pins[boss][0], L.PAIR_UNITS if boss in paired else 1, len(need))
+        short = re.sub(r"^Boss: ", "", boss)
+        for code, (cx, cy) in zip(need, cells):
+            word = code.split("_", 1)[-1].lower()
+            ref = art_secs.get(word)
+            if not ref:
+                no_art_pin.append("%s/%s" % (short, code))
+                continue
+            boss_art_pins.append({
+                "name": "Artifact of the %s (%s)" % (word.title(), short),
+                "map_locations": [{"map": pop, "x": cx + L.BOSS_ART_ICON - L.BOSS_ART_PIN_SIZE // 2,
+                                   "y": cy + L.BOSS_ART_ICON - L.BOSS_ART_PIN_SIZE // 2,
+                                   "size": L.BOSS_ART_PIN_SIZE}],
+                "sections": [{"ref": ref}],
+            })
+    new_children += boss_art_pins
+    on_map = list(on_map) + [p["name"] for p in boss_art_pins]   # hover pins, not artwork tiles
 
     # Merging Tame/Kill into one object and pairing the bosses REPLACE objects, so a queued pin
     # can point at one that no longer exists - it would silently consume a grid cell and leave a
@@ -1006,6 +1068,9 @@ def main(argv=None):
               % (len(reused), ", ".join(sorted(reused))))
     for label, (members, arts) in paired.items():
         print("  paired %s -> one entry behind %d artifacts" % (" + ".join(members), len(arts)))
+    print("  %d hover pins on the artifact icons under the bosses" % len(boss_art_pins))
+    if no_art_pin:
+        print("  WARNING no artifact section to point a boss hover pin at: %s" % ", ".join(no_art_pin))
     for base, (key, pool, kept) in sorted(build_item_grids(
             lay, pop, args.map, args.model_tab, args.alt_prefix,
             add={"artifact_grid": sorted({a for pr in logic.get("boss_pairs", {}).values()

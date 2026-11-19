@@ -80,7 +80,10 @@ del /q "%PLUGIN%\ipc\game_ini_fragment.txt" 2>nul
 del /q "%PLUGIN%\ipc\conn_status.txt"   2>nul
 del /q "%PLUGIN%\ipc\remaining.json"    2>nul
 del /q "%PLUGIN%\ipc\seed_reset.json"   2>nul
+del /q "%PLUGIN%\ipc\late_mods.json"    2>nul
 del /q "%PLUGIN%\ipc\boss_out.jsonl"    2>nul
+del /q "%PLUGIN%\ipc\goal_reached.json" 2>nul
+del /q "%PLUGIN%\ipc\boss_locs_out.jsonl" 2>nul
 del /q "%PLUGIN%\ap_wipe_wild.flag"     2>nul
 del /q "%PLUGIN%\applied_index.json"    2>nul
 del /q "%PLUGIN%\counters.json"         2>nul

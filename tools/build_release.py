@@ -114,7 +114,10 @@ def main():
     # belong to the map it is running, and an Island exploration region fires on Scorched Earth
     # (the polygons are raw world coordinates, so the same X/Y matches on any map).
     for name in ("engrams.json", "dinos.json", "locations.json", "crates.json", "filler.json",
-                 "explore_areas.json", "maps.json", "item_aliases.json"):   # aliases: /hint Smithy
+                 "explore_areas.json", "maps.json", "item_aliases.json",   # aliases: /hint Smithy
+                 "death_messages.json",    # DeathLink flavour lines (what killed us)
+                 "tek_grants.json"):       # Tek engrams per boss kill - never shipped before v215,
+                                           # so the gated Tek engrams could not unlock on a server
         pairs.append((os.path.join(data, name), f"ArkAP/{name}"))
     # mod catalog: the plugin loads data/mods/index.json + each listed <modid>.json so it can grant
     # and gate MOD engrams. Without these the apworld would hand out mod items the server ignores.
