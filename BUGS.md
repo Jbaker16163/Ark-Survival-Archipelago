@@ -1,3 +1,730 @@
+## Changed 2026-11-21 (plugin data, pending live test): /aplatemod unlocks the S+ Crafting Station with the Smithy
+- User: the S+ Crafting Station should unlock with the Smithy under /aplatemod. It has no base-game
+  twin by name, so neither the " Plus" suffix rule nor the material-piece match paired it, and it
+  stayed locked. tools/gen_late_pairs.py has a new HAND_PAIRS table; "Engram: SPlus Crafting
+  Station" (8810292) -> "Engram: Anvil Bench" (8730153). Regenerated mods/late_pairs.json (both
+  copies): 148 -> 149 pairs, nothing else changed. No DLL change; the plugin reads late_pairs.json
+  at load. A slot that already ran /aplatemod gets it on the next periodic sync if it owns the
+  Anvil Bench.
+- /aplatemod only. A seed generated WITH S+ still has "Engram: SPlus Crafting Station" as its own item
+  (VARIANT_ALIAS in the apworld is unchanged).
+
+## Changed 2026-11-19 (PopTracker): The Center "Southeast Trench" renamed "Eastern Trench"
+- User: the Brute cave on The Center is the Eastern Trench. Only poptracker_maps.json
+  center.artifact_caves named it (tab, Coming Soon card, pin path); no AP location or apworld name
+  uses it. A real map for it goes in poptracker_art/maps/The_Center_Eastern_Trench.png.
+
+## Added 2026-11-19 (PopTracker): The Center North Ice Cave map
+- User supplied the North Ice Cave map (800x876, ARK Patch 297.2). Saved as
+  poptracker_art/maps/The_Center_North_Ice_Cave.png (original webp in _source/maps). Pins read off
+  its artifact icons into center.artifacts._cave_pins in poptracker_logic.json: Clever [238, 560]
+  (lower part), Devourer [302, 401] (top part). Replaces the "Coming Soon" tab; the other 7 Center
+  caves are still Coming Soon.
+
+## Added 2026-11-19 (cave maps): "where" line under the map name
+- User: add to The Unknown that it is in the irradiated zone in the Aberrant region. New top-level
+  "where" in a cave's edits file, printed after the map name under the title ("Valguero -
+  Irradiated zone, Aberrant region"). Editor has a "Where" text box that loads and saves it. New
+  trails/valguero/the_unknown.edits.json holds it (no other edits). Documented in docs/CAVE_TRAILS.md.
+
+## Fixed 2026-11-19 (cave maps): dark lines across sloped passages
+- User (Boreal Forest, editor screenshot): passages looked choppy - dark lines across them and
+  little rings. The floor is drawn in 10 height layers, each with a dark rim; where a slope runs
+  from one layer into the next, the upper layer's rim was drawn across the passage, and a single
+  sample in the next layer got a ring. Now a per-pixel height map of the floor drawn so far is
+  kept, and a layer's rim (walked or painted floor) is only drawn on background, between floor and
+  water/lava (swum), or over floor more than max(FLOOR_LEDGE = 5 m, one layer step) lower - real
+  ledges and passages over passages keep their rim. Needs scipy (without it: old behaviour).
+  All 9 cave maps re-rendered.
+
+## Fixed 2026-11-19 (cave maps): painted lava did not cover walked floor
+- User (Boreal Forest): painted lava over a small land patch below the Crag artifact; it did not
+  show. Hand-painted lava/water was only drawn UNDER the walked floor (meant as "lava round the
+  safe path"), so any walked floor hid it. Now lava/water strokes are also drawn on top of the
+  floor, in edit order: a floor stroke made after a lava stroke still wins over it. Side effect:
+  Ragnarok Jungle Dungeon's 9 lava strokes now cover the floor edges they overlapped (small change,
+  its 4 floor strokes come after them and still show).
+
+## Fixed 2026-11-19 (cave maps): floor under grappling hook joins; stair-step edges and square holes
+- User (Boreal Forest): ground showed under the grapple lines, and some edges still looked choppy.
+- Joined route parts ("join": true) were added to the recorded route, and every recorded route
+  part is walked floor, so a floor band was drawn under each swing. Joined points are now tagged
+  and their parts left out of the floor (the line is still drawn).
+- Choppy: grow() closed gaps and drew the dark edge ring with a 3x3 Max/MinFilter repeated, i.e. a
+  SQUARE kernel, which leaves stair-step outlines and square holes. Masks now grow/shrink by a disc
+  (scipy distance_transform_edt); the filter stays only as the no-scipy fallback. All 9 cave maps
+  re-rendered; layouts unchanged, edges rounder.
+
+## Changed 2026-11-19 (cave maps): Boreal Forest lava + grappling hook gaps joined
+- User: the water in Boreal Forest is lava, and connect the pathway across the grappling hooks.
+  New trails/valguero/boreal_forest.edits.json: "swim_is": "lava" plus three route edits with
+  "join": true, each a straight line from where the recording paused before a swing to where it
+  resumed after. New in cave_trail_map.py: a route edit with "join": true is added to the recorded
+  route of the same artifact + entrance (no new legend row, distance unchanged). Editor list shows
+  it as "Pathway join". Documented in docs/CAVE_TRAILS.md.
+
+## Added 2026-11-19 (cave maps): Valguero Boreal Forest (Crag)
+- User recorded /aptrail boreal_forest_20261119-103955 (plugin v221): Cave Entrance, Crag route
+  (322 m, three grappling hook crossings marked as notes), red/yellow/blue cave drops, waterfall
+  and crystal/mushroom room notes. Rendered to poptracker_art/maps/Valguero_Boreal_Forest.png,
+  Crag pin [2075, 614]. Every Valguero artifact cave now has a real map.
+
+## Added 2026-11-19 (cave maps): Valguero The Unknown (Gatekeeper)
+- User recorded /aptrail the_unknown_20261119-083011 (plugin v221): both entrances, Gatekeeper
+  route from North Unknown Entrance (1707 m), 3 yellow + 1 purple cave drop. Copied to
+  trails/valguero, rendered to poptracker_art/maps/Valguero_The_Unknown.png, Gatekeeper pin
+  [1195, 1517] written to valguero.artifacts._cave_pins. Replaces the "Coming Soon" tab.
+  (Boreal Forest followed the same day.)
+
+## Changed 2026-11-18 (cave maps): no white disc behind artifact icons
+- User: remove the white background fully and draw artifacts like the other (wiki) cave maps.
+  First cut the disc ~80% (ARTIFACT_RING), then dropped it: the icon is now pasted straight on
+  the map with a thin white outline that follows the art's own shape (ARTIFACT_OUTLINE = 3 px,
+  alpha mask MaxFilter), same look as the Lost Temple / Lair maps. Labels and overlap claims use
+  the art's radius plus the outline. Pin pixels are unchanged.
+- Then: icons still too big. Artifact icon is now ARTIFACT_SIZE = 0.5 x the map icon size (was
+  0.95), about half as wide.
+
+## Fixed 2026-11-18 (cave maps): flat caves looked choppy
+- User: Snow Mountains "looks so choppy". It is only 8 m from lowest to highest floor; the colour
+  scale was stretched to a 10 m minimum and cut into 10 height layers, so each layer was under 1 m
+  and every bump of the floor got its own dark outline. The Monkey's Puzzle (7 m) had the same.
+- cave_trail_map.py: FLOOR_LEVEL_MIN = 3 m per layer, FLOOR_MIN_SPAN 10 m -> 20 m (a flat cave keeps
+  mid tones). Caves with more than 30 m of height are unchanged. The legend's floor range is now the
+  real floor range, not the stretched colour scale.
+
+## Changed 2026-11-18 (cave maps): floor colour always from the nearest RECORDED ground
+- User (Great Trench lower-left, purple next to tan): "If something is painted, the color of that
+  height should be dependent on the closest thing that was captured in game."
+- Painted floor: every painted pixel now takes the height of the nearest recorded ground point
+  (scipy cKDTree; brute-force fallback), coloured and layered like the walked floor. Replaces the
+  one-colour-per-stroke median from earlier the same day.
+- Flights: the floor strip under a flight used the FLIGHT's height, so flying along the trench
+  100-300 m up drew tan "ledges" beside the -440 m floor. A flown point is now floored at the nearest
+  recorded ground (anything not flown or on a wire). FLY_GROUND_SNAP = None (no distance limit).
+- Gap fill: the closing step coloured filled gaps with a per-channel MaxFilter, so lava next to
+  purple floor came out pink (196,78,118). Now the nearest floor pixel's colour (scipy
+  distance_transform_edt; old MaxFilter if scipy is missing).
+- Ragnarok renders changed by ~300 px each (Jungle Dungeon, Monkey's Puzzle: none).
+
+## Fixed 2026-11-18 (cave maps): painted floor took the wrong height
+- User asked whether the floor they painted in the Great Trench was at the level of the floor next
+  to it. 3 of 13 strokes were not: a stroke took the z of the ONE recorded point nearest its middle,
+  which could be a flight above the room (strokes 3, 12: -317 m / -231 m over a -440 m floor) or a
+  slope 26 m away (stroke 4).
+- cave_trail_map.py: a floor stroke now takes the median of the nearest FLOOR point (no fly/wire,
+  no hidden points) to up to 16 points along it. All 13 now match. A stroke that spans two levels
+  still gets one colour (its median).
+
+## Added 2026-11-18 (PopTracker, pending live test): Valguero Snow Mountains + The Great Trench cave maps; "Swim = lava"
+- Recordings (plugin v221) in trails/valguero/. Artifact GPS matches the wiki: Cunning 14.6/26.3,
+  Skylord 13.4/72.7.
+- The Great Trench "water" is lava (user). New edits-file flag "swim_is": "lava" (editor checkbox
+  "Swim = lava", tools/cave_map_editor.html) draws everything swum through as lava, legend "Lava -
+  do not walk". Set for the_great_trench.edits.json; the user is still editing that cave.
+- cave_maps_to_poptracker.py now also does maps without a hand _caves table (uses
+  poptracker_maps.json artifact_caves) and keeps a map's own _cave_pins _source text.
+  Valguero_Snow_Mountains.png (Cunning 1373,347) and Valguero_The_Great_Trench.png (Skylord
+  1298,756) are in the pack. Re-run it after the Great Trench edits.
+
+## Added 2026-11-17 (PopTracker, pending live test): Valguero The Lair cave map
+- The Lair tab shows the user's map (ARK Patch 297.2), 1024x896 (poptracker_art/maps/
+  Valguero_The_Lair.png; original _source/maps/Valguero_The_Lair.webp). It replaced a first 400x350
+  copy the same day (kept as _source/maps/Valguero_The_Lair_small.png).
+- One pin per artifact, read off the icons: Pack [805, 110], Strong [445, 397], Immune [345, 682]
+  (valguero.artifacts._cave_pins in poptracker_logic.json).
+
+## Added 2026-11-17 (PopTracker, pending live test): Valguero Jungle tab = GPS screenshot (no cave)
+- User: the Artifact of the Destroyer (Valguero "Jungle") is out in the open, not in a cave. Its tab
+  now shows the user's in-game screenshot with a title box, like Ragnarok's Pit of Dreen:
+  poptracker_art/maps/Valguero_Jungle.png (2000x1126), original _source/maps/Valguero_Jungle_gps.webp.
+  Pin in the box: valguero.artifacts._cave_pins Destroyer [900, 185] (poptracker_logic.json).
+- In-game GPS reads 61.0 / 89.1; the wiki (artifact_positions, poptracker_maps.json) said 67.0 / 89.1.
+  Overworld pin moved to the GPS reading (y 502 -> 458 on the Valguero map). Unverified: the paper
+  map in the same screenshot puts "Me" near 70 / 91, so the in-game paper map grid does not match
+  the GPS on Valguero.
+
+## Fixed 2026-11-17 (PopTracker, pending live test): Alpha Fire Wyvern stayed green after the kill / release
+- User's screenshot: the "Kill an Alpha Fire Wyvern" chest was done but the hosted trophy head was
+  grey. A section with a hosted_item only counts as done once the item is collected, and nothing
+  ever collected wyvern_trophy (same for deathworm_trophy on Kill an Alpha Deathworm).
+- tame_badges.lua ALPHA_TROPHIES (built by add_tame_badges from dinos.json "Kill an Alpha ..."
+  sections with a hosted_item): the location handler sets the trophy Active when 8756008 / 8756007
+  is checked (in game, release or collect). Island hologram notes that host boss trophies are left
+  alone (a note is not a kill).
+
+## Fixed 2026-11-17 (PopTracker, pending live test): checks not in the slot stayed green forever; Carno Cave never in logic
+- User: after a release, Alpha Fire Wyvern (and the Carcha dossier, and today's Ragnarok talon pins)
+  were still green. A release checks every location IN the slot, so a pin that stays green is a
+  check the slot does not have; Lurch's pack only hides notes/food/tame/death checks a slot omits.
+- poptracker_add_map.py add_slot_visibility: every section location_mapping.lua ticks gets
+  `$ap_in_slot|<id>` ANDed onto its visibility (1042 sections; boss ids 8750xxx skipped, they are
+  not AP locations). ap_in_slot (scripts/ap_maps.lua) reads INCLUDED_LOCATIONS = slot_data
+  included_locations (the slot's full list); no slot data yet = show all.
+- On connect the tracker log prints `ArkAP tracker: slot has N locations; in slot: 8756008=...`,
+  so it shows whether Killed: Alpha Fire Wyvern is in the user's seed at all (unknown: their seed
+  file is not on this PC; 8756008 has been in maps.json ragnarok since at least 2026-09-09).
+- User's PopTracker log also showed `Did not find object for code "@Milestones/Exploration(The
+  Island)/Visit The Dead Island(Carno Island)"` on every logic pass: Lurch's EnterCarnoCave
+  (logic.lua) misses the two spaces, so Carno Cave was never in logic. replace fix added.
+- Boss pins: the user's kills were on a plugin older than v216 (no boss_locs_out.jsonl), so they
+  never tick; clear those by hand. Kills on v216+ tick.
+
+## Fixed 2026-11-17 (PopTracker): Carcharodontosaurus dossier stayed green on Ragnarok/Valguero
+- Lurch's dinos.json puts "Carcharodontosaurus Dossier" and "Rhyniognatha Dossier" (8741230/8741231,
+  Island-only notes) on the creature's pin with visibility "", so they showed on every map's pin and
+  could never clear on a non-Island slot. Two replace fixes in poptracker_pack_fixes.json give them
+  $explorer_note_dossier_<x>_enabled like every other note.
+
+## Added 2026-11-17 (PopTracker, pending live test): Valguero boss pin per boss + The Lost Temple cave map
+- Valguero "Dragon & Manticore & Megapithecus" now has three rows, "Kill <Boss> (Any Difficulty)",
+  like Ragnarok. Generated boss pairs (poptracker_rules.py) get per_member: true by default now.
+- The Lost Temple tab shows the user's map (ARK Patch 297, 1024x981): poptracker_art/maps/
+  Valguero_The_Lost_Temple.png, original in _source/maps/Valguero_The_Lost_Temple.webp. Brute and
+  Devourer each get their own pin on their icon (valguero.artifacts._cave_pins in
+  tools/reference/poptracker_logic.json, read off the image: Brute 490,705 / Devourer 765,826).
+
+## Changed 2026-11-17 (PopTracker, pending live test): Ragnarok boss pin = one row per boss, any difficulty
+- The Ragnarok "Dragon & Manticore" pin had Gamma/Beta/Alpha rows of 2 each, which read like 6 item
+  checks. Boss kills are goal progress, not item checks (the apworld keeps them out of the pool).
+- Now two rows: "Kill Dragon (Any Difficulty)" and "Kill Manticore (Any Difficulty)", 1 each; the
+  Gamma, Beta and Alpha kill ids of that boss all tick its row (BOSS_SECTIONS clamps at 0).
+- Opt-in per pair: boss_pairs.<pair>.per_member in tools/reference/poptracker_logic.json, handled by
+  poptracker_logic_apply.pair_bosses. Valguero's 3-boss pin and other maps are unchanged.
+
+## Changed 2026-11-17 (apworld + plugin data + PopTracker, pending live test): talon checks are x2/x10 like Scorched Earth
+- User: "do the 2x and 10x checks like how scorched earth does". The x5 talon checks added earlier
+  today (8757410-8757412) are REMOVED from locations.json, maps.json and collect_reqs (both copies).
+- Ragnarok now has the Scorched ids 8757323-8757328 (Fire/Lightning/Poison Talon x2 + x10);
+  Valguero has 8757323/8757324 (Fire Talon x2 + x10). One shared check per id, same Wyvern kill
+  rule as Scorched. PopTracker: the Milestones Fire/Lightning/Poison Talon objects gain Ragnarok
+  (and Valguero for Fire) pins with the talon icons. Test gens (seed 7, ragnarok-only and
+  valguero-only) place all of them.
+- Ice Talon (Valguero) still PENDING its item class (/apdumpinv); it will be x2 + x10 as well,
+  ids 8757413/8757414 reserved.
+
+## Fixed 2026-11-17 (PopTracker): talon x5 checks showed a text box instead of the talon icon
+- Ragnarok's Fire/Lightning/Poison Talon x5 and Valguero's Fire Talon x5 were drawn on the map as
+  "Fire Talon x5" text chips: compose_poptracker_map.resolve looked for an icon named
+  "firetalonx5". It now drops a trailing " x<n>" quantity, so they use the same
+  images/engrams/<Fire|Lightning|Poison>_Talon.png the Scorched Earth map shows. 0 text chips left.
+
+## Added 2026-11-17 (PopTracker, pending live test): gold aura on Crafting/Weapons/Armor/Loot/Artifact tabs
+- Same gold aura as the Tames grid (2026-11-08), now on every item of the crafting, weapon, armor,
+  loot and artifact grids (all maps). tools/poptracker_add_map.py add_item_glow bakes
+  images/glow/<engrams|crates>/<x>.png with the same _glow_image; each toggle gets img=glow and
+  disabled_img=plain (@disabled), so the glow only shows once the item is received.
+- 127 items, 118 images. Engram - Stone Pick is a static (default, always owned) item, so it just
+  always glows. Anything that is not a plain toggle/static is reported, not changed (none today).
+- Installed pack backed up to Downloads/poptracker/pack-backups/...-before-item-glow-20261117.
+
+## Added 2026-11-17 (apworld + plugin data + PopTracker, pending live test): Wyvern talon x5 checks
+- User: Ragnarok should have Fire / Lightning / Poison Talon x5, Valguero Ice / Fire Talon x5.
+- New inventory checks (locations.json + maps.json + tame_logic collect_reqs, both copies):
+  8757410 Fire Talon x5 (ragnarok + valguero, one id, PopTracker pin on both maps),
+  8757411 Lightning Talon x5 (ragnarok), 8757412 Poison Talon x5 (ragnarok). Classes from the wiki
+  Wyvern Talon page: PrimalItemResource_ApexDrop_FireWyvern / _LightningWyvern / _PoisonWyvern.
+  Rule = same as the Scorched talons: UseShotgun | StrongFightTames | InsaneFightTames, plus
+  tribute_dino (kill a Wyvern) by name prefix.
+- PENDING: Ice Talon x5 (valguero, id 8757413 reserved). Its item class is unknown (no wiki page,
+  not in the repo) - waiting for /apdumpinv while holding an Ice Talon. Not guessed.
+- Test gens (seed 7, ragnarok-only and valguero-only) place all new checks. dist rebuilt (plugin zip
+  carries the new locations.json). New apworld copied into ProgramData/Archipelago/custom_worlds
+  (old one backed up in the session scratchpad). PopTracker rebuilt + installed (backup
+  ...-before-talons-20261117).
+
+## Checked 2026-11-17: Valguero portal recipes per difficulty
+- Re-read the user's 3 screenshots (2026-11-15). The recorded comment said "Alpha adds Giganotosaurus
+  Heart", implying Alpha also needs Sauropod Vertebra - it does not. _comment_map_boss_tribute now
+  lists each recipe in full with counts and min level (Gamma 30, Beta 30, Alpha 70), both copies.
+- User decision: logic stays Gamma only (goal = any difficulty, Gamma = cheapest). No logic change.
+
+## Changed 2026-11-17 (PopTracker): Pit of Dreen tab is back, showing the GPS screenshot
+- User wants a Pit of Dreen tab after all, showing their in-game GPS screenshot (47.3 / 2.2).
+  tools/reference/poptracker_art/maps/Ragnarok_Pit_of_Dreen.png = the screenshot (original in
+  _source/maps/Ragnarok_Pit_of_Dreen_gps.webp) + a title box "Pit of Dreen / No cave: the Artifact
+  of the Devourer is in open ocean / In-game GPS 47.3, 2.2". _no_cave_tab is now [] (feature kept);
+  _cave_pins Devourer [823, 143] sits in the box. Ragnarok has 7 cave tabs, 0 Coming Soon.
+  Installed (backup ...-before-pit-of-dreen-tab-20261117).
+
+## Added 2026-11-17: Fallen Redwood Cave recorded - every Ragnarok cave tab now has a real map
+- 3 entrances (Eastern, Tree Trunk, Water), route Brute from Water Entrance (230 m). Brute at
+  35.2/78.3 = wiki 35.2/78.2. Pushed to PopTracker (Brute pin 1836,1045); Ragnarok now draws 0 Coming
+  Soon cards. Installed (backup ...-before-fallen-redwood-20261117).
+
+## Fixed 2026-11-17 (tools): big cave maps were one unreadable blob
+- Floor width had a fixed minimum of big // 90 px (28 px on a 2600 px picture) whatever the scale:
+  on Carnivorous Caverns that is ~35 m per passage, so every passage merged into one mass. Now
+  big // 200 (13 px); route line min big // 330.
+- Thinner passes showed criss-crossed rooms as combs of stripes (Frozen Dungeon), so each height
+  layer is drawn into its own image and morphologically closed (MaxFilter then MinFilter, 3x3
+  repeated close_px = ROOM_GAP_FILL 12 m * scale / 2, capped 16 px; crop to the layer's bbox):
+  gaps under ~12 m fill in as room in the neighbouring colour, separate passages stay separate. Edge
+  ring = closed mask grown by ring_px. Renders 2-7 s (uncapped it was 88 s on Monkey's Puzzle).
+- All 4 Ragnarok caves re-rendered, pushed to PopTracker, pack rebuilt and installed (backup
+  ...-before-readable-floor-20261116).
+
+## Added 2026-11-16: Carnivorous Caverns recorded, mapped, in PopTracker
+- Recording typed the cave as "Carnivious Caverns". The copy in trails/ragnarok/ is renamed
+  carnivorous_caverns_20261116-220507_*.jsonl with header cave "Carnivorous Caverns" (original kept
+  as "cave_as_typed"); every other line identical (LF endings instead of CRLF). Original download
+  untouched.
+- "Castle Entrance" and "Western Underwater Entrance" were /aptrail mark (notes): turned into
+  entrances in trails/ragnarok/carnivorous_caverns.edits.json (hide + add "entrance ...").
+  The western one is real: a long underwater tunnel ~1 km west, swum there and back.
+- Artifacts match the wiki: Cunning 20.2/46.0 (wiki 20.3/45.9), Immune 23.7/44.6 (23.6/44.5).
+- cave_trail_map.py: label placer tried only 8 spots next to the point and accepted an overlap
+  (Castle / Western Underwater entrance labels on top of each other). Now 4 rings of 8 spots, least
+  overlap wins, leader line when moved out. "Drop into Immune Portion" lost its first word: a mark
+  keyword followed by a preposition (into, to, down, ...) now stays in the label.
+- PopTracker: tools/cave_maps_to_poptracker.py + --all; Carnivorous Caverns tab has the map with
+  Cunning (2156,784) and Immune (2007,1143) pins. Only Fallen Redwood Cave is still Coming Soon.
+  Installed over Downloads/poptracker/packs/...-0.1.1-allmaps (backup ...-before-carnivorous-20261116).
+
+## Added 2026-11-16 (PopTracker, pending live test): /aptrail cave maps in the tracker
+- New tools/cave_maps_to_poptracker.py: every recorded artifact cave -> render if stale, copy to
+  tools/reference/poptracker_art/maps/<Pop>_<Cave>.png, write artifact pixels to
+  poptracker_logic.json artifacts._cave_pins (block rewritten in place, hand layout kept). Skips a
+  cave whose listed artifacts are not all marked; warns on an artifact mark that belongs elsewhere.
+- Ragnarok now: Frozen Dungeon (Pack 2341,621), Jungle Dungeon (Hunter 965,1697), The Monkey's
+  Puzzle (Strong 876,1031) replace their Coming Soon cards. Fallen Redwood Cave and Carnivorous
+  Caverns are still Coming Soon (not recorded).
+- Pit of Dreen is not a cave (Devourer in open ocean): new artifacts._no_cave_tab in
+  poptracker_logic.json; patch_poptracker_pack.py skips the cave tab for those, the pin stays on the
+  Ragnarok map. Ragnarok now has 6 cave tabs (was 7).
+- Built build/poptracker_pack (no new dead references). Installed (user asked) over
+  Downloads/poptracker/packs/Arkipelago-Poptracker-0.1.1-allmaps, manifest kept at 0.1.1; the old
+  folder was moved to Downloads/poptracker/pack-backups/...-before-cavemaps-20261116.
+
+## Fixed 2026-11-16 (data on the cave maps): Frozen Dungeon artifact is Pack, not Hunter
+- The recording marked the artifact "Hunter", and the hand-drawn route was named Hunter. Its GPS is
+  33.6/43.4 = wiki Artifact of the Pack (33.5/43.4); tame_logic _caves already says Pack = Frozen
+  Dungeon, Hunter = Jungle Dungeon (21.5/27.2, matches that recording exactly). Fixed in
+  trails/ragnarok/frozen_dungeon.edits.json (hide "artifact Hunter", add "artifact Pack" at the same
+  spot, route renamed Pack); backup frozen_dungeon.edits.before-pack-fix.bak. Recording unchanged.
+- Cave map GPS (geo scale x10) is now VERIFIED on Ragnarok: Hunter, Strong and Pack all land on the
+  wiki's artifact GPS. Closes the "GPS unverified" item.
+- Pit of Dreen (Devourer, Ragnarok) has no cave: the artifact is in open ocean, in-game GPS 47.3/2.2
+  (user screenshot; wiki 47.4/2.3). No cave map needed. Logic already treats it as underwater
+  (map_cave_reqs ragnarok Devourer = Basilosaurus | Megalodon | DeepDive).
+
+## Changed 2026-11-16 (tools only): floor height easier to read
+- Old: one 2-colour tan ramp over the whole recorded z range (flights included), so levels looked
+  alike. Now: 5-stop ramp (slate, brown, tan, sand, cream; no blue/orange) over the floor's own
+  1st-99th percentile heights (no fly/wire points, at least 10 m); floor drawn in 10 height layers,
+  lowest first, edge then fill per layer, so higher passages over lower ones get a dark rim and
+  slopes show step rims. Legend: "Cave floor: -385 m to +0 m from the entrance" (first entrance mark).
+
+## Fixed 2026-11-16 (tools only): drawn pathway hid the thin wire
+- Frozen Dungeon: the hand-drawn Hunter pathway goes along the 124 m thin wire, drawn green on top
+  of it (wire stripes peeking out). cave_trail_map.py wire_on_drawn(): a drawn pathway stretch that
+  starts within 6 m of one wire end, ends within 6 m of the other and stays within 8 m of the wire
+  gets k="wire" (drawn striped, legend "Thin wire"). Crossings stay green.
+
+## Fixed 2026-11-16 (tools only): running editor ignored new edit types
+- User's Erase line strokes on Frozen Dungeon did nothing: cave_map_edit.py was started before
+  erase_line existed, kept the old cave_trail_map.py module in memory, and its load_edits dropped the
+  unknown op silently. Now the editor reloads cave_trail_map.py whenever the file changed before each
+  render, and load_edits prints a WARNING naming any unknown edit type (and counts malformed ones).
+- Follow-up: the save at 14:46:23 was rendered by the OLD editor (lines kept); the restarted one
+  saw a PNG newer than the edits and never re-rendered. The side .json now records
+  renderer_mtime + edits_mtime, and Cave.stale() re-renders when either differs.
+
+## Added 2026-11-16 (tools only): editor "Erase line"
+- User used Erase trail on Frozen Dungeon meaning to remove only the green pathway line, which also
+  removed the floor. Restored: frozen_dungeon.edits.json emptied; the 4 mistaken erase strokes are
+  kept in frozen_dungeon.edits.json.erased-by-mistake.bak (and .first-erase.bak). Recording untouched
+  (byte-identical to the download).
+- New edit op `erase_line` (editor tool Erase line, key X): points inside get "noline", the line
+  drawers skip them (lined()), floor/drops/marks unchanged. Tested with the user's 4 strokes as
+  erase_line: floor intact, lines gone.
+
+## Added 2026-11-16 (tools only): editor pathway, place and remove marks
+- cave_map_editor.html: Pathway tool (R, brush or polygon; snaps start to an entrance and end to an
+  artifact, asks artifact/entrance), Place tool (C; red/yellow/blue/green/purple/white crate or a
+  note), Hide mark renamed Remove mark (also deletes a placed mark outright).
+- cave_trail_map.py edits: new ops `add_mark {label,x,y}` and `route {artifact,from,pts}`. Height
+  = nearest recorded point. Drawn routes are all walking (m=1, so no guessed drops), no floor under
+  them, legend length = 2D length of the drawing. Output json marks gain kind/name, routes "drawn".
+- cave_map_edit.py: a copy of a recording that is already under trails/ (same file name) counted
+  twice (every mark doubled). Same file name now counts once, the copy named on the command line wins.
+- Verified in the browser on a scratch copy of Frozen Dungeon: draw, snap, prompts, place crate +
+  note, remove crate, delete placed crate, save + render.
+
+## Fixed 2026-11-16 (plugin v223 pending live test + tools): route walked while paused
+- Frozen Dungeon recording: `/aptrail pause` at t=2624 s, never resumed, then the whole Hunter
+  route from Flyer Entrance was walked paused. Plugin wrote no points (correct for pause), but the
+  renderer drew a fake straight line entrance -> artifact from the route_start/route_end positions.
+- cave_trail_map.py: route_start while paused no longer seeds a point, route_end while paused adds
+  none; a route with no real trail samples is skipped with a message ("record it again").
+- PluginMain.cpp v223-trail-route-resume: `/aptrail route ...` or `/aptrail room` while paused
+  auto-resumes (writes a resume line, chat says so). `cancel` forms do not resume.
+- Hunter route in Frozen Dungeon must be re-recorded.
+
+## Added 2026-11-16 (tools only): cave map gallery
+- User wants one place to look at all the maps. cave_map_edit.py now serves every cave at once:
+  / = tools/cave_map_gallery.html (cards per cave grouped by map: picture, entrances, artifacts,
+  routes, recordings, hand-edit count; Edit / Open PNG / Download; full-screen view; filter),
+  /api/caves (rescans trails/ on each load), /thumb/<map>/<cave>.png, /edit/<map>/<cave>/ = editor
+  (its fetches are now relative; "All maps" link back). A cave's PNG is re-rendered when any
+  recording, its edits file or cave_trail_map.py is newer. Same cave slug on two maps renders to
+  <map>_<cave>.png. No argument = gallery; a cave name or files = straight into that editor.
+- Verified in the browser: gallery lists the 3 Ragnarok caves with pictures and route/artifact
+  tags; Edit opens Jungle Dungeon with its 20 saved edits; save through the new URL re-renders.
+
+## Added 2026-11-16 (tools only): hand-edit cave maps (tools/cave_map_edit.py)
+- User wants to edit the maps: remove/erase trails, draw lava.
+- Non-destructive: edits live in <trails dir>/<slug(cave)>.edits.json in world units (ops erase /
+  lava / water / floor as brush {width, pts} or poly {pts}, plus hide_mark {label, x, y});
+  cave_trail_map.py loads and validates it on every render (--edits / --no-edits). erase drops
+  recorded points inside the shape (walks and route parts split there); lava/water paint goes
+  under everything walked; floor paint gets the floor edge and the height of the nearest walked
+  point; hidden marks match label within 1 m; paint extents count toward the image bounds.
+- cave_map_edit.py: renders, serves tools/cave_map_editor.html on 127.0.0.1:8765, POST /save
+  writes the edits (atomic, .bak of the previous) and renders again. Editor: brush/polygon tools,
+  hide-mark click, undo/redo, edits list with delete, pan/zoom, Ctrl+S.
+- Verified in the browser on a synthetic room: lava brush, erase brush, water polygon, hide mark,
+  save, re-render, reload (edits persist), undo/delete. No console errors. Recordings unchanged.
+
+## Added 2026-11-16 (plugin v222, pending live test): /aptrail lava, fillroom lap check, crate labels
+- Jungle Dungeon recording (Ragnarok): both "/aptrail fillroom lava" uses meant "the ground I walk is
+  safe, everything round it is lava" (Hunter island reached by grapple; round room with rings and
+  N/E/S/W walkways, red crate in the middle). fillroom lava means the opposite (lava INSIDE the lap),
+  and neither had /aptrail room: the first auto-closed on a 15 m wiggle (10 m2, invisible), the
+  second found no lap at all. The map showed a Lava legend row and no lava.
+- /aptrail lava (alias safe): new mode line "lava". Renderer: drawn as normal floor; before the floor
+  edge pass a LAVA_FLOOR band (corridor + 2 x LAVA_AROUND = 6 m each side) is drawn along it, so
+  every floor sits on top. Ends at the next mode command (/aptrail walk).
+- Automatic fillroom laps (no /aptrail room) under ROOM_MIN_AREA (25 m2) are skipped with a message.
+- Plugin keeps every written point's x/y (TrailRec.lapPts, capped 20000) and TrailLap() mirrors
+  room_lap(): fillroom now replies with the lap size, or NOT FILLED (no lap / tiny auto lap), with a
+  hint to use /aptrail lava when the fill word was lava.
+- mark_kind(): a colour word plus "cave drop" or "crate" anywhere in the label is a crate icon
+  ("Red Cave Drop" was a plain note).
+- Jungle Dungeon's two lava rooms need re-walking with /aptrail lava (same /aptrail start name,
+  files merge); the user also said part of the round room's middle was missed.
+
+## Added 2026-11-16 (renderer only): GPS coordinates on cave entrances
+- User wants the entrance coordinates on the cave maps. cave_trail_map.py gps_of(): lat/lon from the
+  GPS constants in the recording's start line, scales x10 when under 3000 (the plugin's known 10x-low
+  read, compass-verified on Valguero/The Center). Entrance label "Entrance: X  (lat, lon)"; every
+  mark in the .json gets "gps". Recordings without the geo block get no coordinates.
+- UNVERIFIED for Ragnarok: these constants give 13100/50.01, the calibrated KNOWN pair in
+  import_drawn_regions.py is 13009.4/49.99 (from map-corner /dumppos, not the compass). At The
+  Monkey's Puzzle entrance that is (24.7, 25.0) vs (24.5, 24.8). Waiting on the user's in-game GPS
+  reading at that entrance to confirm which is right.
+
+## Added 2026-11-16 (plugin v221, pending live test): /aptrail pause | resume
+- User asked for a command to pause the mapping.
+- Plugin: TrailRec.paused; TrailTick skips sampling while paused. pause/resume (also unpause,
+  continue) write {"type":"pause"|"resume", t, x, y, z}. Resume sets have=false so the distance moved
+  while paused is not counted. Cave, mode, route and room stay as they were; pausing with a route or
+  room lap open warns to resume at the same spot. /aptrail status shows PAUSED.
+- cave_trail_map.py: resume breaks the segment and the route part (like a teleport, but at any
+  distance); a mode switch made while paused sets the mode without adding a point. Synthetic test:
+  15 m sideways move while paused is not drawn (it would have been, being under the 25 m jump limit).
+
+## Changed 2026-11-16 (renderer only): cave map text smaller, one arrow per entrance
+- User: text on the map too big. Map labels big/85 -> big/125 (2600 px image: 30 -> 20 px), legend
+  big/75 -> big/92, title big/38 -> big/46, footer big/110 -> big/130. New --text-scale multiplies all.
+- Carnivorous Caverns showed "Entrance: North" twice (/aptrail entrance North, then route ... from
+  North 27 m away). Now one arrow per entrance name: the mark at a route's start wins, else the first.
+
+## Fixed 2026-11-16 (renderer only, no plugin change): a fall off the wire lost its height change
+- User: "the fall from the thin wire will not show correctly an elevation change". Confirmed on a
+  synthetic recording without a mid-fall /aptrail walk (the v220 test had typed one mid-fall,
+  which nobody does):
+  - the whole walk back after landing stayed in wire mode, so it was drawn as a 1 m striped strip
+    instead of the lower floor - the lower level vanished from the map;
+  - with routes on the map, a drop outside a route got no symbol, so the fall was invisible;
+  - no drop said how far it goes; the drop band was shaded at the top of the fall.
+- cave_trail_map.py load_trails: while in wire mode, a falling run (m=3) that loses DROP_MIN ends
+  the wire at the landing point (mode becomes walk until the next /aptrail command). A teleport while
+  on the wire (after walking at least one point on it) also ends it and adds a "drop fall off the
+  wire = back to start" mark at the last point. classify(): the landing step is part of the drop, so
+  its height is floor to floor. Drawing: a fall off the wire always gets its symbol, labelled "Fall
+  off the wire: N m down"; every other drop/climb symbol gets "N m down" / "N m up"; drop steps are
+  shaded at their landing height and not thinned. Earlier synthetic tests render byte-identical;
+  Carnivorous Caverns changes 66 px (one drop shaded at its landing height), re-rendered.
+
+## Added 2026-11-15 (plugin v220, pending live test): /aptrail wire
+- User: a cave crossed on a thin wire; falling off sends you back to the start, at a height difference.
+- /aptrail wire (aliases beam, tightrope, rope) writes a mode line "wire". Renderer: wire steps are
+  left out of the 5 m corridor band and drawn AFTER the whole floor as a 1 m strip (WIRE_WIDTH) plus
+  a yellow-black striped line (draw_wire), so a passage underneath never covers it. Falls off the
+  wire still become drops. Legend "Thin wire - falling sends you back". Synthetic test OK; older
+  recordings and the earlier room/lava/manual tests render byte-identical.
+
+## Added 2026-11-15 (plugin v219, pending live test): /aptrail fillroom lava | water
+- User: a cave has an open room ringed by lava; fill the room, then walk the safe ground through it.
+- fillroom line carries "fill": "lava"|"water". Renderer: hazard rooms fill LAVA_FLOOR / WATER_FLOOR
+  with an edge outline; their lap points get "hide" so the lap (usually flown) is not drawn as floor
+  or as a line; whatever is walked afterwards is drawn as floor on top. Legend "Lava - do not walk".
+  Verified on a synthetic recording; plain rooms and older recordings render identically.
+
+## Added 2026-11-15 (plugin v218, pending live test): /aptrail room | fillroom
+- User: filling a big room by walking back and forth is tedious. Walk the edge, /aptrail fillroom.
+- Plugin writes room_start / fillroom / room_cancel lines (/aptrail room, fillroom or room fill|end,
+  room cancel). cave_trail_map.py room_lap(): from /aptrail room to the fillroom point, or without
+  one, back to the last trail point within ROOM_CLOSE (6 m) once ROOM_MIN_LAP (15 m) was walked.
+  Filled between the floor-edge and floor passes at the lap's mean height (water if mostly swum).
+  Verified on a synthetic recording (auto + explicit); recordings without rooms render identically.
+
+## Added 2026-11-15 (plugin v217, pending live test): /aptrail swim | fly | walk
+- First real recording (Ragnarok Carnivorous Caverns, explored on a flyer) came out 93% "swimming":
+  a flying mount reports MOVE_Swimming (mode 4), so the whole map was water.
+- User: mark it by command instead. /aptrail swim | fly | walk (aliases underwater/water/dive,
+  flying/flyer, walking/foot/land) write a {"type":"mode"} line. cave_trail_map.py: once a file has
+  any mode line, swim/fly come ONLY from them (start = walk); climbing pick + 3 m falls stay
+  automatic on foot. New purple "Fly (flyer needed)" kind. Files without mode lines render as before
+  (verified identical). --no-modes renders an older flown recording by height instead.
+
+## Fixed 2026-11-15 (plugin v216 + PopTracker, pending live test): boss kills never ticked in the tracker; Valguero Broodmother one difficulty
+- Symptom (user): killing a boss does not check it off in PopTracker.
+- Cause: bosses are the GOAL (boss_out.jsonl base tags -> "X Defeated" events), not AP locations.
+  The tracker's boss sections are mapped to the boss location ids 8750xxx, which nobody ever
+  checks; the Island pack's trophies are hand toggles.
+- Plugin: SignalBossDefeat also writes the killed difficulty's boss location id to
+  ipc/<route>/boss_locs_out.jsonl (BossLocFor: class "_Easy"/"_Medium"/"_Hard" = Gamma/Beta/Alpha,
+  Fenrir_Character_BP_Boss_Easy_C confirmed; no token = single-difficulty world boss -> Gamma, logged
+  "BOSS-KILL no difficulty in class"). Relics count as Gamma. Never sent as a LocationCheck.
+- Client: reads boss_locs_out.jsonl into the played record (ark_ase_played_<team>_<slot>).
+- Pack: tame_badges.lua BOSS_SECTIONS (16 ids -> sections from location_mapping.lua) and
+  BOSS_TROPHIES (Island broodmother/megapithecus/dragon_trophy). Sections only ever clear, so a
+  hand-cleared section stays cleared. Kills before v216 are not backfilled (difficulty unknown).
+- UNVERIFIED: class names of Island/Valguero arena bosses with the difficulty suffix. If a kill logs
+  "no difficulty in class", that difficulty is being counted as Gamma - send the BOSS-KILL line.
+- Valguero Broodmother (SpiderL_VAL_Character_BP_C, a world boss) has one difficulty (user):
+  8750010/8750020 removed from maps.json content.valguero (data + apworld); its tracker entry has a
+  single Gamma section. The Center keeps all three.
+
+## Fixed 2026-11-15 (plugin v215, pending live test): Tek engrams stayed locked after the goal
+- Symptom (user, after finishing + releasing): Tek engrams still locked.
+- Cause 1: the plugin gates every engram in its table, Tek included, and Tek only unlocks through
+  tek_grants.json on a boss kill. build_release.py never put tek_grants.json in ArkAP_plugin.zip,
+  so on a real server the grant table was empty (log: tek_bosses=0) and Tek could never unlock.
+  Now shipped.
+- Cause 2: tek_grants.json is keyed by the Island's four bosses. Valguero/Ragnarok have no
+  Overseer (19 engrams) and the Manticore grants nothing, so part of the Tek set had no source.
+  Not guessed a Manticore set; covered by the goal unlock below.
+- New: when the slot's goal is met, the embedded client writes ipc/<route>/goal_reached.json and
+  the plugin owns EVERY engram in its table for that route (one state save, State::AddItems), then
+  ReassertEngrams keeps them granted. Chat: "Goal complete - N remaining engrams unlocked (Tek
+  included)!", log GOAL-UNLOCK. The client re-detects the goal on each connect from boss_out.jsonl,
+  so a run that already finished gets it after updating and reconnecting. New seed deletes the
+  marker (ResetOnNewSeed, PurgeStaleMailboxes, reset_ark_test.bat, STATE_PERSISTENCE.md rule 8).
+
+## Changed 2026-11-15 (apworld + PopTracker, pending live test): Valguero Guardian's Sanctuary
+- User (in-game recipes): Dragon, Manticore and Megapithecus are fought together. Gamma = Devourer
+  + Pack + Skylord + Allosaurus Brain / Argentavis Talon / Sarcosuchus Skin / Sauropod Vertebra /
+  Titanoboa Venom. Beta = Cunning + Immune + Strong (+ Tyrannosaurus Arm). Alpha = Brute + Crag +
+  Destroyer + Gatekeeper (+ Giganotosaurus Heart). Goal = any difficulty, so logic uses Gamma.
+- tame_logic.json: map_boss_artifacts.valguero (the 3 bosses = Gamma set), map_boss_tribute.valguero
+  (Allosaurus, Argentavis, Sarcosuchus, Bronto, Titanoboa; all on Valguero per the checklist).
+- Logic change (apworld _boss_ast + poptracker_rules): tribute now sits inside each map's variant,
+  and map_boss_tribute REPLACES boss_tribute_dino on that map. Before, the Scorched Manticore's
+  Wyvern talons were ANDed into every map's Manticore, and Fjordur's organs into every map's boss.
+- PopTracker: the three merge into one "Dragon & Manticore & Megapithecus" pin (artifacts + tribute
+  kills + fight tames). Ragnarok's pair unchanged. Test gen: 3 Valguero-only slots, all_bosses, OK.
+
+## RESTORED 2026-11-14 (plugin v214, pending live test): played record for tracker tames/levels (first v212, reverted in v213)
+- v213 reverted it ("most games do it the old way"); research then showed that is only true for
+  MAP PINS. Game state in the big packs comes from data storage the game writes: Pokemon Emerald
+  (pokemon_emerald_events_/keys_ bitfields, "or"), Pokemon Crystal (~15 keys), The Witness
+  (WitnessActivatedLasers<slot> drives the laser count). KH2/Banjo-Tooie/Psychonauts only clear
+  pins from checked locations. Restored as v214 (same code as v212).
+- Symptom: after a friend finished, PopTracker put T badges on creatures never tamed and said
+  Level 103. The pack's T badge = "Tamed: X" location checked, Level = 1 + checked "Reach Level N"
+  locations. Archipelago's collect (auto on goal) marks every location in this world holding the
+  finisher's items as checked, so "checked" stopped meaning "done in game". In-game state was never
+  affected (the client does not feed server-checked locations to the plugin).
+- Fix: APClient pushes every check the game itself wrote to checks_out.jsonl (also ones the server
+  already had) to data storage key `ark_ase_played_<team>_<slot>` ({"<loc id>": 1}, "update"
+  merge), re-pushed whole after each (re)connect, so a run already in progress backfills.
+- Pack: tame_badges.lua (poptracker_add_map.py add_tame_badges) now owns the Level counter too: the
+  104 "Reach Level" lines in location_mapping.lua are blanked (marked "Level counter: tame_badges.lua").
+  With the record present, T badges + Level follow it; without it (older plugin) they fall back
+  to checked locations as before. Location sections still clear on collect (AP semantics: nothing
+  left to get there).
+
+## Fixed 2026-11-12 (scripts): transfer bridge server ran without mods
+- start_transfer_server.bat never passed GameModIds, so a bridge transfer would drop anything from
+  a mod (S+ items, mod dinos). It now READS SERVER_ROOT, MODS, CLUSTERID, CLUSTERDIR, SAVESROOT and
+  TRIBUTEEXP from start_ase_server.bat in the same folder (one PowerShell Select-String), so the two
+  can never drift; fallbacks only when that file is missing (warns, no mods). No -automanagedmods
+  on the bridge: the main server already downloaded them into the shared install.
+
+## Added 2026-11-12 (plugin v209-v211, pending live test): /aptrail cave trail recorder + routes + guide map
+- `/aptrail start <cave>` / `mark <label>` / `stop`: samples the caller's position every 0.25 s
+  (new per-frame AddOnTickCallback "ArkAP_trail"; does nothing while nobody records) into
+  <plugin>/trails/<map>/<cave>_<date>_<steamid>.jsonl. Same GetPosition as the explore checks.
+  Points only written after >= 1 unit of movement; a server hitch drops samples, never bursts.
+- tools/cave_trail_map.py renders one or more recordings: lines coloured by height, teleport
+  gaps (> 2500 units per sample) not drawn, marks labelled; `artifact <Name>` marks become
+  _cave_pins. --base + --pins/--anchor overlays onto an existing cave image (least-squares
+  scale + offset, per-anchor error printed). Docs: docs/CAVE_TRAILS.md.
+- trails/ is not state: listed as deliberately NOT reset in STATE_PERSISTENCE.md.
+- v210: routes. `/aptrail entrance <name>`, `/aptrail route <artifact> [from <entrance>]`,
+  `/aptrail arrived`, `/aptrail route cancel` record THE path from an entrance to an artifact
+  (route_start/route_end lines; artifact name normalised from "Clever" / "artifact Clever" /
+  "Artifact of the Clever"). The renderer draws finished routes bold, one colour per entrance,
+  with a length legend; --routes-only for a clean map at the same scale.
+- v211: each sample also records the movement mode ("m": walking/falling/swimming, of the ridden
+  dino when riding) and "c":1 on a climbing pick (SEH-guarded read). cave_trail_map.py rewritten
+  as a readable guide map (modelled on the community Life's Labyrinth map): wide cave-floor band
+  (lighter = higher, water blue), routes coloured green walk / blue swim / orange drop (fall of
+  3 m+) / red climb with auto symbols at drops and climbs, entrance arrows in the route's
+  direction, artifact icons, mark keywords (crate <colour>, button, climb, drop, water, danger),
+  non-overlapping labels, title, legend of what is used, compass, metre scale bar.
+
+## Fixed 2026-11-12 (PopTracker, pending live test): generated maps lost Cementing Paste + cave crates; boss artifact hover
+- Crafting grid on Ragnarok/The Center/Valguero had no Cementing Paste: patch_poptracker_pack's
+  _grid_codes only matched lowercase codes, and the pack's code for it is "CP". Now mixed case.
+- Loot Crates grid on those maps had no cave crates: keep() looked for "cavecave..." prefixes but
+  crates.json names normalise to "cavecratecavet1" etc., so nothing ever matched. Valguero now
+  shows the Cave + Swamp Cave crates, The Center all four biomes. Ragnarok still shows none:
+  maps.json tags no cave crate item to Ragnarok (data question, not changed).
+- Artifact icons under the boss portraits are painted into the map image, so hovering showed
+  nothing. Each icon now gets a 10px pin on its lower-right corner named "Artifact of the X
+  (Boss)" with a "ref" section to the artifact's cave section (shared state, like the Life's
+  Labyrinth pins). Painter and patcher share L.boss_artifacts / L.boss_artifact_cells.
+- Valguero's Broodmother is a world boss you walk up to (no summon, user 2026-11-12), but it used
+  the Island's Clever/Hunter/Massive, which Valguero has no checks for. tame_logic.json
+  map_boss_artifacts.valguero.Broodmother = [] (data + apworld): no artifacts in the apworld's
+  Valguero variant, none painted or pinned under its portrait. It still needs the same fight
+  tames as the Island bosses: map_boss_reqs.valguero.Broodmother = StrongFightTames | InsaneFightTames.
+- 2026-11-14 (user): every Valguero boss needs the fight tames, so map_boss_reqs.valguero is now
+  {"*": StrongFightTames | InsaneFightTames} like Island/Ragnarok (Megapithecus, Dragon, Manticore
+  keep their artifacts / Manticore's Wyvern + bow KO on top).
+- Ragnarok cave crates: user confirms they exist, but maps.json tags none to Ragnarok and every
+  local ArkAP_debug log is from the Island, so the Ragnarok crate classes are unknown. Waiting on a
+  Ragnarok log ("CRATE name=" lines) or the server's crate_queue.jsonl before tagging anything.
+  Note: if their classes match ours (plain names or a _Ragnarok suffix), a Ragnarok-only slot
+  never receives the crate item and the plugin DESTROYS those crates.
+
+## Added 2026-11-11 (plugin v208, pending live test): /aplatemod for the Note Tracker + all pillar sizes
+- `/aplatemod 1631378184` unlocked nothing: the Note Tracker has no base-game twin, and a seed WITH
+  the mod gives it free at start (mod json "auto_grant", apworld precollects it). Tables now load
+  each mod's auto_grant list (only the mod's OWN engrams; base GPS is skipped since it is still a
+  real AP item in a seed made without the mod) and SyncLateMods grants those first.
+- Pillars: owning base "<Mat> Pillar" now unlocks S+ Small/Medium/Large/Dynamic Pillar <Mat>
+  (gen_late_pairs.py PILLAR_SIZES, Justin's call). Adobe was missing from the generator's
+  MATERIALS list, so Adobe pieces now pair too (all exact base twins). late_pairs: 108 -> 148.
+- Build note: an incremental LTCG link hit C1001 in Tables.cpp; a full /t:Rebuild fixed it (the
+  failed link left a 2 MiB hole dll, which build_release's verify_dll would have refused).
+
+## Added 2026-11-10 (plugin v206/v207, pending live test): /aplatemod - a building mod installed after the seed
+- A seed generated without Structures Plus has no S+ items, so all S+ engrams stay locked even once
+  the mod is installed. `/aplatemod 731604991` (Super Structures 1999447172 also accepted) turns it on
+  for the caller's slot and unlocks ONLY the mod's versions of what that slot already owns:
+  1. variant pairs, same rules as the apworld's _variant_pairs (VARIANT_ALIAS, the " Plus"/" Tek"/
+     " SS"/" SP"/" LR" suffixes, the " Plus " infix) against an OWNED base-game engram;
+  2. mod structures of a material bundle (bundle_structures) already received, as ApplyStructureBundle
+     hands a slot that has the mod.
+  Mod-only engrams with no base twin (S+ Wiring/Turrets/Automation bundles etc.) stay locked.
+  Fork filter: an engram whose "variants" list lacks the declared id is skipped.
+- Saved per mailbox in ipc/late_mods.json, re-checked every 5 ticks, so a structure received later
+  brings its S+ version along. A seed reset empties it. Refused when the seed already has the mod.
+  `/aplatemod` alone lists what is on. Tables now load mod "variants", "aliases" and names.
+- v207: material pieces for seeds WITHOUT bundle_structures. S+ names them material-last ("Ceiling
+  Stone") and our base names come from class names ("Stone Ceiling", "Stone Floor" = Foundation).
+  tools/gen_late_pairs.py writes data/mods/late_pairs.json (+ apworld mirror, plugin-only): a piece
+  pairs when, after the renames Window Wall/Doorframe/Hatchframe/Foundation/Staircase/Gateway ->
+  Wall With Window/Wall With Door/Ceiling With Trapdoor/Floor/Stairs/Gategrame, its words equal
+  exactly ONE base structure. 108 S+ pieces pair. Still locked (no single base twin): pillar sizes,
+  Large/XL hatchframes + trapdoors, XL walls, tree wedges/circles, cliff circles, pipes, Tek
+  stations (Forge/Stove/Storage/...), glass and elevator pieces.
+- Totals for the S+ fork: 94 suffix pairs + 108 table pairs unlock with their base piece.
+- reset_ark_test.bat + STATE_PERSISTENCE.md updated for the new file.
+
+## Added 2026-11-10 (PopTracker, pending live test): Ragnarok Life's Labyrinth real cave map
+- tools/reference/poptracker_art/maps/Ragnarok_Life_s_Labyrinth.png (the user's map, ARK Patch 276,
+  2000x1985 high-res; original .jpg in _source/maps/, the first low-res .webp kept beside it)
+  replaces the tab's Coming Soon card.
+- New poptracker_logic.json artifacts._cave_pins (cave-image pixels, optional _size). A cave with
+  every artifact listed gets one pin per artifact on its tab (patch_poptracker_pack.py): each pin is
+  its own object whose single section is a "ref" to the cave object's section, so the overworld pin
+  and the cave pins share state. Clever 1005,264 / Skylord 1133,155 / Devious 1371,660 / Massive 1375,694 (size 24),
+  matched to the image legend; consistent with the wiki lat/lon in _positions.
+- Unverified live: PopTracker "ref" path format (Ragnarok/Life's Labyrinth/Artifact of the X).
+
+## Added 2026-11-08 (PopTracker, pending live test): gold aura on unlocked tames
+- Some creature art is nearly grey, so @disabled greyscale barely showed locked vs unlocked.
+  tools/poptracker_add_map.py add_tame_glow bakes images/dinos_glow/<x>.png (gold aura, creature
+  shrunk to 84% to make room; 32px source art is upscaled to 256 first) for every Tames-grid item.
+- Only unlocked states use it: toggles get img=glow + disabled_img=plain (@disabled); composites
+  get it on left=true states (tame received), so a saddle-only state stays plain.
+
+## Added 2026-11-08 (PopTracker, pending live test): "T" on creatures already tamed once
+- tools/poptracker_add_map.py add_tame_badges writes scripts/tame_badges.lua: every "Tamed: X"
+  location id (data/dinos.json tame_loc) -> that creature's Tames-grid item code. Its own
+  Archipelago location handler puts a "T" overlay (bottom-left; the saddle "S" is bottom-right) on
+  the icon when the check is done, and its clear handler wipes them on connect.
+- 108 creatures resolved. 15 have no icon on any Tames grid (Andrewsarchus, Desmodus, Fjordhawk,
+  Gacha, Gasbags, Maewing, Snow Owl, Megachelon, Shadowmane, Magmasaur, Ferox, Shinehorn, Rock
+  Drake, Basilisk, Fenrir) so they get no badge.
+
+## Fixed 2026-11-05 (plugin v205, pending live test): fall death said "taken out by another survivor"
+- ARK names the victim's own body/controller as the causer/killer of self-inflicted damage. The
+  "player" kind matched any PlayerPawn causer, so a fall death picked a "player" line.
+- PluginMain.cpp: ResolveDyingRoute stores the dying controller (g_dyingPC). DeathKind and
+  BuildDeathCause ignore a causer that is the victim, or a killer that is the victim's own
+  controller, so the fall rules (damage type, or a 40+ hit with no attacker) decide. "player" now
+  only fires for someone else's PlayerPawn.
+- The "DEATH type=... causer=... dmg=..." line is now logged on every death (was only with death
+  checks on); causer=self marks the self-inflicted case.
+
+## Added 2026-11-05 (plugin v204, pending live test): DeathLink says what killed us
+- Outgoing DeathLinks said only "<slot> died in ARK". Now the plugin picks a random line from
+  data/death_messages.json for what killed the survivor, e.g. "Ghios tried feeding a Raptor, but the
+  Raptor ate Ghios instead". {name} = survivor name, {dino} = the creature's in-game name.
+- Kinds: DeathKind's (carnivore, herbivore, alpha, drowning, starvation, dehydration, cold, heat,
+  lava, falling) plus trap (an AP trap creature), player (PlayerPawn causer) and
+  unknown. "a {dino}" turns into "an" before a vowel.
+- PluginMain.cpp: BuildDeathCause runs in DoDeathCheck (before Die) and now runs even with death
+  checks off. death_out.jsonl lines are {"death":1,"cause":"..."}. APClient.hpp and the connector
+  send that cause and also show "DeathLink: <cause>" in our own chat.
+- Unverified: DescriptiveNameField for the creature name (an alpha gets "Alpha " added if missing).
+  The debug log prints "DEATHLINK cause: ..." on every death. No "tamed" kind: you cannot die to
+  your own tame (Justin 2026-11-05).
+- death_messages.json ships in ArkAP_plugin.zip (build_release.py). Edit it in data/ and rebuild.
+
+## Changed 2026-11-05: Liopleurodon has no checks on any map
+- Liopleurodon only temp-tames in ASE. Justin: remove both checks on every map that has it.
+  Before this it still had Tame: Liopleurodon (item 8732043), Tamed: Liopleurodon (8753042) and
+  Killed: Liopleurodon (8755042). Only Titanosaur had been changed before (kill-only, 2026-07-27).
+- data/dinos.json (+ apworld copy): entry removed. data/maps.json (+ apworld copy): the 3 ids removed
+  from all 9 maps that listed them (island, center, ragnarok, valguero, crystalisles, lostisland,
+  fjordur, genesis2, astraeos). tools/gen_dinos.py: NO_CHECKS = {"Liopleurodon"}, skipped inside the
+  enumeration so every other id stays put.
+- Plugin: no code change. With no dinos.json entry it does not gate the tame and sends no check.
+- PopTracker: new remove_object fix type in tools/poptracker_add_map.py; poptracker_pack_fixes.json
+  drops the Dinos/Liopleurodon object, its Island grid icon, its DEEP_TAMES_LIST line and its two
+  location_mapping lines. The per-map grids drop it on their own (built from dinos.json + maps.json).
+- Dossier: Liopleurodon (explorer note) is a separate check and stays.
+- Verified: Island and Ragnarok seeds generate; the Island spoiler has only the Dossier left.
+- A seed generated BEFORE this still has the two Liopleurodon checks, and the new plugin can no longer
+  send them. Finish (or release) those checks before swapping the plugin on a running seed.
+
+## Fixed 2026-11-05 (tracker): items unlocked as part of a group never lit
+- Simple Bed was received and the server also unlocked Mortar And Pestle (same engrams_per_item group, rep
+  Engram: Simple Bed 8730020), but the tracker's crafting grid left Mortar dark.
+- onItem (scripts/autotracking/archipelago.lua) returned as soon as the received id had no ITEM_MAPPING
+  entry, BEFORE the TRACKER_GROUPS expansion. Simple Bed's mapping is commented out (the pack has no icon
+  for it), so the whole group was dropped. Any of the ~300 unmapped ids could do this as a group rep.
+- Also: the expansion only ran with engrams_per_item / tames_per_item above 1, though tracker_groups also
+  carries structure/mod bundles, variant pairs and bundled saddles.
+- Fix: two replace entries in tools/reference/poptracker_pack_fixes.json - an unmapped id falls through
+  to the group expansion, and the expansion runs whenever slot_data tracker_groups is non-empty.
+  The live slot (engrams_per_item 1) still carries 242 groups, so the old gate really was off.
+  Verified live: Mortar lit after reconnect; the tracker log now prints
+  `ArkAP tracker: tracker_groups=N active=...` per connect and `item X unlocked group of N` per group.
+- Same day: Clay stayed dark though it was RECEIVED directly. The pack has the icon but no id maps to
+  it. Audit (every unmapped engrams.json id vs an items.json icon of the same name) found 10:
+  Clay 8730615, Tent 8730616, Raft 8730081, Propellant 8730119, Wind Turbine 8730650 (only the mod
+  variant 8810434 was mapped), and the Desert Cloth Shirt/Pants/Goggles Helmet/Gloves/Boots set
+  8730637/638/641/642/643 (pack names drop "Cloth"). All added via new_items.
+
 ## Fix pending live test 2026-11-05 (plugin v203): "sent X to Y" line gave no reason
 
 - Our own unlocks lead with the check that earned them ("<location> unlocked for everyone: ...").

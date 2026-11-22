@@ -10,42 +10,115 @@
   ],
   "ragnarok": {
     "tames": {
-      "Griffin": ["$BowKO", "$CrossbowKO"],
+      "Griffin": [
+        "$BowKO",
+        "$CrossbowKO"
+      ],
       "Mantis": [
         "@Ragnarok/Deathworm/Kill a Deathworm, $BowKO",
         "@Ragnarok/Deathworm/Kill a Deathworm, $CrossbowKO",
         "@Dinos/Woolly Rhino/Kill a Woolly Rhino, $BowKO",
         "@Dinos/Woolly Rhino/Kill a Woolly Rhino, $CrossbowKO"
       ],
-      "Lymantria": ["$BowKO", "$CrossbowKO"],
-      "Rock Elemental": ["cannon, cannon_ball", "rocket_launcher, rocket_ammo"],
-      "Thorny Dragon": ["$BowKO", "$CrossbowKO"],
-      "Vulture": ["$BowKO", "$CrossbowKO"],
-      "Wyvern": ["$BowKO", "$CrossbowKO"],
-      "Morellatops": ["$BowKO", "$CrossbowKO"],
-      "Jerboa": [""]
+      "Lymantria": [
+        "$BowKO",
+        "$CrossbowKO"
+      ],
+      "Rock Elemental": [
+        "cannon, cannon_ball",
+        "rocket_launcher, rocket_ammo"
+      ],
+      "Thorny Dragon": [
+        "$BowKO",
+        "$CrossbowKO"
+      ],
+      "Vulture": [
+        "$BowKO",
+        "$CrossbowKO"
+      ],
+      "Wyvern": [
+        "$BowKO",
+        "$CrossbowKO"
+      ],
+      "Morellatops": [
+        "$BowKO",
+        "$CrossbowKO"
+      ],
+      "Jerboa": [
+        ""
+      ]
     },
     "kills": {
-      "Deathworm": ["$StrongFightTames", "$InsaneFightTames",
-                    "@Dinos/Megatherium/Tame a Megatherium"],
-      "Griffin": ["$UseArrows", "$MediumFightTames", "$StrongFightTames", "$InsaneFightTames"],
-      "Jugbug": [""],
-      "Mantis": ["$UseArrows", "$MediumFightTames", "$StrongFightTames", "$InsaneFightTames"],
-      "Lymantria": [""],
-      "Rock Elemental": ["@Dinos/Thylacoleo/Tame a Thylacoleo", "$StrongFightTames",
-                         "$InsaneFightTames", "grenade", "rocket_launcher, rocket_ammo"],
-      "Thorny Dragon": ["$UseArrows", "$MediumFightTames", "$StrongFightTames",
-                        "$InsaneFightTames"],
-      "Vulture": ["$UseArrows", "$MediumFightTames", "$StrongFightTames", "$InsaneFightTames"],
-      "Wyvern": ["$UseShotgun", "$StrongFightTames", "$InsaneFightTames"],
-      "Morellatops": ["$UseMelee", "$UseArrows", "$MediumFightTames", "$StrongFightTames",
-                      "$InsaneFightTames"],
-      "Jerboa": [""]
+      "Deathworm": [
+        "$StrongFightTames",
+        "$InsaneFightTames",
+        "@Dinos/Megatherium/Tame a Megatherium"
+      ],
+      "Griffin": [
+        "$UseArrows",
+        "$MediumFightTames",
+        "$StrongFightTames",
+        "$InsaneFightTames"
+      ],
+      "Jugbug": [
+        ""
+      ],
+      "Mantis": [
+        "$UseArrows",
+        "$MediumFightTames",
+        "$StrongFightTames",
+        "$InsaneFightTames"
+      ],
+      "Lymantria": [
+        ""
+      ],
+      "Rock Elemental": [
+        "@Dinos/Thylacoleo/Tame a Thylacoleo",
+        "$StrongFightTames",
+        "$InsaneFightTames",
+        "grenade",
+        "rocket_launcher, rocket_ammo"
+      ],
+      "Thorny Dragon": [
+        "$UseArrows",
+        "$MediumFightTames",
+        "$StrongFightTames",
+        "$InsaneFightTames"
+      ],
+      "Vulture": [
+        "$UseArrows",
+        "$MediumFightTames",
+        "$StrongFightTames",
+        "$InsaneFightTames"
+      ],
+      "Wyvern": [
+        "$UseShotgun",
+        "$StrongFightTames",
+        "$InsaneFightTames"
+      ],
+      "Morellatops": [
+        "$UseMelee",
+        "$UseArrows",
+        "$MediumFightTames",
+        "$StrongFightTames",
+        "$InsaneFightTames"
+      ],
+      "Jerboa": [
+        ""
+      ]
     },
     "locations": {
-      "Killed: Alpha Fire Wyvern": ["$StrongFightTames", "$InsaneFightTames"],
-      "Alpha Wyvern Trophy": ["$StrongFightTames", "$InsaneFightTames"],
-      "Dossier: Griffin": ["@Ragnarok/Griffin/Tame a Griffin"]
+      "Killed: Alpha Fire Wyvern": [
+        "$StrongFightTames",
+        "$InsaneFightTames"
+      ],
+      "Alpha Wyvern Trophy": [
+        "$StrongFightTames",
+        "$InsaneFightTames"
+      ],
+      "Dossier: Griffin": [
+        "@Ragnarok/Griffin/Tame a Griffin"
+      ]
     },
     "artifacts": {
       "_caves": {
@@ -65,75 +138,210 @@
       "_no_cave_tab": [],
       "_positions": {
         "_source": "ark.wiki.gg/wiki/Artifact_of_the_<Name>, ASE Ragnarok row, the ARTIFACT lat/lon (not the entrance). Fetched 2026-09-16.",
-        "Hunter": [21.5, 27.2],
-        "Pack": [33.5, 43.4],
-        "Massive": [48.9, 79.4],
-        "Devious": [49.0, 79.4],
-        "Clever": [48.0, 78.6],
-        "Skylord": [47.7, 78.9],
-        "Devourer": [47.4, 2.3],
-        "Immune": [23.6, 44.5],
-        "Strong": [24.8, 24.7],
-        "Cunning": [20.3, 45.9],
-        "Brute": [35.2, 78.2]
+        "Hunter": [
+          21.5,
+          27.2
+        ],
+        "Pack": [
+          33.5,
+          43.4
+        ],
+        "Massive": [
+          48.9,
+          79.4
+        ],
+        "Devious": [
+          49.0,
+          79.4
+        ],
+        "Clever": [
+          48.0,
+          78.6
+        ],
+        "Skylord": [
+          47.7,
+          78.9
+        ],
+        "Devourer": [
+          47.4,
+          2.3
+        ],
+        "Immune": [
+          23.6,
+          44.5
+        ],
+        "Strong": [
+          24.8,
+          24.7
+        ],
+        "Cunning": [
+          20.3,
+          45.9
+        ],
+        "Brute": [
+          35.2,
+          78.2
+        ]
       },
       "_cave_pins": {
         "_source": "Pixel positions on the cave's own map image (poptracker_art/maps/<Map>_<Cave>.png). Life's Labyrinth: read off the artifact icons on the map Justin supplied 2026-11-10 (2000x1985 high-res version, ARK Patch 276; original in _source/maps/Ragnarok_Life_s_Labyrinth.jpg). The others: written by tools/cave_maps_to_poptracker.py from the /aptrail cave renders (build/caves/<cave>.json pins). Devourer: Pit of Dreen is no cave, its tab is the user's in-game GPS screenshot (_source/maps/Ragnarok_Pit_of_Dreen_gps.webp) with a title box; the pin sits in that box. A cave listed here gets one pin per artifact on its tab instead of one shared pin.",
         "_size": 24,
-        "Clever": [1005, 264],
-        "Skylord": [1133, 155],
-        "Devious": [1371, 660],
-        "Massive": [1375, 694],
-        "Pack": [2341, 621],
-        "Hunter": [965, 1697],
-        "Strong": [876, 1031],
-        "Cunning": [2156, 784],
-        "Immune": [2007, 1143],
-        "Brute": [1836, 1045],
-        "Devourer": [823, 143]
+        "Clever": [
+          1005,
+          264
+        ],
+        "Skylord": [
+          1133,
+          155
+        ],
+        "Devious": [
+          1371,
+          660
+        ],
+        "Massive": [
+          1375,
+          694
+        ],
+        "Pack": [
+          2341,
+          621
+        ],
+        "Hunter": [
+          965,
+          1697
+        ],
+        "Strong": [
+          876,
+          1031
+        ],
+        "Cunning": [
+          2156,
+          784
+        ],
+        "Immune": [
+          2007,
+          1143
+        ],
+        "Brute": [
+          1836,
+          1045
+        ],
+        "Devourer": [
+          823,
+          143
+        ]
       },
-      "Hunter": ["$UseGrapple"],
-      "Brute": [""],
-      "Cunning": ["$UseGrapple", "climbing_pick"],
-      "Immune": ["$UseGrapple", "climbing_pick"],
-      "Pack": ["$EnterSnow", "$SnowMountains"],
-      "Clever": ["climbing_pick, scuba_tank", "$UseGrapple, scuba_tank",
-                 "@Dinos/Archaeopteryx/Tame an Archaeopteryx, scuba_tank"],
-      "Skylord": ["climbing_pick, scuba_tank", "$UseGrapple, scuba_tank",
-                  "@Dinos/Archaeopteryx/Tame an Archaeopteryx, scuba_tank"],
-      "Devious": ["climbing_pick, scuba_tank", "$UseGrapple, scuba_tank",
-                  "@Dinos/Archaeopteryx/Tame an Archaeopteryx, scuba_tank"],
-      "Massive": ["climbing_pick, scuba_tank", "$UseGrapple, scuba_tank",
-                  "@Dinos/Archaeopteryx/Tame an Archaeopteryx, scuba_tank"],
-      "Strong": [""],
-      "Devourer": ["@Dinos/Basilosaurus/Tame a Basilosaurus",
-                   "@Dinos/Megalodon/Tame a Megalodon", "$DeepDive"]
+      "Hunter": [
+        "$UseGrapple"
+      ],
+      "Brute": [
+        ""
+      ],
+      "Cunning": [
+        "$UseGrapple",
+        "climbing_pick"
+      ],
+      "Immune": [
+        "$UseGrapple",
+        "climbing_pick"
+      ],
+      "Pack": [
+        "$EnterSnow",
+        "$SnowMountains"
+      ],
+      "Clever": [
+        "climbing_pick, scuba_tank",
+        "$UseGrapple, scuba_tank",
+        "@Dinos/Archaeopteryx/Tame an Archaeopteryx, scuba_tank"
+      ],
+      "Skylord": [
+        "climbing_pick, scuba_tank",
+        "$UseGrapple, scuba_tank",
+        "@Dinos/Archaeopteryx/Tame an Archaeopteryx, scuba_tank"
+      ],
+      "Devious": [
+        "climbing_pick, scuba_tank",
+        "$UseGrapple, scuba_tank",
+        "@Dinos/Archaeopteryx/Tame an Archaeopteryx, scuba_tank"
+      ],
+      "Massive": [
+        "climbing_pick, scuba_tank",
+        "$UseGrapple, scuba_tank",
+        "@Dinos/Archaeopteryx/Tame an Archaeopteryx, scuba_tank"
+      ],
+      "Strong": [
+        ""
+      ],
+      "Devourer": [
+        "@Dinos/Basilosaurus/Tame a Basilosaurus",
+        "@Dinos/Megalodon/Tame a Megalodon",
+        "$DeepDive"
+      ]
     },
     "boss_pairs": {
       "Dragon & Manticore": {
-        "members": ["Dragon", "Manticore"],
+        "members": [
+          "Dragon",
+          "Manticore"
+        ],
         "_note": "Both spawn together in one arena, so they are one tracker entry. per_member: one row per boss, any difficulty (user 2026-11-17: 'Kill Dragon(Any Difficulty) and Kill Manticore(Any Difficulty)'); boss kills are goal progress, not item checks.",
         "per_member": true,
-        "artifacts": ["artifact_clever", "artifact_cunning", "artifact_devious",
-                      "artifact_devourer", "artifact_hunter", "artifact_immune",
-                      "artifact_massive", "artifact_pack", "artifact_skylord",
-                      "artifact_strong"]
+        "artifacts": [
+          "artifact_clever",
+          "artifact_cunning",
+          "artifact_devious",
+          "artifact_devourer",
+          "artifact_hunter",
+          "artifact_immune",
+          "artifact_massive",
+          "artifact_pack",
+          "artifact_skylord",
+          "artifact_strong"
+        ]
       }
     },
-    "boss_combat": ["$StrongFightTames", "$InsaneFightTames"],
+    "boss_combat": [
+      "$StrongFightTames",
+      "$InsaneFightTames"
+    ],
     "attach": {
       "_comment": "Checks the pack has no section for, placed on an existing object. The pack already labels our VERY-HIGH checks 'High/Max Level Dino', so the true level-cap checks get a distinct label.",
-      "Tame a max-level creature": ["Milestones/Tame Creatures", "Tame a Level Cap Dino"],
-      "Kill a max-level creature": ["Milestones/Kill Creatures", "Kill a Level Cap Dino"]
+      "Tame a max-level creature": [
+        "Milestones/Tame Creatures",
+        "Tame a Level Cap Dino"
+      ],
+      "Kill a max-level creature": [
+        "Milestones/Kill Creatures",
+        "Kill a Level Cap Dino"
+      ]
     },
     "new_items": {
       "_comment": "Codes the rules above need that the pack has no item for. Ids are ours.",
-      "cannon": {"id": 8730254, "name": "Engram - Cannon"},
-      "cannon_ball": {"id": 8730255, "name": "Engram - Cannon Ball"},
-      "rocket_launcher": {"id": 8730366, "name": "Engram - Rocket Launcher"},
-      "rocket_ammo": {"id": 8730367, "name": "Engram - Rocket Ammo"},
-      "climbing_pick": {"id": 8730495, "name": "Engram - Climbing Pick"},
-      "artifact_devious": {"id": null, "name": "Artifact - Devious", "_note": "no AP item: ticked by the Artifact: Devious check (8757409), like the other artifacts"}
+      "cannon": {
+        "id": 8730254,
+        "name": "Engram - Cannon"
+      },
+      "cannon_ball": {
+        "id": 8730255,
+        "name": "Engram - Cannon Ball"
+      },
+      "rocket_launcher": {
+        "id": 8730366,
+        "name": "Engram - Rocket Launcher"
+      },
+      "rocket_ammo": {
+        "id": 8730367,
+        "name": "Engram - Rocket Ammo"
+      },
+      "climbing_pick": {
+        "id": 8730495,
+        "name": "Engram - Climbing Pick"
+      },
+      "artifact_devious": {
+        "id": null,
+        "name": "Artifact - Devious",
+        "_note": "no AP item: ticked by the Artifact: Devious check (8757409), like the other artifacts"
+      }
     }
   },
   "valguero": {
@@ -141,14 +349,62 @@
       "_cave_pins": {
         "_source": "Pixel positions on the cave's own map image (poptracker_art/maps/Valguero_<Cave>.png). The Lost Temple: read off the artifact icons on the map the user supplied 2026-11-17 (1024x981, ARK Patch 297; original in _source/maps/Valguero_The_Lost_Temple.webp). The Lair: read off the artifact icons on the map the user supplied 2026-11-17 (1024x896, ARK Patch 297.2; original in _source/maps/Valguero_The_Lair.webp, an earlier 400x350 copy beside it as Valguero_The_Lair_small.png). Snow Mountains (Cunning) and The Great Trench (Skylord): written by tools/cave_maps_to_poptracker.py from the /aptrail cave renders (build/caves/<cave>.json pins). Jungle (Destroyer): no cave, its tab is the user's in-game GPS screenshot 61.0 / 89.1 (_source/maps/Valguero_Jungle_gps.webp) with a title box; the pin sits in that box. A cave listed here gets one pin per artifact on its tab instead of one shared pin.",
         "_size": 20,
-        "Brute": [490, 705],
-        "Devourer": [765, 826],
-        "Destroyer": [900, 185],
-        "Pack": [805, 110],
-        "Strong": [445, 397],
-        "Immune": [345, 682],
-        "Cunning": [1373, 347],
-        "Skylord": [1298, 756]
+        "Brute": [
+          490,
+          705
+        ],
+        "Devourer": [
+          765,
+          826
+        ],
+        "Destroyer": [
+          900,
+          185
+        ],
+        "Pack": [
+          805,
+          110
+        ],
+        "Strong": [
+          445,
+          397
+        ],
+        "Immune": [
+          345,
+          682
+        ],
+        "Cunning": [
+          1373,
+          347
+        ],
+        "Skylord": [
+          1298,
+          756
+        ],
+        "Gatekeeper": [
+          1195,
+          1517
+        ],
+        "Crag": [
+          2075,
+          614
+        ]
+      }
+    }
+  },
+  "center": {
+    "artifacts": {
+      "_cave_pins": {
+        "_source": "Pixel positions on the cave's own map image (poptracker_art/maps/The_Center_<Cave>.png). North Ice Cave: read off the artifact icons on the map the user supplied 2026-11-19 (800x876, ARK Patch 297.2; original in _source/maps/The_Center_North_Ice_Cave.webp). Clever is in the lower part, Devourer in the top part.",
+        "_size": 20,
+        "Clever": [
+          238,
+          560
+        ],
+        "Devourer": [
+          302,
+          401
+        ]
       }
     }
   }

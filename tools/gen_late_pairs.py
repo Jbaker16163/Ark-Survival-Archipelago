@@ -38,6 +38,12 @@ RENAMES = [
 PILLAR_SIZES = re.compile(r"^(?:Small|Medium|Large|Dynamic) (?=Pillar )")
 # Mods to build a table for (the building mods; utility mods have no material pieces).
 MODS = ["731604991"]
+# Hand pairs for mod structures with no base-game twin by name: mod ap_name -> base ap_name it
+# unlocks with. The S+ Crafting Station replaces the Smithy (Justin's call, 2026-11-21), so owning
+# the Smithy (Anvil Bench) unlocks it. /aplatemod only; seeds with S+ keep it its own item.
+HAND_PAIRS = {
+    "731604991": {"Engram: SPlus Crafting Station": "Engram: Anvil Bench"},
+}
 
 
 def load(path):
@@ -115,6 +121,12 @@ def main():
                                                  "" if not vs else "  (forks: %s)" % ",".join(vs)))
             else:
                 locked.append(nm.replace("Engram: ", "") + (" [ambiguous: %d]" % len(hits) if hits else ""))
+        by_name = {e["ap_name"]: e for e in mod["engrams"]}
+        for mnm, bnm in HAND_PAIRS.get(mod_id, {}).items():
+            if mnm not in by_name or bnm not in vanilla:
+                raise SystemExit("HAND_PAIRS: %s -> %s not found" % (mnm, bnm))
+            pairs[str(by_name[mnm]["id"])] = vanilla[bnm]["id"]
+            print("  hand  %-36s -> %s" % (mnm.replace("Engram: ", ""), bnm.replace("Engram: ", "")))
         out[mod_id] = pairs
         print("%s: %d pairs, %d material pieces with no single base twin (stay locked):"
               % (mod_id, len(pairs), len(locked)))

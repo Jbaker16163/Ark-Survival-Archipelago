@@ -69,6 +69,8 @@ FLOOR_MIN_SPAN = 2000   # the colour scale spans at least 20 m (a flat cave keep
 FLOOR_LEVEL_MIN = 300   # a height layer is at least 3 m: in a nearly flat cave (Snow Mountains, 8 m;
                         # The Monkey's Puzzle, 7 m) ten layers were under 1 m each, so every bump of
                         # the floor got its own dark outline and the map looked choppy (2026-11-18)
+FLOOR_LEDGE = 500       # a layer's dark rim is drawn over lower floor only when that floor is >5 m (and
+                        # more than one layer step) lower
 FLOOR_LEVELS = 10       # the floor is drawn in this many height layers, lowest first, each with its
                         # dark edge: a higher passage over a lower one gets a rim, a slope gets steps
 FLOOR_EDGE = (52, 44, 34)
@@ -490,15 +492,21 @@ def fit_anchors(pairs):
 #     {"op": "hide_mark", "label": "...", "x": 0, "y": 0},
 #     {"op": "add_mark", "label": "Red Cave Crate", "x": 0, "y": 0},
 #     {"op": "route", "artifact": "Hunter", "from": "Flyer Entrance", "pts": [[x, y], ...]}]}
+# A top-level "where": "Irradiated zone, Aberrant region" is printed after the map name under the
+# title (the editor's "Where" box).
 # A top-level "swim_is": "lava" draws everything swum through as LAVA instead of water (a cave
 # whose "water" is lava you cross on a mount, like Valguero's Great Trench). Set by the editor's
 # "Swim = lava" checkbox.
 # erase removes recorded trail points (the line breaks there); erase_line only takes the pathway
-# line off there (the floor stays); lava/water/floor paint the map;
+# line off there (the floor stays); lava/water/floor paint the map (lava/water cover walked floor
+# too; strokes apply in order, so a later floor stroke shows over an earlier lava one);
 # add_mark places a mark (a crate, a note) like /aptrail mark would; route is a pathway drawn by
 # hand (for a route that was never recorded right) - drawn like a recorded one, no floor under it.
+# A route with "join": true bridges a gap in the recorded route of the same artifact + entrance
+# (e.g. a grappling hook swing recorded while paused): same line, no extra legend row.
 PAINT_OPS = ("lava", "water", "floor")
 SWIM_IS_LAVA = False          # set by load_edits from the edits file's "swim_is"
+CAVE_WHERE = ""               # set by load_edits from the edits file's "where" (shown under the map name)
 FLY_GROUND_SNAP = None        # world units, or None: a flight this close to recorded ground is
                               # floored at that ground's height (None = always the nearest ground,
                               # the user's rule 2026-11-18: "closest thing that was captured")
@@ -519,8 +527,8 @@ def default_edits_path(paths, heads):
 
 def load_edits(path):
     """-> list of well-formed edits (anything malformed is skipped)."""
-    global SWIM_IS_LAVA
-    SWIM_IS_LAVA = False
+    global SWIM_IS_LAVA, CAVE_WHERE
+    SWIM_IS_LAVA, CAVE_WHERE = False, ""
     if not path or not os.path.isfile(path):
         return []
     try:
@@ -562,6 +570,8 @@ def load_edits(path):
         print("  WARNING %d malformed edit(s) ignored" % skipped)
     print("  edits: %d from %s" % (len(good), os.path.basename(path)))
     SWIM_IS_LAVA = isinstance(raw, dict) and raw.get("swim_is") == "lava"
+    if isinstance(raw, dict) and isinstance(raw.get("where"), str):
+        CAVE_WHERE = raw["where"].strip()
     if SWIM_IS_LAVA:
         print("  swim_is lava: everything swum through is drawn as lava")
     return good
@@ -715,6 +725,19 @@ def apply_edits(edits, segs, routes, marks):
             part = [{"x": x, "y": y, "z": nearest_z(x, y, segs, walked_marks), "m": 1, "c": False,
                      "k": "walk"} for x, y in e["pts"]]
             wire_on_drawn(part, segs)
+            # "join": true = a gap in a RECORDED route (a grappling hook swing recorded while paused)
+            # bridged by hand: added to that route's line, no new legend row, distance unchanged
+            host = e.get("join") and next((r for r in routes if not r.get("drawn")
+                                           and r["artifact"].lower() == e["artifact"].lower()
+                                           and r["from"].lower() == e["from"].lower()), None)
+            if host:
+                for q in part:
+                    q["join"] = True            # a swing through the air: no floor under it
+                host["parts"].append(part)
+                continue
+            if e.get("join"):
+                print("  edits: join route %s from %s - no recorded route like that, drawn on its own"
+                      % (e["artifact"], e["from"] or "?"))
             routes.append({"artifact": e["artifact"], "from": e["from"], "parts": [part],
                            "file": "hand edit", "drawn": True,
                            "distance": sum(math.dist((a["x"], a["y"]), (b["x"], b["y"]))
@@ -913,7 +936,8 @@ def main(argv=None):
     # at least this wide on the picture, so a passage is visible - but on a big cave a fixed wide
     # minimum (it was big // 90, 35 m on Carnivorous Caverns) merges every passage into one blob
     fw = max(big // 200, int(args.corridor * s))
-    walks = segs + [q for r in routes if not r.get("drawn") for q in r["parts"]]   # drawn: no floor
+    walks = segs + [q for r in routes if not r.get("drawn") for q in r["parts"]   # drawn: no floor
+                    if not all(p.get("join") for p in q)]       # nor under a joined swing
     walk_kinds = [classify(w) for w in walks]
     # the colour scale spans the FLOOR's heights (not flights, which would squash it), 1st to 99th
     # percentile so one odd sample does not either
@@ -1027,7 +1051,7 @@ def main(argv=None):
     walked = [p for w, ks in zip(walks, walk_kinds) for i, p in enumerate(w)
               if (ks[min(i, len(ks) - 1)] if ks else "path") not in ("fly", "wire") and not p.get("hide")]
     walked = walked or [p for w in walks for p in w]
-    paint_rgb, paint_lv = None, None
+    paint_rgb, paint_lv, paint_z = None, None, None
     if floor_paint and walked:
         import numpy as np
         pm = Image.new("L", canvas.size, 0)
@@ -1053,6 +1077,8 @@ def main(argv=None):
         lv = np.full((canvas.size[1], canvas.size[0]), 255, dtype=np.uint8)
         lv[ys, xs] = np.clip(((Z[idx] - zf0) / lstep).astype(int), 0, FLOOR_LEVELS - 1)
         paint_rgb, paint_lv = Image.fromarray(rgb, "RGB"), lv
+        paint_z = np.full((canvas.size[1], canvas.size[0]), np.nan, dtype=np.float32)
+        paint_z[ys, xs] = Z[idx]
 
     def paint_mask(L):
         if paint_lv is None or not (paint_lv == L).any():
@@ -1090,10 +1116,57 @@ def main(argv=None):
         return Image.fromarray(np.asarray(colour)[iy, ix], "RGB")
 
     def grow(im, n, shrink=False):
+        # Round: a mask grows / shrinks by a DISC of radius n (distance transform). Repeating a 3x3
+        # Max/MinFilter grows by a SQUARE, which left stair-step edges and square holes in the
+        # floor (Boreal Forest, 2026-11-19). The filter is only the fallback (no scipy, RGB image).
+        if im.mode == "L" and n > 0:
+            try:
+                import numpy as np
+                from scipy.ndimage import distance_transform_edt
+                a = np.asarray(im) > 127
+                if shrink:
+                    out = distance_transform_edt(a) > n
+                else:
+                    out = (distance_transform_edt(~a) <= n) if a.any() else a
+                return Image.fromarray(out.astype("uint8") * 255, "L")
+            except ImportError:
+                pass
         f = ImageFilter.MinFilter(3) if shrink else ImageFilter.MaxFilter(3)
         for _ in range(n):
             im = im.filter(f)
         return im
+
+    # The dark rim round a height layer is only drawn where it is a real edge: against the
+    # background, or over floor more than FLOOR_LEDGE lower (a passage over another one, a drop).
+    # Where a slope just runs on from one layer into the next it is the same floor, and a rim there
+    # cut every sloped passage into bands with dark lines across it, plus a little ring round any
+    # single sample in the next layer (Boreal Forest, 2026-11-19: "why does it look choppy").
+    # zmap = height of the floor drawn so far, per pixel (NaN = nothing yet).
+    try:
+        import numpy as np
+        from scipy.ndimage import distance_transform_edt as _edt
+        zmap = np.full((H_, W_), np.nan, dtype=np.float32)
+        wetmap = np.zeros((H_, W_), dtype=bool)     # floor drawn so far that is water / lava
+    except ImportError:
+        zmap = None
+
+    def nearest_z(za, mask):
+        """za's value where mask is set; elsewhere the value at the nearest masked pixel."""
+        m = np.asarray(mask) > 0
+        if not m.any():
+            return za.astype(np.float32)
+        iy, ix = _edt(~m, return_distances=False, return_indices=True)
+        return za[iy, ix].astype(np.float32)
+
+    def ledge_only(edge, zthis, box, wthis):
+        """edge mask kept only on background, between floor and water/lava, or over floor lower
+        than this layer by FLOOR_LEDGE."""
+        e = np.asarray(edge) > 0
+        below = zmap[box[1]:box[3], box[0]:box[2]]
+        wet = wetmap[box[1]:box[3], box[0]:box[2]]
+        keep = e & (np.isnan(below) | (wet != wthis) |
+                    (zthis - np.nan_to_num(below, nan=-1e12) > max(FLOOR_LEDGE, lstep)))
+        return Image.fromarray(keep.astype("uint8") * 255, "L")
 
     for L in range(FLOOR_LEVELS):
         layer = Image.new("RGB", canvas.size, (0, 0, 0))
@@ -1102,6 +1175,11 @@ def main(argv=None):
         mc = ImageDraw.Draw(mask)
         band(lambda p, k: SWIM_FLOOR if k == "water" else floor_colour(ht(fz(p))), fw, only=L, target=lc)
         band(lambda p, k: 255, fw, only=L, target=mc)
+        if zmap is not None:
+            zl = Image.new("F", canvas.size, 0.0)
+            band(lambda p, k: float(fz(p)), fw, only=L, target=ImageDraw.Draw(zl))
+            wl = Image.new("L", canvas.size, 0)         # where this layer is water / lava (swum)
+            band(lambda p, k: 255 if k == "water" else 0, fw, only=L, target=ImageDraw.Draw(wl))
         box = mask.getbbox()
         if box:
             pad = close_px + ring_px + 4
@@ -1113,10 +1191,18 @@ def main(argv=None):
             # gap came out pink - 196,78,118 - Great Trench 2026-11-18.)
             filled = nearest_fill(l0, m0)
             edge = grow(closed, ring_px)
+            if zmap is not None:
+                zfill = nearest_z(np.asarray(zl.crop(box)), m0)
+                wfill = nearest_z(np.asarray(wl.crop(box)), m0) > 0
+                edge = ledge_only(edge, zfill, box, wfill)
             canvas.paste(FLOOR_EDGE, (box[0], box[1], box[2], box[3]), edge)
         pmL = paint_mask(L)                     # painted floor gets the same dark edge as a walk
         if pmL is not None:
-            canvas.paste(FLOOR_EDGE, (0, 0), grow(pmL, max(2, fw // 10)))
+            pedge = grow(pmL, max(2, fw // 10))
+            if zmap is not None and paint_z is not None:
+                pzf = nearest_z(np.nan_to_num(paint_z), pmL)
+                pedge = ledge_only(pedge, pzf, (0, 0, W_, H_), np.zeros((H_, W_), dtype=bool))
+            canvas.paste(FLOOR_EDGE, (0, 0), pedge)
         for room, zm in zip(rooms, room_z):
             if level(zm) != L:
                 continue
@@ -1135,8 +1221,30 @@ def main(argv=None):
                          width=max(3, fw // 6) if room["fill"] != "floor" else 1)
         if pmL is not None:
             canvas.paste(paint_rgb, (0, 0), pmL)
+            if zmap is not None and paint_z is not None:
+                pm_ = np.asarray(pmL) > 0
+                zmap[pm_] = paint_z[pm_]
+                wetmap[pm_] = False
         if box:
             canvas.paste(filled, (box[0], box[1]), closed)
+            if zmap is not None:
+                c_ = np.asarray(closed) > 0
+                zmap[box[1]:box[3], box[0]:box[2]][c_] = zfill[c_]
+                wetmap[box[1]:box[3], box[0]:box[2]][c_] = wfill[c_]
+
+    # Hand-painted lava / water ALSO goes on top of the walked floor, so painting lava over a patch
+    # of land turns it into lava (Boreal Forest, 2026-11-19: "I painted lava there but it isn't
+    # showing over the land"). In edit order: a floor stroke painted after a lava stroke wins again.
+    if any(e["op"] in ("lava", "water") for e in paints):
+        after_hazard = False
+        for e in paints:
+            if e["op"] in ("lava", "water"):
+                after_hazard = True
+                paint(e, LAVA_FLOOR if e["op"] == "lava" else WATER_FLOOR)
+            elif e["op"] == "floor" and after_hazard and paint_rgb is not None:
+                m_ = Image.new("L", canvas.size, 0)
+                paint(e, 255, target=ImageDraw.Draw(m_))
+                canvas.paste(paint_rgb, (0, 0), m_)
 
     # /aptrail wire: a 1 m strip, drawn after the whole floor so a passage underneath can never
     # cover it, with the striped line on top
@@ -1369,7 +1477,8 @@ def main(argv=None):
         title = args.title or " / ".join(caves)
         text(draw, (x, y), title, f_title, fill=(90, 175, 255))
         y += int(f_title.size * 1.25)
-        text(draw, (x, y), " / ".join(m.title() for m in maps_), f_leg, fill=(200, 200, 200))
+        text(draw, (x, y), " / ".join(m.title() for m in maps_) + (" - " + CAVE_WHERE if CAVE_WHERE else ""),
+             f_leg, fill=(200, 200, 200))
         y += int(f_leg.size * 2.0)
         sw = int(f_leg.size * 1.6)
         rows = []

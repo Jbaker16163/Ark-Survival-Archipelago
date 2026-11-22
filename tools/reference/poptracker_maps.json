@@ -33,7 +33,7 @@
       "Hunter": "Lava Oasis Cave", "Massive": "LavaCave", "Strong": "LavaCave",
       "Clever": "North Ice Cave", "Devourer": "North Ice Cave", "Cunning": "Cliffside Cavern",
       "Skylord": "South Ice Cave", "Immune": "Jungle Cave", "Pack": "Underground World",
-      "Brute": "Southeast Trench"
+      "Brute": "Eastern Trench"
     },
     "artifact_positions": {
       "_source": "ark.wiki.gg/wiki/Artifact_of_the_<Name>, Map Location table, The Center column: the red ARTIFACT marker (not the entrance). Fetched 2026-10-29.",

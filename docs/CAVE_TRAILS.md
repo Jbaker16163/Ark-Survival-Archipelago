@@ -113,8 +113,10 @@ The first word of `/aptrail mark` picks the symbol. The rest is shown next to it
 - **Floor height** is shown by colour: slate (lowest), brown, tan, sand, cream (highest). The
   scale covers that cave's own floor (flying is left out), at least 10 m, and the legend says its
   range in metres from the entrance (`Cave floor: -385 m to +0 m from the entrance`). The floor is
-  drawn in 10 height layers, lowest first, each with its dark edge: where a higher passage runs over
-  a lower one it has a dark rim, and a slope shows rims like steps, the higher side on top.
+  drawn in 10 height layers, lowest first. A dark rim is drawn against the background, between
+  floor and water/lava, and where a higher passage runs over floor more than 5 m (and more than one
+  layer) lower. A slope that just runs from one layer into the next gets no rim, so it reads as one
+  floor.
 - **Rooms vs passages:** each walk is drawn as a passage about 5 m wide (at least ~13 px on the
   picture). Passes walked side by side less than about 12 m apart are filled in as one room, so a
   room you criss-crossed reads as a room, while passages further apart stay separate.
@@ -224,6 +226,12 @@ editor straight away. Both work from any folder; Ctrl+C in the terminal stops it
 - **Swim = lava** (checkbox): everything swum through in this cave is drawn as lava instead of
   water, for a cave whose "water" is lava you cross on a mount (Valguero's Great Trench). Saved as
   `"swim_is": "lava"` in the edits file.
+- **Where** (text box): where the cave is, printed after the map name under the title (The
+  Unknown: "Irradiated zone, Aberrant region"). Saved as `"where"` in the edits file.
+- **Joining a route across a grappling hook swing:** a swing recorded while paused leaves a gap
+  in the route. A `route` edit with `"join": true` (same `artifact` and `from` as the recorded
+  route) is drawn as part of that route: no extra legend row, distance unchanged. Not in the
+  editor's tools yet; add it to the edits file by hand (Valguero Boreal Forest has three).
 - Pan with right-drag (or Space + drag), zoom with the mouse wheel, `0` fits the map.
 - **The recordings are never changed.** Edits are saved in world units beside them, as
   `trails/<map>/<cave>.edits.json` (the previous one is kept as `.edits.json.bak`), and

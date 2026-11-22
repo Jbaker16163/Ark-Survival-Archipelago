@@ -84,6 +84,7 @@
   </div>
   <label class="chk"><input type="checkbox" id="showEdits" checked> Show edits</label>
   <label class="chk" title="Draw everything swum through in this cave as lava, not water (the 'water' is lava you cross on a mount)"><input type="checkbox" id="swimLava"> Swim = lava</label>
+  <label class="chk" title="Where the cave is (shown under the map name), e.g. Irradiated zone, Aberrant region">Where <input type="text" id="where" size="28" placeholder="e.g. Aberrant region"></label>
   <div class="group">
     <button id="undo" title="Ctrl+Z">Undo</button>
     <button id="redo" title="Ctrl+Y">Redo</button>
@@ -145,6 +146,7 @@
     if (first) {
       edits = (ed.edits || []).map(e => Object.assign(e, { _saved: true }));
       $("swimLava").checked = ed.swim_is === "lava";
+      $("where").value = ed.where || "";
       const info = await fetch("info").then(r => r.json());
       $("title").textContent = "Edit: " + info.cave;
       document.title = info.cave + " - Cave Map Editor";
@@ -244,7 +246,7 @@
   function describe(e) {
     if (e.op === "hide_mark") return "Remove mark: " + (e.label || "?");
     if (e.op === "add_mark") return "Place: " + e.label;
-    if (e.op === "route") return "Pathway: " + e.artifact + (e.from ? " from " + e.from : "");
+    if (e.op === "route") return (e.join ? "Pathway join: " : "Pathway: ") + e.artifact + (e.from ? " from " + e.from : "");
     return NAME[e.op] + " " + (e.shape === "brush" ? "brush " + Math.round(e.width / 100) + " m" : "polygon");
   }
 
@@ -397,6 +399,7 @@
     const btn = $("save"); btn.disabled = true; setStatus("rendering...", true);
     const payload = { edits: edits.map(e => { const c = Object.assign({}, e); delete c._saved; return c; }) };
     if ($("swimLava").checked) payload.swim_is = "lava";
+    if ($("where").value.trim()) payload.where = $("where").value.trim();
     const body = JSON.stringify(payload);
     try {
       const res = await fetch("save", { method: "POST", headers: { "Content-Type": "application/json" }, body }).then(r => r.json());
@@ -438,6 +441,7 @@
   $("placeKind").onchange = () => setTool("place");
   $("showEdits").onchange = e => { showEdits = e.target.checked; draw(); };
   $("swimLava").onchange = () => markDirty();
+  $("where").oninput = () => markDirty();
   $("undo").onclick = undo; $("redo").onclick = redoIt; $("fit").onclick = fit; $("save").onclick = save;
   $("dl").onclick = () => {
     if (dirty && !confirm("You have unsaved edits. The PNG is the map as last saved. Download it anyway?")) return;
